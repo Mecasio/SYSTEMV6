@@ -13,13 +13,19 @@ const SideBar = ({ setIsAuthenticated }) => {
       <h2>Dashboard</h2>
       <ul>
         <li >
-          <Link to="/room_registration">Room Registration</Link>
+          <Link to="/dashboard">Dashboard</Link>
         </li>
         <li >
-          <Link to="/course_registration">Course Registration</Link>
+          <Link to="/room_registration">Room Management</Link>
         </li>
         <li >
           <Link to="/course_management">Course Management</Link>
+        </li>
+        <li >
+          <Link to="/department_section_panel">Department Section</Link>
+        </li>
+        <li >
+          <Link to="/section_panel">Faculty Management</Link>
         </li>
         <li >
           <Link to="/department_registration">Department Registration</Link>

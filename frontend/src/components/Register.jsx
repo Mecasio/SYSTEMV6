@@ -8,7 +8,6 @@ import {Visibility, VisibilityOff} from '@mui/icons-material';
 
 const Register = () => {
     const [usersData, setUserData] = useState({
-        username: '',
         email: '',
         password: '',
     });
@@ -23,7 +22,7 @@ const Register = () => {
     const handleRegister = async () => {
         try {
             await axios.post("http://localhost:5000/register", usersData);
-            setUserData({ username: '', email: '', password: '' });  // Reset the state correctly
+            setUserData({ email: '', password: '' });  // Reset the state correctly
         } catch (error) {
             console.error("Registration failed:", error);
         }
@@ -45,10 +44,6 @@ const Register = () => {
                         </div>
                     </div>
                     <div className="Body">
-                        <div className="TextField">
-                            <label htmlFor="username">Username</label>
-                            <input type="text" id="username" name="username" placeholder="Enter your email address" value={usersData.username} onChange={handleChanges}/>
-                        </div>
                         <div className="TextField">
                             <label htmlFor="email">Email Address</label>
                             <input type="text" id="email" name="email" placeholder="Enter your email address" value={usersData.email} onChange={handleChanges}/>

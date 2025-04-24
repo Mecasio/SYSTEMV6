@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import './App.css';
 import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import Register from './components/Register';
-import AdmissionDashboard from './pages/Adm_Dashboard';
 import Login from './components/Login';
 import EnrolledDashboard from './pages/Erlm_Dashboard';
 import StudentPage from './pages/Erlm_Student_Page';
@@ -12,7 +11,6 @@ import Footer from './components/Footer';
 import DepartmentRegistration from './components/DprtmntRegistration';
 import DepartmentRoom from './components/DprtmntRoom';
 import DepartmentProf from './components/DprtmntProf';
-import DepartmentCourse from './components/DprtmntCourse';
 import SideBar from './components/Sidebar';
 import ProgramTagging from './components/ProgramTagging';
 import CourseManagement from './components/CourseManagement';
@@ -23,10 +21,22 @@ import { Dashboard } from '@mui/icons-material';
 import SectionPanel from './components/SectionPanel';
 import DepartmentSection from './components/DepartmentSection';
 import ProtectedRoute from './components/ProtectedRoute';
-import CourseTagging from './components/CourseTagging';
 import LoginProf from './components/LoginProf';
 import RegisterProf from './components/RegisterProf';
 import FacultyDashboard from './components/FacultyDashboard';
+import StudentProfileForm from './components/StudentProfile';
+import YearLevelPanel from './components/YearLevelPanel';
+import YearPanel from './components/YearPanel';
+import YearUpdateForm from './components/YearUpdateForm';
+import SemesterPanel from './components/SemesterPanel';
+import SchoolYearPanel from './components/SchoolYearPanel';
+import SchoolYearActivatorPanel from './components/SchoolYearActivatorPanel';
+import AdmForm from './components/adm_form';
+import FamilyBackgroundForm from './components/FamilyBackground';
+import EducationalAttainmentForm from './components/EducationalAttainment';
+import ApplicantRequirement from './components/applicant_requirement';
+import ApplicantForm from './components/Applicant';
+import RequirementsForm from './components/RequirementsForm';
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -73,9 +83,7 @@ import FacultyDashboard from './components/FacultyDashboard';
                 <Route path="/login_prof" element={<LoginProf setIsAuthenticated={setIsAuthenticated}/>}/>
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
                 <Route path="/faculty_dashboard" element={<FacultyDashboard />}/>
-                <Route path="/room_registration" element={<ProtectedRoute><DepartmentRoom/></ProtectedRoute>}/>
-                <Route path="/course_tagging" element={<ProtectedRoute><CourseTagging /></ProtectedRoute>}/>
-                <Route path="/course_registration" element={<ProtectedRoute><DepartmentCourse/></ProtectedRoute>}/>
+                <Route path="/room_registration" element={<ProtectedRoute><DepartmentRoom/></ProtectedRoute>}/> {/* not final */}
                 <Route path="/course_management" element={<ProtectedRoute><CourseManagement/></ProtectedRoute>}/>
                 <Route path="/program_tagging" element={<ProtectedRoute><ProgramTagging/></ProtectedRoute>}/>
                 <Route path="/course_panel" element={<ProtectedRoute><CoursePanel/></ProtectedRoute>}/>
@@ -85,9 +93,21 @@ import FacultyDashboard from './components/FacultyDashboard';
                 <Route path="/department_registration" element={<ProtectedRoute><DepartmentRegistration/></ProtectedRoute>}/>
                 <Route path="/section_panel" element={<ProtectedRoute><SectionPanel/></ProtectedRoute>}/>
                 <Route path="/professor_registration" element={<ProtectedRoute><DepartmentProf/></ProtectedRoute>}/>
-                <Route path="/admission_dashboard" element={<ProtectedRoute><AdmissionDashboard /></ProtectedRoute>} />
                 <Route path="/enrollment_dashboard" element={<ProtectedRoute><EnrolledDashboard /></ProtectedRoute>} />
-                <Route path="/enrolled_student" element={<ProtectedRoute><StudentPage /></ProtectedRoute>} />
+                <Route path="/student_profile_form" element={<ProtectedRoute><StudentProfileForm /></ProtectedRoute>} />
+                <Route path="/year_level_panel" element={<ProtectedRoute><YearLevelPanel /></ProtectedRoute>} />
+                <Route path="/year_panel" element={<ProtectedRoute><YearPanel /></ProtectedRoute>} />
+                <Route path="/year_update_panel" element={<ProtectedRoute><YearUpdateForm /></ProtectedRoute>} />
+                <Route path="/semester_panel" element={<ProtectedRoute><SemesterPanel /></ProtectedRoute>} />
+                <Route path="/school_year_panel" element={<ProtectedRoute><SchoolYearPanel /></ProtectedRoute>} />
+                <Route path="/school_year_activator_panel" element={<ProtectedRoute><SchoolYearActivatorPanel /></ProtectedRoute>} />
+                <Route path="/student_page" element={<ProtectedRoute><StudentPage /></ProtectedRoute>} />
+                <Route path="/adm_form" element={<ProtectedRoute><AdmForm /></ProtectedRoute>} />
+                <Route path="/family_background" element={<ProtectedRoute><FamilyBackgroundForm /></ProtectedRoute>} />
+                <Route path="/educational_attainment_form" element={<ProtectedRoute><EducationalAttainmentForm /></ProtectedRoute>} />
+                <Route path="/applicant_requirement" element={<ProtectedRoute><ApplicantRequirement /></ProtectedRoute>} />
+                <Route path="/application_form" element={<ProtectedRoute><ApplicantForm /></ProtectedRoute>} />
+                <Route path="/requirements_form" element={<ProtectedRoute><RequirementsForm /></ProtectedRoute>} />
               </Routes>
             </main>
           </div>

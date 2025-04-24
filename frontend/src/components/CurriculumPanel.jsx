@@ -12,7 +12,7 @@ const CurriculumPanel = () => {
 
     const fetchYear = async () => {
         try{
-            const response = await axios.get('http://localhost:5000/year');
+            const response = await axios.get('http://localhost:5000/year_table');
             setYearList(response.data);
         }catch(err){
             console.log(err);

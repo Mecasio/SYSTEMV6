@@ -93,7 +93,7 @@ const SectionPanel = () => {
               {sections.map((section) => (
                 <TableRow key={section.id}>
                   <TableCell>{section.id}</TableCell>
-                  <TableCell>{section.section_description}</TableCell>
+                  <TableCell>{section.description}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
