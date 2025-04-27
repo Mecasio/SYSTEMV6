@@ -104,7 +104,7 @@ const SchoolYearPanel = () => {
                     </select>
                 </div>
 
-                <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+                <button type="submit" className="bg-maroon-500 text-white px-4 py-2 rounded">
                     Save
                 </button>
             </form>

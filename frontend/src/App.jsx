@@ -17,7 +17,6 @@ import CourseManagement from './components/CourseManagement';
 import CoursePanel from './components/CoursePanel';
 import ProgramPanel from './components/ProgramPanel';
 import CurriculumPanel from './components/CurriculumPanel';
-import { Dashboard } from '@mui/icons-material';
 import SectionPanel from './components/SectionPanel';
 import DepartmentSection from './components/DepartmentSection';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -37,6 +36,8 @@ import EducationalAttainmentForm from './components/EducationalAttainment';
 import ApplicantRequirement from './components/applicant_requirement';
 import ApplicantForm from './components/Applicant';
 import RequirementsForm from './components/RequirementsForm';
+import RoomManagement from './pages/RoomManagement';
+import Dashboard from './components/Dashboard';
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -83,6 +84,7 @@ import RequirementsForm from './components/RequirementsForm';
                 <Route path="/login_prof" element={<LoginProf setIsAuthenticated={setIsAuthenticated}/>}/>
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
                 <Route path="/faculty_dashboard" element={<FacultyDashboard />}/>
+                <Route path="/room_management" element={<ProtectedRoute><RoomManagement/></ProtectedRoute>}/> {/* not final */}
                 <Route path="/room_registration" element={<ProtectedRoute><DepartmentRoom/></ProtectedRoute>}/> {/* not final */}
                 <Route path="/course_management" element={<ProtectedRoute><CourseManagement/></ProtectedRoute>}/>
                 <Route path="/program_tagging" element={<ProtectedRoute><ProgramTagging/></ProtectedRoute>}/>

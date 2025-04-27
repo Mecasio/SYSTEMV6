@@ -59,12 +59,12 @@ const SchoolYearActivatorPanel = () => {
                             <td className="p-2 border">{sy.astatus === 1 ? "Active" : "Inactive"}</td>
                             <td className="p-2 border">
                                 <button
-                                    className={`px-3 py-1 rounded text-white ${
-                                        sy.activator === 1 ? "bg-red-600" : "bg-green-600"
+                                    className={`px-3 py-1 rounded text-white w-full ${
+                                        sy.astatus === 1 ? "bg-red-600" : "bg-green-600"
                                     }`}
                                     onClick={() => toggleActivator(sy.id, sy.astatus)}
                                 >
-                                    {sy.activator === 1 ? "Deactivate" : "Activate"}
+                                    {sy.astatus === 1 ? "Deactivate" : "Activate"}
                                 </button>
                             </td>
                         </tr>

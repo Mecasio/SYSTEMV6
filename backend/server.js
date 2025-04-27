@@ -1443,6 +1443,76 @@ app.get("/requirements", (req, res) => {
     });
 });
 
+// SCHEDULE CHECKER
+// app.post("/api/check-subject", async (req, res) => {
+//   const { section_id, school_year_id, prof_id, subject_id } = req.body;
+
+//   if (!section_id || !school_year_id || !subject_id) {
+//     return res.status(400).json({ error: "Missing required fields" });
+//   }
+
+//   const query = `
+//     SELECT * FROM schedule 
+//     WHERE section_id = ? AND school_year_id = ? AND subject_id = ?
+//   `;
+
+//   try {
+//     const [result] = await db.query(query, [section_id, school_year_id, subject_id]);
+
+//     if (result.length > 0) {
+//       return res.json({ exists: true });
+//     } else {
+//       return res.json({ exists: false });
+//     }
+//   } catch (error) {
+//     console.error("Database query error:", error);
+//     return res.status(500).json({ error: "Internal server error" });
+//   }
+// });
+
+// app.post("/api/check-conflict", async (req, res) => {
+//   const { day, start_time, end_time, section_id, school_year_id, prof_id, room_id, subject_id } = req.body;
+
+//   try {
+//     // Step 1: Check if the section + subject + school year is already assigned to another professor
+//     const checkSubjectQuery = `
+//       SELECT * FROM schedule 
+//       WHERE section_id = ? AND subject_id = ? AND school_year_id = ? AND prof_id != ? 
+//     `;
+//     const [subjectResult] = await db.query(checkSubjectQuery, [section_id, subject_id, school_year_id, prof_id]);
+
+//     if (subjectResult.length > 0) {
+//       return res.status(409).json({ conflict: true, message: "This subject is already assigned to another professor in this section and school year." });
+//     }
+
+//     // Step 2: Check for overlapping time conflicts
+//     const checkTimeQuery = `
+//       SELECT * FROM schedule 
+//       WHERE day = ? 
+//       AND school_year_id = ?
+//       AND (prof_id = ? OR section_id = ? OR room_id = ?) 
+//       AND (
+//         (? >= start_time AND ? < end_time) OR  -- New start time falls within existing schedule
+//         (? > start_time AND ? <= end_time) OR  -- New end time falls within existing schedule
+//         (start_time >= ? AND start_time < ?) OR  -- Existing start time falls within new schedule
+//         (end_time > ? AND end_time <= ?)  -- Existing end time falls within new schedule
+//       )
+//     `;
+
+//     const [timeResult] = await db.query(checkTimeQuery, [day, school_year_id, prof_id, section_id, room_id, start_time, start_time, end_time, end_time, start_time, end_time, start_time, end_time]);
+
+//     if (timeResult.length > 0) {
+//       return res.status(409).json({ conflict: true, message: "Schedule conflict detected! Please choose a different time." });
+//     }
+
+//     return res.status(200).json({ conflict: false, message: "Schedule is available." });
+//   } catch (error) {
+//     console.error("Database query error:", error);
+//     return res.status(500).json({ error: "Internal server error" });
+//   }
+// });
+
+
 /* ------------------------------------------- MIDDLE PART OF THE SYSTEM ----------------------------------------------*/
 
 app.listen(5000, () => {

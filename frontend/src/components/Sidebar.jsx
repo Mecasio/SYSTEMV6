@@ -1,5 +1,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Dashboard, Apartment, Business, LibraryBooks, People, PersonAdd, FactCheck, LogoutOutlined } from '@mui/icons-material';
+import UserProfile from '../assets/UserProfile.png'
+import '../styles/SideBar.css'
 
 const SideBar = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
@@ -9,41 +12,47 @@ const SideBar = ({ setIsAuthenticated }) => {
     navigate('/');
   }
   return (
-    <div>
-      <h2>Dashboard</h2>
-      <ul>
-        <li >
-          <Link to="/dashboard">Dashboard</Link>
+    <div className='h-full w-enough'>
+      <ul className='bg-maroon-500 h-full p-3 px-5 text-white w-full'>
+        <div className='flex items-center flex-col mt-8'>
+            <img src={UserProfile} className='h-24' />
+            <span className='mt-2'>Administrator</span>
+        </div>
+        <br />
+        <br />
+        <hr className='bg-white'/>
+        <br />
+        <li className='w-full flex items-center' >
+          <Dashboard/>
+          <span className='pl-4 p-2 px-0'><Link to="/dashboard">Dashboard</Link></span>
         </li>
-        <li >
-          <Link to="/room_registration">Room Management</Link>
+        <li className='w-full flex items-center'>
+          <Business />
+          <span className='pl-4 p-2 px-0'><Link to="/room_management">School Management</Link></span>
         </li>
-        <li >
-          <Link to="/course_management">Course Management</Link>
+        <li className='w-full flex items-center'>
+          <LibraryBooks />
+          <span className='pl-4 p-2 px-0'><Link to="/course_management">Course Management</Link></span>
         </li>
-        <li >
-          <Link to="/department_section_panel">Department Section</Link>
+        <li className='w-full flex items-center'>
+          <Apartment />
+          <span className='pl-4 p-2 px-0'><Link to="/department_section_panel">Department Management</Link></span>
         </li>
-        <li >
-          <Link to="/section_panel">Faculty Management</Link>
+        <li className='w-full flex items-center'>
+          <People />
+          <span className='pl-4 p-2 px-0'><Link to="/section_panel">Faculty Management</Link></span>
         </li>
-        <li >
-          <Link to="/department_registration">Department Registration</Link>
+        <li className='w-full flex items-center'>
+          <PersonAdd />
+          <span className='pl-4 p-2 px-0'><Link to="/admission_dashboard">Admission Management</Link></span>
         </li>
-        <li >
-          <Link to="/professor_registration">Professor Registration</Link>
+        <li className='w-full flex items-center'>
+          <FactCheck />
+          <span className='pl-4 p-2 px-0'><Link to="/enrollment_dashboard">Enrollment Management</Link></span>
         </li>
-        <li >
-          <Link to="/admission_dashboard">Admission Dashboard</Link>
-        </li>
-        <li >
-          <Link to="/enrollment_dashboard">Enrollment Dashboard</Link>
-        </li>
-        <li >
-          <Link to="/enrolled_student">Enrolled Students</Link>
-        </li>
-        <li >
-          <button onClick={Logout}>Logout</button>
+        <li className='w-full flex items-center'>
+          <LogoutOutlined />
+          <button className='pl-4 p-2 px-0' onClick={Logout}>Logout</button>
         </li>
       </ul>
 

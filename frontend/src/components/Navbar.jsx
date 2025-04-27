@@ -45,16 +45,7 @@ const Navbar = ({ isAuthenticated }) => {
                     </div>
                 ) : (
                     <div className="NavBarItems">
-                        <Link to={'/dashboard'}>
-                            <div className="MenuButton">
-                                <span>Dashboard</span>
-                            </div>
-                        </Link>
-                        <Link to={'/profile'}>
-                            <div className="MenuButton">
-                                <span>Profile</span>
-                            </div>
-                        </Link>
+                        
                     </div>
                 )}
             </div>
