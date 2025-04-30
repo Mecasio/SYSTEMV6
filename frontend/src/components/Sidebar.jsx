@@ -28,27 +28,19 @@ const SideBar = ({ setIsAuthenticated }) => {
         </li>
         <li className='w-full flex items-center'>
           <Business />
-          <span className='pl-4 p-2 px-0'><Link to="/room_management">School Management</Link></span>
-        </li>
-        <li className='w-full flex items-center'>
-          <LibraryBooks />
-          <span className='pl-4 p-2 px-0'><Link to="/course_management">Course Management</Link></span>
-        </li>
-        <li className='w-full flex items-center'>
-          <Apartment />
-          <span className='pl-4 p-2 px-0'><Link to="/department_section_panel">Department Management</Link></span>
-        </li>
-        <li className='w-full flex items-center'>
-          <People />
-          <span className='pl-4 p-2 px-0'><Link to="/section_panel">Faculty Management</Link></span>
-        </li>
-        <li className='w-full flex items-center'>
-          <PersonAdd />
           <span className='pl-4 p-2 px-0'><Link to="/admission_dashboard">Admission Management</Link></span>
         </li>
         <li className='w-full flex items-center'>
-          <FactCheck />
-          <span className='pl-4 p-2 px-0'><Link to="/enrollment_dashboard">Enrollment Management</Link></span>
+          <LibraryBooks />
+          <span className='pl-4 p-2 px-0'><Link to="/course_management">Courses Management</Link></span>
+        </li>
+        <li className='w-full flex items-center'>
+          <Apartment />
+          <span className='pl-4 p-2 px-0'><Link to="/department_dashboard">Department Management</Link></span>
+        </li>
+        <li className='w-full flex items-center'>
+          <People />
+          <span className='pl-4 p-2 px-0'><Link to="/system_dashboard">System Management</Link></span>
         </li>
         <li className='w-full flex items-center'>
           <LogoutOutlined />

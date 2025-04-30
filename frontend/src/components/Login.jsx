@@ -86,6 +86,7 @@ const Login = ({ setIsAuthenticated }) => {
                                 id="email"
                                 name="email"
                                 placeholder="Enter your email address"
+                                className="border"
                                 value={usersData.email}
                                 onChange={handleChanges}
                             />
@@ -99,6 +100,7 @@ const Login = ({ setIsAuthenticated }) => {
                                 placeholder="Enter your password"
                                 value={usersData.password}
                                 onChange={handleChanges}
+                                className="border"
                             />
                             <button
                                 type="button"
@@ -107,8 +109,8 @@ const Login = ({ setIsAuthenticated }) => {
                                     color: "rgba(0,0,0,0.3)",
                                     outline: "none",
                                     position: "absolute",
-                                    top: "32px",
-                                    right: "0px",
+                                    top: "2.5rem",
+                                    right: "1rem",
                                     background: "none",
                                     border: "none",
                                     cursor: "pointer"
@@ -132,7 +134,7 @@ const Login = ({ setIsAuthenticated }) => {
                         <div className="LinkContainer">
                             <span>Forget password?</span>
                         </div>
-                        <div className="LinkContainer RegistrationLink">
+                        <div className="LinkContainer RegistrationLink" style={{margin: '0.1rem 0rem'}}>
                             <p>Doesn't Have an Account?</p>
                             <span><Link to={'/register'}>Register Here</Link></span>
                         </div>

@@ -13,7 +13,7 @@ import DepartmentRoom from './components/DprtmntRoom';
 import DepartmentProf from './components/DprtmntProf';
 import SideBar from './components/Sidebar';
 import ProgramTagging from './components/ProgramTagging';
-import CourseManagement from './components/CourseManagement';
+import CourseManagement from './pages/CourseManagement';
 import CoursePanel from './components/CoursePanel';
 import ProgramPanel from './components/ProgramPanel';
 import CurriculumPanel from './components/CurriculumPanel';
@@ -36,8 +36,15 @@ import EducationalAttainmentForm from './components/EducationalAttainment';
 import ApplicantRequirement from './components/applicant_requirement';
 import ApplicantForm from './components/Applicant';
 import RequirementsForm from './components/RequirementsForm';
-import RoomManagement from './pages/RoomManagement';
-import Dashboard from './components/Dashboard';
+import Dashboard from './pages/Dashboard';
+import AdmissionDashboardPanel from './pages/AdmissionDashboard';
+import SystemDashboardPanel from './pages/SystemDashboard';
+import DepartmentManagement from './pages/DepartmentDashboard';
+import ApplicantPersonalInfoForm from './components/PersonalInformation';
+import StudentNumbering from './components/StudentNumbering';
+import CourseTagging from './components/CourseTagging';
+import UserRegistrationForm from './components/UserRegistrationForm';
+import ChangeGradingPeriod from './components/ChangeYearGradPer';
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -70,12 +77,12 @@ import Dashboard from './components/Dashboard';
 
           <div className="app-format">
             {isAuthenticated && (
-              <article>
+              <article className='min-w-[19rem]'>
                 <SideBar setIsAuthenticated={setIsAuthenticated} />
               </article>
             )}
 
-            <main>
+            <main className='w-full'>
               <Routes>
                 <Route path="/register" element={<Register />} />
                 <Route path="/register_prof" element={<RegisterProf />} />
@@ -84,7 +91,7 @@ import Dashboard from './components/Dashboard';
                 <Route path="/login_prof" element={<LoginProf setIsAuthenticated={setIsAuthenticated}/>}/>
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
                 <Route path="/faculty_dashboard" element={<FacultyDashboard />}/>
-                <Route path="/room_management" element={<ProtectedRoute><RoomManagement/></ProtectedRoute>}/> {/* not final */}
+                <Route path="/personal_information" element={<ApplicantPersonalInfoForm />} />
                 <Route path="/room_registration" element={<ProtectedRoute><DepartmentRoom/></ProtectedRoute>}/> {/* not final */}
                 <Route path="/course_management" element={<ProtectedRoute><CourseManagement/></ProtectedRoute>}/>
                 <Route path="/program_tagging" element={<ProtectedRoute><ProgramTagging/></ProtectedRoute>}/>
@@ -110,6 +117,13 @@ import Dashboard from './components/Dashboard';
                 <Route path="/applicant_requirement" element={<ProtectedRoute><ApplicantRequirement /></ProtectedRoute>} />
                 <Route path="/application_form" element={<ProtectedRoute><ApplicantForm /></ProtectedRoute>} />
                 <Route path="/requirements_form" element={<ProtectedRoute><RequirementsForm /></ProtectedRoute>} />
+                <Route path="/admission_dashboard" element={<ProtectedRoute><AdmissionDashboardPanel /></ProtectedRoute>} />
+                <Route path="/department_dashboard" element={<ProtectedRoute><DepartmentManagement /></ProtectedRoute>} />
+                <Route path="/system_dashboard" element={<ProtectedRoute><SystemDashboardPanel /></ProtectedRoute>} />
+                <Route path="/student_numbering" element={<ProtectedRoute><StudentNumbering /></ProtectedRoute>} />
+                <Route path="/course_tagging" element={<ProtectedRoute><CourseTagging /></ProtectedRoute>} />
+                <Route path="/user_register" element={<ProtectedRoute><UserRegistrationForm /></ProtectedRoute>} />
+                <Route path="/change_grade_period" element={<ProtectedRoute><ChangeGradingPeriod /></ProtectedRoute>} />
               </Routes>
             </main>
           </div>
