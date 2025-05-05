@@ -45,6 +45,8 @@ import StudentNumbering from './components/StudentNumbering';
 import CourseTagging from './components/CourseTagging';
 import UserRegistrationForm from './components/UserRegistrationForm';
 import ChangeGradingPeriod from './components/ChangeYearGradPer';
+import AccountDashboard from './pages/AccountDashboard';
+import ScheduleChecker from './components/ScheduleChecker';
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -120,10 +122,13 @@ import ChangeGradingPeriod from './components/ChangeYearGradPer';
                 <Route path="/admission_dashboard" element={<ProtectedRoute><AdmissionDashboardPanel /></ProtectedRoute>} />
                 <Route path="/department_dashboard" element={<ProtectedRoute><DepartmentManagement /></ProtectedRoute>} />
                 <Route path="/system_dashboard" element={<ProtectedRoute><SystemDashboardPanel /></ProtectedRoute>} />
+                <Route path="/account_dashboard" element={<ProtectedRoute><AccountDashboard /></ProtectedRoute>} />
                 <Route path="/student_numbering" element={<ProtectedRoute><StudentNumbering /></ProtectedRoute>} />
                 <Route path="/course_tagging" element={<ProtectedRoute><CourseTagging /></ProtectedRoute>} />
                 <Route path="/user_register" element={<ProtectedRoute><UserRegistrationForm /></ProtectedRoute>} />
+                <Route path="/schedule_checker" element={<ProtectedRoute><ScheduleChecker /></ProtectedRoute>} />
                 <Route path="/change_grade_period" element={<ProtectedRoute><ChangeGradingPeriod /></ProtectedRoute>} />
+                <Route path="/department_room" element={<ProtectedRoute><DepartmentRoom /></ProtectedRoute>} />
               </Routes>
             </main>
           </div>

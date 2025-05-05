@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Dashboard, Apartment, Business, LibraryBooks, People, PersonAdd, FactCheck, LogoutOutlined } from '@mui/icons-material';
+import { Dashboard, Apartment, Business, LibraryBooks, People, LogoutOutlined, Settings } from '@mui/icons-material';
 import UserProfile from '../assets/UserProfile.png'
 import '../styles/SideBar.css'
 
@@ -39,8 +39,12 @@ const SideBar = ({ setIsAuthenticated }) => {
           <span className='pl-4 p-2 px-0'><Link to="/department_dashboard">Department Management</Link></span>
         </li>
         <li className='w-full flex items-center'>
-          <People />
+          <Settings />
           <span className='pl-4 p-2 px-0'><Link to="/system_dashboard">System Management</Link></span>
+        </li>
+        <li className='w-full flex items-center'>
+          <People />
+          <span className='pl-4 p-2 px-0'><Link to="/account_dashboard">Accounts</Link></span>
         </li>
         <li className='w-full flex items-center'>
           <LogoutOutlined />

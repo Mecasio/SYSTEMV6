@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from 'react'
-import axios from 'axios';
+// import React, {useState, useEffect} from 'react'
+// import axios from 'axios';
 
-const StudentList = () => {
-    const [studentList, setStudentList] =    
-}
+// const StudentList = () => {
+//     const [studentList, setStudentList] =    
+// }
 
-export default StudentList
+// export default StudentList

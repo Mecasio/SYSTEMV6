@@ -39,16 +39,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-const pool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "", // Update if needed
-  database: "cmu_mis",
-  waitForConnections: true,
-  connectionLimit: 10, // Default is 10
-  queueLimit: 0 // Unlimited queue
-});
-
 //MYSQL CONNECTION FOR ADMISSION
 const db = mysql.createPool({
     host: 'localhost',
@@ -85,94 +75,89 @@ const db3 = mysql.createPool({
 /*---------------------------------START---------------------------------------*/ 
 
 //ADMISSION
-//REGISTER
+//REGISTER (UPDATED!)
 app.post("/register", async (req, res) => {
-    const {email, password} = req.body;
-    
-    if(!email){
-      return res.status(400).send({message: "Please fill up all required form"})
-    }
+  const { email, password } = req.body;
+  
+  if (!email) {
+    return res.status(400).send({ message: "Please fill up all required form" });
+  }
 
-    try {
-      const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-      const query1 = 'INSERT INTO person_table () VALUES ()';
-      db.query(query1, (err, result) => {
-        if (err) return res.status(500).send(err);
+    // First insert into person_table
+    const query1 = 'INSERT INTO person_table () VALUES ()';
+    const [result1] = await db.query(query1);
+    const person_id = result1.insertId;
 
-        const person_id = result.insertId;
-        const query2 = 'INSERT INTO users_account (person_id, email, password) VALUES (?, ?, ?)';
-        db.query(query2, [person_id, email, hashedPassword], (err, result) => {
-          if(err){
-            const rollback = 'DELETE FROM person_table WHERE person_id = ?';
-            db.query(rollback, [person_id], (err, result) => {
-              if (err) return res.status(500).send(err);
-            });
-            return;
-          }
-          res.status(201).send({message: "Registered Successfully", person_id});
-        });
-      });
-    } 
-    catch(error) {
-        res.status(500).send({message: "Internal Server Error"});
+    // Second insert into users_account
+    const query2 = 'INSERT INTO users_account (person_id, email, password) VALUES (?, ?, ?)';
+    const [result2] = await db.query(query2, [person_id, email, hashedPassword]);
+
+    res.status(201).send({ message: "Registered Successfully", person_id });
+  } 
+  catch (error) {
+      // If any query fails, we rollback the first insert
+      const rollback = 'DELETE FROM person_table WHERE person_id = ?';
+      await db.query(rollback, [person_id]);
+
+      res.status(500).send({ message: "Internal Server Error" });
+  }
+});
+
+//GET ADMITTED USERS (UPDATED!)
+app.get('/admitted_users', async (req, res) => {
+    try{
+      const query = 'SELECT * FROM users_account';
+      const [result] = await db.query(query);
+
+      res.status(200).send(result);
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send({message: 'INTERNAL SERVER ERROR!!' });
     }
 });
 
-//GET ADMITTED USERS
-app.get('/admitted_users', (req, res) => {
-    const query = 'SELECT * FROM users_account';
-
-    db.query(query, (err,result) => {
-        if (err) return res.status(500).send({message: 'Error Fetching data from the server'});
-        res.status(200).send(result);
-    });
-});
-
-//TRANSFER ENROLLED USER INTO ENROLLMENT
+//TRANSFER ENROLLED USER INTO ENROLLMENT (UPDATED!)
 app.post('/transfer', async (req, res) => {
-    const { person_id } = req.body;
+  const { person_id } = req.body;
 
+  try {
     const fetchQuery = 'SELECT * FROM users_account WHERE person_id = ?';
+    const [result1] = await db.query(fetchQuery, [person_id]);
 
-    db.query(fetchQuery, [person_id], (err, result) => {
-        if (err) return res.status(500).send({ message: "Error fetching data from admission DB", error: err });
+    if (result1.length === 0) {
+      return res.status(404).send({ message: 'User not found in the database' });
+    }
 
-        if (result.length === 0) {
-            return res.status(404).send({ message: "User not found in admission DB" });
-        }
+    const user = result1[0];
 
-        const user = result[0];
-        
-        const insertPersonQuery = 'INSERT INTO person_table (first_name, middle_name, last_name) VALUES (?, ?, ?)';
+    const insertPersonQuery = 'INSERT INTO person_table (first_name, middle_name, last_name) VALUES (?, ?, ?)';
+    const [personResult] = await db2.query(insertPersonQuery, [
+      user.first_name,
+      user.middle_name,
+      user.last_name
+    ]);
 
-        db2.query(insertPersonQuery, [user.first_name, user.middle_name, user.last_name], (err, personInsertResult) => {
-            if (err) {
-                console.log("Error inserting person:", err);
-                return res.status(500).send({ message: "Error inserting person data", error: err });
-            }
+    const newPersonId = personResult.insertId;
 
-            const newPersonId = personInsertResult.insertId;
+    const insertUserQuery = 'INSERT INTO user_accounts (person_id, email, password) VALUES (?, ?, ?)';
+    await db2.query(insertUserQuery, [newPersonId, user.email, user.password]);
 
-            const insertUserQuery = 'INSERT INTO user_accounts (person_id, email, password) VALUES (?, ?, ?)';
+    console.log("User transferred successfully:", user.email);
+    return res.status(200).send({ message: 'User transferred successfully', email: user.email });
 
-            db2.query(insertUserQuery, [newPersonId, user.email, user.password], (err, insertResult) => {
-                if (err) {
-                    console.log("Error inserting user:", user.email, err);
-                    return res.status(500).send({ message: "Error inserting user account", error: err });
-                } else {
-                    console.log("User transferred successfully:", user.email);
-                    return res.status(200).send({ message: "User transferred successfully", email: user.email });
-                }
-            });
-        });
-    });
+  } catch (error) {
+    console.error("ERROR: ", error);
+    return res.status(500).send({ message: "Something went wrong in the server", error });
+  }
 });
 
 // ADM FORM PANEL (UPLOAD REQUIREMENTS)
 app.post("/upload", upload.single("file"), (req, res) => {
     const { requirementId } = req.body;
-
+  
     // Check if a file was uploaded
     if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
@@ -200,27 +185,30 @@ app.post("/upload", upload.single("file"), (req, res) => {
     });
 });
 
-// GET THE APPLICANT REQUIREMENTS
-app.get("/applicant-requirements", (req, res) => {
+// GET THE APPLICANT REQUIREMENTS (UPDATED!)
+app.get("/applicant-requirements", async (req, res) => {
+  try{  
     const sql = `
       SELECT ar.id, ar.created_at, r.requirements_description AS title 
       FROM applicant_requirements ar
       JOIN requirements r ON ar.student_requirement_id = r.requirements_id
     `;
-  
-    db.query(sql, (err, results) => {
-      if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json({ error: "Error fetching requirements" });
-      }
-      res.json(results);
-    });
+
+    const [result] = await db.query(sql);
+    res.status(200).send(result);
+
+  } catch (error) {
+
+    console.error("Database Error:", error);
+    res.status(500).json({ error: "Error fetching requirements" });
+  }
 });
 
 // DELETE APPLICANT REQUIREMENTS
 app.delete("/applicant-requirements/:id", (req, res) => {
     const { id } = req.params;
   
+
     // First, retrieve the file path
     db.query("SELECT file_path FROM applicant_requirements WHERE id = ?", [id], (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -242,13 +230,16 @@ app.delete("/applicant-requirements/:id", (req, res) => {
     });
 });
 
-// GET ALL APPLICANTS
-app.get("/applicants", (req, res) => {
+// GET ALL APPLICANTS (UPDATED!)
+app.get("/applicants", async (req, res) => {
+  try {
     const query = "SELECT * FROM applicant_table";
-    db.query(query, (err, result) => {
-      if (err) return res.status(500).send(err);
-      res.status(200).send(result);
-    });
+    const [result] = await db.query(query);
+    res.status(200).send(result);
+  } catch (error) {
+    console.log("Database Error: ", error);
+    res.status(500).send(err);  
+  }
 });
 
 // APPLICANT PANEL FORM
@@ -381,23 +372,38 @@ app.put("/applicants/:id", (req, res) => {
     );
 });
 
-// DELETE APPLICANT 
-app.delete("/applicants/:id", (req, res) => {
+// DELETE APPLICANT (UPDATED!)
+app.delete("/applicants/:id", async (req, res) => {
     const { id } = req.params;
-    const query = "DELETE FROM applicant_table WHERE id = ?";
-    db.query(query, [id], (err, result) => {
-      if (err) return res.status(500).send(err);
-      res.status(200).send({ message: "Applicant deleted" });
-    });
+
+    if (isNaN(id)) {
+      return res.status(400).send({ message: "Invalid applicant ID" });
+    }
+
+    try {  
+      const query = "DELETE FROM applicant_table WHERE id = ?";
+      const [result] = await db.query(query, [id]);
+      
+      if (result.affectedRows === 0) {
+        return res.status(404).send({ message: "Applicant not found" });
+      }
+
+      res.status(200).send({ message: "Applicant deleted", result });
+    } catch (error) {
+      res.status(500).send(error);
+    }
 });
 
-// GET STUDENT EDUCATIONAL ATTAINMENT
-app.get("/educational_attainment", (req, res) => {
+// GET STUDENT EDUCATIONAL ATTAINMENT (UPDATED!)
+app.get("/educational_attainment", async (req, res) => {
+  try {  
     const query = "SELECT * FROM educational_attainment_table";
-    db.query(query, (err, result) => {
-      if (err) return res.status(500).send(err);
-      res.status(200).send(result);
-    });
+    const [result] = await db.query(query);
+
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 });
 
 // EDUCATIONAL ATTAINMENT PANEL FORM
@@ -643,14 +649,25 @@ app.put("/family_background/:id", (req, res) => {
     );
 });
 
-// DELETE STUDENT FAMILY BACKGROUND
-app.delete("/family_background/:id", (req, res) => {
-    const { id } = req.params;
+// DELETE STUDENT FAMILY BACKGROUND (UPDATED!)
+app.delete("/family_background/:id", async (req, res) => {
+  const { id } = req.params;
+
+  if(isNaN(id)) {
+    return res.status(400).send({ message: "Invalid applicant ID" });
+  }
+
+  try {
     const query = "DELETE FROM family_background_table WHERE id = ?";
-    db.query(query, [id], (err, result) => {
-      if (err) return res.status(500).send(err);
-      res.status(200).send({ message: "Item deleted" });
-    });
+    const [result] = await db.query(query, [id]);
+    if(result.affectedRows === 0) {
+      return res.status(404).send({message: 'Applicant Not found!'});
+    }
+
+    res.status(200).send({message: 'Item succeessfully deleted', result});
+  } catch (error) { 
+    res.status(500).send(error);
+  }
 });
 
 // GET STUDENT PROFILE INFORMATION
@@ -755,7 +772,7 @@ app.delete('/student_profile_table/:id', (req, res) => {
 
 /*---------------------------  ENROLLMENT -----------------------*/ 
 
-// LOGIN PANEL
+// LOGIN PANEL (UPDATED!)
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -796,14 +813,18 @@ app.post("/login", async (req, res) => {
     res.status(500).send({ message: 'Server error', error: err.message });
   }
 });
-//READ ENROLLED USERS 
-app.get('/enrolled_users', (req, res) => {
-    const query = 'SELECT * FROM user_accounts';
 
-    db2.query(query, (err,result) => {
-        if (err) return res.status(500).send({message: 'Error Fetching data from the server'});
-        res.status(200).send(result);
-    });
+//READ ENROLLED USERS (UPDATED!)
+app.get('/enrolled_users',  async(req, res) => {  
+  try {
+    const query = 'SELECT * FROM user_accounts';
+    
+    const [result] = await db2.query(query);
+    res.status(200).send(result);
+  }
+  catch(error){
+    res.status(500).send({message: 'Error Fetching data from the server'});
+  }
 });
 
 // DEPARTMENT CREATION
@@ -1256,6 +1277,53 @@ app.get('/get_room', (req, res) => {
 
 // DELETE ROOM (SUPERADMIN)
 
+//
+
+app.get('/api/assignments', (req, res) => {
+  const query = `
+    SELECT 
+      drt.dprtmnt_room_id, 
+      dt.dprtmnt_id, 
+      dt.dprtmnt_name, 
+      dt.dprtmnt_code, 
+      rt.room_description
+    FROM dprtmnt_room_table drt
+    INNER JOIN dprtmnt_table dt ON drt.dprtmnt_id = dt.dprtmnt_id
+    INNER JOIN room_table rt ON drt.room_id = rt.room_id
+  `;
+  db3.query(query, (err, results) => {
+    if (err) return res.status(500).json(err);
+    res.json(results);
+  });
+});
+
+app.post('/api/assign', (req, res) => {
+  const { dprtmnt_id, room_id } = req.body;
+  if (!dprtmnt_id || !room_id) {
+    return res.status(400).json({ message: 'Department and Room ID are required' });
+  }
+
+  const checkQuery = `
+    SELECT * FROM dprtmnt_room_table 
+    WHERE dprtmnt_id = ? AND room_id = ?
+  `;
+  db3.query(checkQuery, [dprtmnt_id, room_id], (err, results) => {
+    if (err) return res.status(500).json(err);
+    if (results.length > 0) {
+      return res.status(400).json({ message: 'Room already assigned to this department' });
+    }
+
+    const insertQuery = `
+      INSERT INTO dprtmnt_room_table (dprtmnt_id, room_id)
+      VALUES (?, ?)
+    `;
+    db3.query(insertQuery, [dprtmnt_id, room_id], (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: 'Room successfully assigned to department', insertId: result.insertId });
+    });
+  });
+});
+
 // SECTIONS
 app.post('/section_table', (req, res) => {
     const { description } = req.body;
@@ -1272,6 +1340,8 @@ app.post('/section_table', (req, res) => {
       res.status(201).send(result);
     });
 });
+
+
 
 // SECTIONS LIST
 app.get('/section_table', (req, res) => {
@@ -2061,6 +2131,7 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
+// GET GRADING PERIOD (UPDATED!)
 app.get('/get-grading-period', async (req, res) => {
   try{
     const sql = 'SELECT * FROM period_status';
@@ -2068,12 +2139,13 @@ app.get('/get-grading-period', async (req, res) => {
     
 
     res.json(result);
-  }catch (err){
+  }catch (err){ 
     console.error("Database error:", err);
     return res.status(500).send("Error fetching data")
   }
 });
 
+// ACTIVATOR API OF GRADING PERIOD (UPDATED!)
 app.post('/grade_period_activate/:id', async (req, res) => {
   const {id} = req.params;
 
@@ -2094,7 +2166,7 @@ app.post('/grade_period_activate/:id', async (req, res) => {
 
 /* ------------------------------------------- MIDDLE PART OF THE SYSTEM ----------------------------------------------*/
 
-/* ------------------------------------------- UPLOAD IMAGE ---------------------------------------------------------- */
+/* ------------------------------------------- UPLOAD  ---------------------------------------------------------- */
 
 // UPOAD PROFILE IMAGE (CHECK)
 app.post("/api/upload-profile-picture", upload.single("profile_picture"), async (req, res) => {

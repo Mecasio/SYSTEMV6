@@ -7,7 +7,7 @@ const DepartmentManagement = () => {
         <div className="px-8 p-2 w-full flex">
            
            <div className="relative ">
-                <Link to={'/program_tagging'}>
+                <Link to={'/schedule_checker'}>
                     <div className="bg-white border-4 p-4 rounded-lg border-solid border-maroon-500 absolute left-16 top-8 w-enough">
                         <CollectionsBookmark className="text-maroon-500" style={{fontSize: '2rem'}}/>
                     </div>
@@ -33,7 +33,7 @@ const DepartmentManagement = () => {
                 </Link>
             </div>
             <div className="relative">
-                <Link to={'/course_panel'}>
+                <Link to={'/department_room'}>
                     <div className="bg-white p-4 border-4 rounded-lg border-solid border-maroon-500 absolute left-16 top-8 w-enough">
                         <CollectionsBookmark className="text-maroon-500" style={{fontSize: '2rem'}}/>
                     </div>
