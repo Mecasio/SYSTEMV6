@@ -12,7 +12,7 @@ const SideBar = ({ setIsAuthenticated }) => {
     navigate('/');
   }
   return (
-    <div className='h-full w-enough'>
+    <div className='h-full w-enough hidden-print'>
       <ul className='bg-maroon-500 h-full p-3 px-5 text-white w-full'>
         <div className='flex items-center flex-col mt-8'>
             <img src={UserProfile} className='h-24' />

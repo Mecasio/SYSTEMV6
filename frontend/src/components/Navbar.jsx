@@ -6,7 +6,7 @@ import '../styles/NavBar.css';
 const Navbar = ({ isAuthenticated }) => {
 
     return (
-        <div className="NavBar">
+        <div className="NavBar hidden-print">
             <Link to={isAuthenticated ? '/dashboard' : '/'}>
                 <div className="LogoContainer">
                     <div className="LogoImage">

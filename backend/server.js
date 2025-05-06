@@ -154,35 +154,35 @@ app.post('/transfer', async (req, res) => {
   }
 });
 
-// ADM FORM PANEL (UPLOAD REQUIREMENTS)
-app.post("/upload", upload.single("file"), (req, res) => {
-    const { requirementId } = req.body;
-  
-    // Check if a file was uploaded
-    if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
-    }
+// ADM FORM PANEL (UPLOAD REQUIREMENTS) (UPDATED!)
+app.post("/upload", upload.single("file"), async (req, res) => {
+  const { requirementId } = req.body;
 
-    // Check if requirementId is provided
-    if (!requirementId) {
-        return res.status(400).json({ error: "Missing requirementId" });
-    }
+  // Check if a file was uploaded
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
 
-    const filePath = `/uploads/${req.file.filename}`;
+  // Check if requirementId is provided
+  if (!requirementId) {
+    return res.status(400).json({ error: "Missing requirementId" });
+  }
 
+  const filePath = `/uploads/${req.file.filename}`;
+
+  try {
     const sql = "UPDATE admission_requirement SET image_path = ? WHERE requirements_id = ?";
-    db.query(sql, [filePath, requirementId], (err, result) => {
-        if (err) {
-            console.error("Database error:", err);
-            return res.status(500).json({ error: "Failed to update record" });
-        }
+    const [result] = await db.query(sql, [filePath, requirementId]);
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: "Requirement not found" });
-        }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Requirement not found" });
+    }
 
-        res.status(200).json({ message: "File uploaded successfully", filePath });
-    });
+    res.status(200).json({ message: "File uploaded successfully", filePath });
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({ error: "Failed to update record" });
+  }
 });
 
 // GET THE APPLICANT REQUIREMENTS (UPDATED!)
@@ -204,30 +204,39 @@ app.get("/applicant-requirements", async (req, res) => {
   }
 });
 
-// DELETE APPLICANT REQUIREMENTS
-app.delete("/applicant-requirements/:id", (req, res) => {
-    const { id } = req.params;
-  
+// DELETE APPLICANT REQUIREMENTS (UPDATED!)
+app.delete("/applicant-requirements/:id", async (req, res) => {
+  const { id } = req.params;
 
-    // First, retrieve the file path
-    db.query("SELECT file_path FROM applicant_requirements WHERE id = ?", [id], (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
-  
-      if (results.length > 0 && results[0].file_path) {
-        const filePath = path.join(__dirname, "uploads", results[0].file_path);
-  
-        // Delete the file
-        fs.unlink(filePath, (err) => {
-          if (err) console.error("Error deleting file:", err);
-        });
-      }
-  
-      // Delete the record from database
-      db.query("DELETE FROM applicant_requirements WHERE id = ?", [id], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: "Requirement deleted successfully" });
+  try {
+
+    const [results] = await db.query(
+      "SELECT file_path FROM applicant_requirements WHERE id = ?",
+      [id]
+    );
+
+    if (results.length > 0 && results[0].file_path) {
+      const filePath = path.join(__dirname, "uploads", results[0].file_path);
+
+      fs.unlink(filePath, (err) => {
+        if (err) console.error("Error deleting file:", err);
       });
-    });
+    }
+
+    const [deleteResult] = await db.query(
+      "DELETE FROM applicant_requirements WHERE id = ?",
+      [id]
+    );
+
+    if (deleteResult.affectedRows === 0) {
+      return res.status(404).json({ error: "Requirement not found" });
+    }
+
+    res.json({ message: "Requirement deleted successfully" });
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({ error: "Failed to delete requirement" });
+  }
 });
 
 // GET ALL APPLICANTS (UPDATED!)
@@ -242,134 +251,134 @@ app.get("/applicants", async (req, res) => {
   }
 });
 
-// APPLICANT PANEL FORM
-app.post("/applicants", (req, res) => {
-    const {
-      lastName,
-      firstName,
-      middleName,
-      extension,
-      nickname,
-      height,
-      weight,
-      lrnNumber,
-      gender,
-      birthOfDate,
-      age,
-      birthPlace,
-      languageDialectSpoken,
-      citizenship,
-      religion,
-      civilStatus,
-      tribeEthnicGroup,
-      cellphoneNumber,
-      emailAddress,
-      telephoneNumber,
-      facebookAccount,
-      presentAddress,
-      permanentAddress,
-      street,
-      barangay,
-      zipCode,
-      region,
-      province,
-      municipality,
-      dswdHouseholdNumber,
-      campus,
-      academicProgram,
-      classifiedAs,
-      program,
-      yearLevel,
-    } = req.body;
-  
-    const query = `
-      INSERT INTO applicant_table (
-        campus, academicProgram, classifiedAs, program, yearLevel, lastName, firstName, middleName, extension, nickname,
-        height, weight, lrnNumber, gender, birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion,
-        civilStatus, tribeEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount, presentAddress, 
-        permanentAddress, street, barangay, zipCode, region, province, municipality, dswdHouseholdNumber
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-  
-    db.query(
-      query,
-      [
-        campus, academicProgram, classifiedAs, program, yearLevel, lastName, firstName, middleName, extension, nickname,
-        height, weight, lrnNumber, gender, birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion,
-        civilStatus, tribeEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount, presentAddress, 
-        permanentAddress, street, barangay, zipCode, region, province, municipality, dswdHouseholdNumber
-      ],
-      (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(201).send({ message: "Applicant added", id: result.insertId });
-      }
-    );
+// APPLICANT PANEL FORM (UPDATED!)
+app.post("/applicants", async (req, res) => {
+  const {
+    lastName,
+    firstName,
+    middleName,
+    extension,
+    nickname,
+    height,
+    weight,
+    lrnNumber,
+    gender,
+    birthOfDate,
+    age,
+    birthPlace,
+    languageDialectSpoken,
+    citizenship,
+    religion,
+    civilStatus,
+    tribeEthnicGroup,
+    cellphoneNumber,
+    emailAddress,
+    telephoneNumber,
+    facebookAccount,
+    presentAddress,
+    permanentAddress,
+    street,
+    barangay,
+    zipCode,
+    region,
+    province,
+    municipality,
+    dswdHouseholdNumber,
+    campus,
+    academicProgram,
+    classifiedAs,
+    program,
+    yearLevel,
+  } = req.body;
+
+  const query = `
+    INSERT INTO applicant_table (
+      campus, academicProgram, classifiedAs, program, yearLevel, lastName, firstName, middleName, extension, nickname,
+      height, weight, lrnNumber, gender, birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion,
+      civilStatus, tribeEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount, presentAddress, 
+      permanentAddress, street, barangay, zipCode, region, province, municipality, dswdHouseholdNumber
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  try {
+    const [result] = await db.query(query, [
+      campus, academicProgram, classifiedAs, program, yearLevel, lastName, firstName, middleName, extension, nickname,
+      height, weight, lrnNumber, gender, birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion,
+      civilStatus, tribeEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount, presentAddress,
+      permanentAddress, street, barangay, zipCode, region, province, municipality, dswdHouseholdNumber
+    ]);
+
+    res.status(201).send({ message: "Applicant added", id: result.insertId });
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).send({ error: "Failed to add applicant" });
+  }
 });
 
-// UPDATE APPLICANT INFORMATION
-app.put("/applicants/:id", (req, res) => {
-    const { id } = req.params;
-    const {
-      campus,
-      academicProgram,
-      classifiedAs,
-      program,
-      yearLevel,
-      lastName,
-      firstName,
-      middleName,
-      extension,
-      nickname,
-      height,
-      weight,
-      lrnNumber,
-      gender,
-      birthOfDate,
-      age,
-      birthPlace,
-      languageDialectSpoken,
-      citizenship,
-      religion,
-      civilStatus,
-      tribeEthnicGroup,
-      cellphoneNumber,
-      emailAddress,
-      telephoneNumber,
-      facebookAccount,
-      presentAddress,
-      permanentAddress,
-      street,
-      barangay,
-      zipCode,
-      region,
-      province,
-      municipality,
-      dswdHouseholdNumber,
-    } = req.body;
-  
-    const query = `
-      UPDATE applicant_table SET 
-        campus=?, academicProgram=?, classifiedAs=?, program=?, yearLevel=?, lastName=?, firstName=?, middleName=?, 
-        extension=?, nickname=?, height=?, weight=?, lrnNumber=?, gender=?, birthOfDate=?, age=?, birthPlace=?, 
-        languageDialectSpoken=?, citizenship=?, religion=?, civilStatus=?, tribeEthnicGroup=?, cellphoneNumber=?, 
-        emailAddress=?, telephoneNumber=?, facebookAccount=?, presentAddress=?, permanentAddress=?, street=?, 
-        barangay=?, zipCode=?, region=?, province=?, municipality=?, dswdHouseholdNumber=?
-      WHERE id=?
-    `;
-  
-    db.query(
-      query,
-      [
-        campus, academicProgram, classifiedAs, program, yearLevel, lastName, firstName, middleName, extension, nickname,
-        height, weight, lrnNumber, gender, birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion,
-        civilStatus, tribeEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount, presentAddress, 
-        permanentAddress, street, barangay, zipCode, region, province, municipality, dswdHouseholdNumber, id
-      ],
-      (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send({ message: "Applicant updated" });
-      }
-    );
+// UPDATE APPLICANT INFORMATION (UPDATED!)
+app.put("/applicants/:id", async (req, res) => {
+  const { id } = req.params;
+  const {
+    campus,
+    academicProgram,
+    classifiedAs,
+    program,
+    yearLevel,
+    lastName,
+    firstName,
+    middleName,
+    extension,
+    nickname,
+    height,
+    weight,
+    lrnNumber,
+    gender,
+    birthOfDate,
+    age,
+    birthPlace,
+    languageDialectSpoken,
+    citizenship,
+    religion,
+    civilStatus,
+    tribeEthnicGroup,
+    cellphoneNumber,
+    emailAddress,
+    telephoneNumber,
+    facebookAccount,
+    presentAddress,
+    permanentAddress,
+    street,
+    barangay,
+    zipCode,
+    region,
+    province,
+    municipality,
+    dswdHouseholdNumber,
+  } = req.body;
+
+  const query = `
+    UPDATE applicant_table SET 
+      campus=?, academicProgram=?, classifiedAs=?, program=?, yearLevel=?, lastName=?, firstName=?, middleName=?, 
+      extension=?, nickname=?, height=?, weight=?, lrnNumber=?, gender=?, birthOfDate=?, age=?, birthPlace=?, 
+      languageDialectSpoken=?, citizenship=?, religion=?, civilStatus=?, tribeEthnicGroup=?, cellphoneNumber=?, 
+      emailAddress=?, telephoneNumber=?, facebookAccount=?, presentAddress=?, permanentAddress=?, street=?, 
+      barangay=?, zipCode=?, region=?, province=?, municipality=?, dswdHouseholdNumber=?
+    WHERE id=?
+  `;
+
+  try {
+    const [result] = await db.query(query, [
+      campus, academicProgram, classifiedAs, program, yearLevel, lastName, firstName, middleName, extension, nickname,
+      height, weight, lrnNumber, gender, birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion,
+      civilStatus, tribeEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount, presentAddress, 
+      permanentAddress, street, barangay, zipCode, region, province, municipality, dswdHouseholdNumber, id
+    ]);
+
+    res.status(200).send({ message: "Applicant updated" });
+  } catch (err) {
+    console.error("Database update error:", err);
+    res.status(500).send({ error: "Failed to update applicant" });
+  }
 });
 
 // DELETE APPLICANT (UPDATED!)
@@ -406,9 +415,27 @@ app.get("/educational_attainment", async (req, res) => {
   }
 });
 
-// EDUCATIONAL ATTAINMENT PANEL FORM
-app.post("/educational_attainment", (req, res) => {
-    const {
+// EDUCATIONAL ATTAINMENT PANEL FORM (UPDATED!)
+app.post("/educational_attainment", async (req, res) => {
+  const {
+    schoolLevel,
+    schoolLastAttended,
+    schoolAddress,
+    courseProgram,
+    honor,
+    generalAverage,
+    yearGraduated,
+    strand,
+  } = req.body;
+
+  const query = `
+    INSERT INTO educational_attainment_table 
+      (schoolLevel, schoolLastAttended, schoolAddress, courseProgram, honor, generalAverage, yearGraduated, strand) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  try {
+    const [result] = await db.query(query, [
       schoolLevel,
       schoolLastAttended,
       schoolAddress,
@@ -417,31 +444,38 @@ app.post("/educational_attainment", (req, res) => {
       generalAverage,
       yearGraduated,
       strand,
-    } = req.body;
-    const query =
-      "INSERT INTO educational_attainment_table (schoolLevel, schoolLastAttended, schoolAddress, courseProgram, honor, generalAverage, yearGraduated, strand) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    db.query(
-      query,
-      [
-        schoolLevel,
-        schoolLastAttended,
-        schoolAddress,
-        courseProgram,
-        honor,
-        generalAverage,
-        yearGraduated,
-        strand,
-      ],
-      (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(201).send({ message: "Item created", id: result.insertId });
-      }
-    );
+    ]);
+
+    res.status(201).send({ message: "Item created", id: result.insertId });
+  } catch (err) {
+    console.error("Insert error:", err);
+    res.status(500).send({ error: "Failed to create educational attainment entry" });
+  }
 });
 
-// UPDATE STUDENT'S EDUCATIONAL ATTAINMENT
-app.put("/educational_attainment/:id", (req, res) => {
-    const {
+// UPDATE STUDENT'S EDUCATIONAL ATTAINMENT (UPDATED!)
+app.put("/educational_attainment/:id", async (req, res) => {
+  const {
+    schoolLevel,
+    schoolLastAttended,
+    schoolAddress,
+    courseProgram,
+    honor,
+    generalAverage,
+    yearGraduated,
+    strand,
+  } = req.body;
+
+  const { id } = req.params;
+
+  const query = `
+    UPDATE educational_attainment_table 
+    SET schoolLevel = ?, schoolLastAttended = ?, schoolAddress = ?, courseProgram = ?, honor = ?, generalAverage = ?, yearGraduated = ?, strand = ?
+    WHERE id = ?
+  `;
+
+  try {
+    const [result] = await db.query(query, [
       schoolLevel,
       schoolLastAttended,
       schoolAddress,
@@ -450,52 +484,91 @@ app.put("/educational_attainment/:id", (req, res) => {
       generalAverage,
       yearGraduated,
       strand,
-    } = req.body;
-    const { id } = req.params;
-    const query =
-      "UPDATE educational_attainment_table SET schoolLevel = ?, schoolLastAttended = ?, schoolAddress = ?, courseProgram = ?, honor = ?, generalAverage = ?, yearGraduated = ?, strand = ? WHERE id = ?";
-    db.query(
-      query,
-      [
-        schoolLevel,
-        schoolLastAttended,
-        schoolAddress,
-        courseProgram,
-        honor,
-        generalAverage,
-        yearGraduated,
-        strand,
-        id,
-      ],
-      (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send({ message: "Item updated" });
-      }
-    );
+      id,
+    ]);
+
+    res.status(200).send({ message: "Item updated" });
+  } catch (err) {
+    console.error("Update error:", err);
+    res.status(500).send({ error: "Failed to update educational attainment" });
+  }
 });
 
-// DELETE STUDENT'S EDUCATIONAL ATTAINMENT
-app.delete("/educational_attainment/:id", (req, res) => {
-    const { id } = req.params;
-    const query = "DELETE FROM educational_attainment_table WHERE id = ?";
-    db.query(query, [id], (err, result) => {
-      if (err) return res.status(500).send(err);
-      res.status(200).send({ message: "Item deleted" });
-    });
+// DELETE STUDENT'S EDUCATIONAL ATTAINMENT (UPDATED!)
+app.delete("/educational_attainment/:id", async (req, res) => {
+  const { id } = req.params;
+  const query = "DELETE FROM educational_attainment_table WHERE id = ?";
+
+  try {
+    const [result] = await db.query(query, [id]);
+    res.status(200).send({ message: "Item deleted" });
+  } catch (err) {
+    console.error("Delete error:", err);
+    res.status(500).send({ error: "Failed to delete educational attainment" });
+  }
 });
 
-// GET STUDENT FAMILY BACKGROUND
-app.get("/family_background", (req, res) => {
-    const query = "SELECT * FROM family_background_table";
-    db.query(query, (err, result) => {
-      if (err) return res.status(500).send(err);
-      res.status(200).send(result);
-    });
+// GET STUDENT FAMILY BACKGROUND (UPDATED!)
+app.get("/family_background", async (req, res) => {
+  const query = "SELECT * FROM family_background_table";
+
+  try {
+    const [result] = await db.query(query);
+    res.status(200).send(result);
+  } catch (err) {
+    console.error("Fetch error:", err);
+    res.status(500).send({ error: "Failed to retrieve family background data" });
+  }
 });
 
-// FAMILY BACKGROUND PANEL FORM
-app.post("/family_background", (req, res) => {
-    const {
+// FAMILY BACKGROUND PANEL FORM (UPDATED!)
+app.post("/family_background", async (req, res) => {
+  const {
+    solo_parent,
+    father_deceased,
+    father_family_name,
+    father_given_name,
+    father_middle_name,
+    father_ext,
+    father_nickname,
+    father_education_level,
+    father_last_school,
+    father_course,
+    father_year_graduated,
+    father_contact,
+    father_occupation,
+    father_employer,
+    father_income,
+    father_email,
+    mother_deceased,
+    mother_family_name,
+    mother_given_name,
+    mother_middle_name,
+    mother_nickname,
+    mother_education_level,
+    mother_school_address,
+    mother_course,
+    mother_year_graduated,
+    mother_contact,
+    mother_occupation,
+    mother_employer,
+    mother_income,
+    mother_email
+  } = req.body;
+
+  const query = `
+    INSERT INTO family_background_table (
+      solo_parent, father_deceased, father_family_name, father_given_name, father_middle_name, father_ext, father_nickname,
+      father_education_level, father_last_school, father_course, father_year_graduated, father_contact, father_occupation,
+      father_employer, father_income, father_email, mother_deceased, mother_family_name, mother_given_name,
+      mother_middle_name, mother_nickname, mother_education_level, mother_school_address, mother_course,
+      mother_year_graduated, mother_contact, mother_occupation, mother_employer, mother_income, mother_email
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  try {
+    const [result] = await db.query(query, [
       solo_parent,
       father_deceased,
       father_family_name,
@@ -526,53 +599,66 @@ app.post("/family_background", (req, res) => {
       mother_employer,
       mother_income,
       mother_email
-    } = req.body;
-    const query =
-      "INSERT INTO family_background_table (solo_parent, father_deceased, father_family_name, father_given_name, father_middle_name, father_ext, father_nickname, father_education_level, father_last_school, father_course, father_year_graduated, father_contact, father_occupation, father_employer, father_income, father_email, mother_deceased, mother_family_name, mother_given_name, mother_middle_name, mother_nickname, mother_education_level, mother_school_address, mother_course, mother_year_graduated, mother_contact, mother_occupation, mother_employer, mother_income, mother_email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    db.query(
-      query,
-      [
-        solo_parent,
-        father_deceased,
-        father_family_name,
-        father_given_name,
-        father_middle_name,
-        father_ext,
-        father_nickname,
-        father_education_level,
-        father_last_school,
-        father_course,
-        father_year_graduated,
-        father_contact,
-        father_occupation,
-        father_employer,
-        father_income,
-        father_email,
-        mother_deceased,
-        mother_family_name,
-        mother_given_name,
-        mother_middle_name,
-        mother_nickname,
-        mother_education_level,
-        mother_school_address,
-        mother_course,
-        mother_year_graduated,
-        mother_contact,
-        mother_occupation,
-        mother_employer,
-        mother_income,
-        mother_email
-      ],
-      (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(201).send({ message: "Item created", id: result.insertId });
-      }
-    );
+    ]);
+
+    res.status(201).send({ message: "Item created", id: result.insertId });
+  } catch (err) {
+    console.error("Insert error:", err);
+    res.status(500).send({ error: "Failed to create family background record" });
+  }
 });
 
-// UPDATE STUDENT FAMILY BACKGROUND
-app.put("/family_background/:id", (req, res) => {
-    const {
+
+// UPDATE STUDENT FAMILY BACKGROUND (UPDATED!)
+app.put("/family_background/:id", async (req, res) => {
+  const {
+    solo_parent,
+    father_deceased,
+    father_family_name,
+    father_given_name,
+    father_middle_name,
+    father_ext,
+    father_nickname,
+    father_education_level,
+    father_last_school,
+    father_course,
+    father_year_graduated,
+    father_contact,
+    father_occupation,
+    father_employer,
+    father_income,
+    father_email,
+    mother_deceased,
+    mother_family_name,
+    mother_given_name,
+    mother_middle_name,
+    mother_nickname,
+    mother_education_level,
+    mother_school_address,
+    mother_course,
+    mother_year_graduated,
+    mother_contact,
+    mother_occupation,
+    mother_employer,
+    mother_income,
+    mother_email
+  } = req.body;
+
+  const { id } = req.params;
+
+  const query = `
+    UPDATE family_background_table SET 
+      solo_parent = ?, father_deceased = ?, father_family_name = ?, father_given_name = ?, father_middle_name = ?, 
+      father_ext = ?, father_nickname = ?, father_education_level = ?, father_last_school = ?, father_course = ?, 
+      father_year_graduated = ?, father_contact = ?, father_occupation = ?, father_employer = ?, father_income = ?, 
+      father_email = ?, mother_deceased = ?, mother_family_name = ?, mother_given_name = ?, mother_middle_name = ?, 
+      mother_nickname = ?, mother_education_level = ?, mother_school_address = ?, mother_course = ?, mother_year_graduated = ?, 
+      mother_contact = ?, mother_occupation = ?, mother_employer = ?, mother_income = ?, mother_email = ? 
+    WHERE id = ?
+  `;
+
+  try {
+    const [result] = await db.query(query, [
       solo_parent,
       father_deceased,
       father_family_name,
@@ -602,52 +688,21 @@ app.put("/family_background/:id", (req, res) => {
       mother_occupation,
       mother_employer,
       mother_income,
-      mother_email
-    } = req.body;
-    const { id } = req.params;
-    const query =
-      "UPDATE family_background_table SET solo_parent = ?, father_deceased = ?, father_family_name = ?, father_given_name = ?, father_middle_name = ?, father_ext = ?, father_nickname = ?, father_education_level = ?, father_last_school = ?, father_course = ?, father_year_graduated = ?, father_contact = ?, father_occupation = ?, father_employer = ?, father_income = ?, father_email = ?, mother_deceased = ?, mother_family_name = ?, mother_given_name = ?, mother_middle_name = ?, mother_nickname = ?, mother_education_level = ?, mother_school_address = ?, mother_course = ?, mother_year_graduated = ?, mother_contact = ?, mother_occupation = ?, mother_employer = ?, mother_income = ?, mother_email = ? WHERE id = ?";
-    db.query(
-      query,
-      [
-        solo_parent,
-        father_deceased,
-        father_family_name,
-        father_given_name,
-        father_middle_name,
-        father_ext,
-        father_nickname,
-        father_education_level,
-        father_last_school,
-        father_course,
-        father_year_graduated,
-        father_contact,
-        father_occupation,
-        father_employer,
-        father_income,
-        father_email,
-        mother_deceased,
-        mother_family_name,
-        mother_given_name,
-        mother_middle_name,
-        mother_nickname,
-        mother_education_level,
-        mother_school_address,
-        mother_course,
-        mother_year_graduated,
-        mother_contact,
-        mother_occupation,
-        mother_employer,
-        mother_income,
-        mother_email,
-        id
-      ],
-      (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send({ message: "Item updated" });
-      }
-    );
+      mother_email,
+      id
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ error: "Family background not found" });
+    }
+
+    res.status(200).send({ message: "Item updated" });
+  } catch (err) {
+    console.error("Update error:", err);
+    res.status(500).send({ error: "Failed to update family background record" });
+  }
 });
+
 
 // DELETE STUDENT FAMILY BACKGROUND (UPDATED!)
 app.delete("/family_background/:id", async (req, res) => {
@@ -670,105 +725,131 @@ app.delete("/family_background/:id", async (req, res) => {
   }
 });
 
-// GET STUDENT PROFILE INFORMATION
-app.get('/student_profile_table', (req, res) => {
-    const query = 'SELECT * FROM student_profile_table';
-    db.query(query, (err, result) => {
-        if (err) return res.status(500).send({ message: 'Internal Server Error' });
-        res.status(200).send(result);
-    });
+// GET STUDENT PROFILE INFORMATION (UPDATED!)
+app.get('/student_profile_table', async (req, res) => {
+  const query = 'SELECT * FROM student_profile_table';
+  
+  try {
+      const [result] = await db.query(query);
+      res.status(200).send(result);
+  } catch (err) {
+      console.error("Error fetching student profiles:", err);
+      res.status(500).send({ message: 'Internal Server Error' });
+  }
 });
 
-// STUDENT PROFILE INFORMATION PANEL
-app.post('/student_profile_table', (req, res) => {
-    const {
-        branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
-        mobile_number, residential_address, residential_region, residential_province, residential_municipality,
-        residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
-        permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
-        gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
-        previous_school, transfer_date, school_year, term, transfer_reason, department, program,
-        year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
-        admission_status, enrollment_status, academic_status
-    } = req.body;
-  
-    const query = `INSERT INTO student_profile_table (
-        branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
-        mobile_number, residential_address, residential_region, residential_province, residential_municipality,
-        residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
-        permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
-        gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
-        previous_school, transfer_date, school_year, term, transfer_reason, department, program,
-        year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
-        admission_status, enrollment_status, academic_status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-  
-    db.query(query, [
-        branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
-        mobile_number, residential_address, residential_region, residential_province, residential_municipality,
-        residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
-        permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
-        gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
-        previous_school, transfer_date, school_year, term, transfer_reason, department, program,
-        year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
-        admission_status, enrollment_status, academic_status
-    ], (err, result) => {
-        if (err) return res.status(500).send({ message: 'Internal Server Error' });
-        res.status(201).send({ message: 'Student profile created', id: result.insertId });
-    });
+// STUDENT PROFILE INFORMATION PANEL (UPDATED!)
+app.post('/student_profile_table', async (req, res) => {
+  const {
+      branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
+      mobile_number, residential_address, residential_region, residential_province, residential_municipality,
+      residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
+      permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
+      gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
+      previous_school, transfer_date, school_year, term, transfer_reason, department, program,
+      year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
+      admission_status, enrollment_status, academic_status
+  } = req.body;
+
+  const query = `INSERT INTO student_profile_table (
+      branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
+      mobile_number, residential_address, residential_region, residential_province, residential_municipality,
+      residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
+      permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
+      gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
+      previous_school, transfer_date, school_year, term, transfer_reason, department, program,
+      year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
+      admission_status, enrollment_status, academic_status
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+  try {
+      const [result] = await db.query(query, [
+          branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
+          mobile_number, residential_address, residential_region, residential_province, residential_municipality,
+          residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
+          permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
+          gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
+          previous_school, transfer_date, school_year, term, transfer_reason, department, program,
+          year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
+          admission_status, enrollment_status, academic_status
+      ]);
+
+      res.status(201).send({ message: 'Student profile created', id: result.insertId });
+  } catch (err) {
+      console.error("Error creating student profile:", err);
+      res.status(500).send({ message: 'Internal Server Error' });
+  }
 });
 
-// UPDATE STUDENT PROFILE INFORMATION
-app.put('/student_profile_table/:id', (req, res) => {
-    const {
-        branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
-        mobile_number, residential_address, residential_region, residential_province, residential_municipality,
-        residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
-        permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
-        gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
-        previous_school, transfer_date, school_year, term, transfer_reason, department, program,
-        year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
-        admission_status, enrollment_status, academic_status
-    } = req.body;
-  
-    const { id } = req.params;
-    const query = `
-        UPDATE student_profile_table SET
-            branch = ?, student_number = ?, LRN = ?, last_name = ?, first_name = ?, middle_name = ?, middle_initial = ?, extension = ?,
-            mobile_number = ?, residential_address = ?, residential_region = ?, residential_province = ?, residential_municipality = ?,
-            residential_telephone = ?, permanent_address = ?, permanent_region = ?, permanent_province = ?, permanent_municipality = ?,
-            permanent_telephone = ?, monthly_income = ?, ethnic_group = ?, pwd_type = ?, date_of_birth = ?, place_of_birth = ?,
-            gender = ?, religion = ?, citizenship = ?, civil_status = ?, blood_type = ?, nstp_serial_number = ?, transfer_status = ?,
-            previous_school = ?, transfer_date = ?, school_year = ?, term = ?, transfer_reason = ?, department = ?, program = ?,
-            year_level = ?, section = ?, curriculum_type = ?, curriculum_year = ?, admission_year = ?, assessment_type = ?,
-            admission_status = ?, enrollment_status = ?, academic_status = ?
-        WHERE id = ?`;
-  
-    db.query(query, [
-        branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
-        mobile_number, residential_address, residential_region, residential_province, residential_municipality,
-        residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
-        permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
-        gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
-        previous_school, transfer_date, school_year, term, transfer_reason, department, program,
-        year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
-        admission_status, enrollment_status, academic_status,
-        id
-    ], (err, result) => {
-        if (err) return res.status(500).send({ message: 'Internal Server Error' });
-        res.status(200).send({ message: 'Student profile updated' });
-    });
+// UPDATE STUDENT PROFILE INFORMATION (UPDATED!)
+app.put('/student_profile_table/:id', async (req, res) => {
+  const {
+      branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
+      mobile_number, residential_address, residential_region, residential_province, residential_municipality,
+      residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
+      permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
+      gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
+      previous_school, transfer_date, school_year, term, transfer_reason, department, program,
+      year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
+      admission_status, enrollment_status, academic_status
+  } = req.body;
+
+  const { id } = req.params;
+  const query = `
+      UPDATE student_profile_table SET
+          branch = ?, student_number = ?, LRN = ?, last_name = ?, first_name = ?, middle_name = ?, middle_initial = ?, extension = ?,
+          mobile_number = ?, residential_address = ?, residential_region = ?, residential_province = ?, residential_municipality = ?,
+          residential_telephone = ?, permanent_address = ?, permanent_region = ?, permanent_province = ?, permanent_municipality = ?,
+          permanent_telephone = ?, monthly_income = ?, ethnic_group = ?, pwd_type = ?, date_of_birth = ?, place_of_birth = ?,
+          gender = ?, religion = ?, citizenship = ?, civil_status = ?, blood_type = ?, nstp_serial_number = ?, transfer_status = ?,
+          previous_school = ?, transfer_date = ?, school_year = ?, term = ?, transfer_reason = ?, department = ?, program = ?,
+          year_level = ?, section = ?, curriculum_type = ?, curriculum_year = ?, admission_year = ?, assessment_type = ?,
+          admission_status = ?, enrollment_status = ?, academic_status = ?
+      WHERE id = ?
+  `;
+
+  try {
+      const [result] = await db.query(query, [
+          branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
+          mobile_number, residential_address, residential_region, residential_province, residential_municipality,
+          residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
+          permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
+          gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
+          previous_school, transfer_date, school_year, term, transfer_reason, department, program,
+          year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
+          admission_status, enrollment_status, academic_status, id
+      ]);
+
+      if (result.affectedRows > 0) {
+          res.status(200).send({ message: 'Student profile updated' });
+      } else {
+          res.status(404).send({ message: 'Student profile not found' });
+      }
+  } catch (err) {
+      console.error("Error updating student profile:", err);
+      res.status(500).send({ message: 'Internal Server Error' });
+  }
 });
 
-// DELETE STUDENT PROFILE INFORMATION
-app.delete('/student_profile_table/:id', (req, res) => {
-    const { id } = req.params;
-    const query = 'DELETE FROM student_profile_table WHERE id = ?';
-    db.query(query, [id], (err, result) => {
-        if (err) return res.status(500).send({ message: 'Internal Server Error' });
-        res.status(200).send({ message: 'Student profile deleted' });
-    });
+
+// DELETE STUDENT PROFILE INFORMATION (UPDATED!)
+app.delete('/student_profile_table/:id', async (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM student_profile_table WHERE id = ?';
+
+  try {
+      const [result] = await db.query(query, [id]);
+      if (result.affectedRows > 0) {
+          res.status(200).send({ message: 'Student profile deleted' });
+      } else {
+          res.status(404).send({ message: 'Student profile not found' });
+      }
+  } catch (err) {
+      console.error("Error deleting student profile:", err);
+      res.status(500).send({ message: 'Internal Server Error' });
+  }
 });
+
 
 /*---------------------------  ENROLLMENT -----------------------*/ 
 
@@ -827,36 +908,58 @@ app.get('/enrolled_users',  async(req, res) => {
   }
 });
 
-// DEPARTMENT CREATION
-app.post('/department', (req, res) => {
-    const { dep_name, dep_code } = req.body;
-    const query = 'INSERT INTO dprtmnt_table (dprtmnt_name, dprtmnt_code) VALUES (?, ?)';
-    db3.query(query, [dep_name, dep_code], (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send({ insertId: result.insertId });
-    });
+// DEPARTMENT CREATION (UPDATED!)
+app.post('/department', async (req, res) => {
+  const { dep_name, dep_code } = req.body;
+  const query = 'INSERT INTO dprtmnt_table (dprtmnt_name, dprtmnt_code) VALUES (?, ?)';
+
+  try {
+      const [result] = await db3.query(query, [dep_name, dep_code]);
+      res.status(200).send({ insertId: result.insertId });
+  } catch (err) {
+      console.error("Error creating department:", err);
+      res.status(500).send({ error: "Failed to create department" });
+  }
 });
 
-// DEPARTMENT LIST
-app.get('/get_department', (req, res) => {
-    const getQuery = 'SELECT * FROM dprtmnt_table';
+// DEPARTMENT LIST (UPDATED!)
+app.get('/get_department', async (req, res) => {
+  const getQuery = 'SELECT * FROM dprtmnt_table';
 
-    db3.query(getQuery, (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result);
-    });
+  try {
+      const [result] = await db3.query(getQuery);
+      res.status(200).send(result);
+  } catch (err) {
+      console.error("Error fetching departments:", err);
+      res.status(500).send({ message: 'Internal Server Error' });
+  }
 });
 
-// UPDATE DEPARTMENT INFORMATION (SUPERADMIN)
-app.put('/update_department/id', (req, res) => {
-    const {id, dep_name, dep_code} = req.body;
-    const updateQuery = 'UPDATE '
+// UPDATE DEPARTMENT INFORMATION (SUPERADMIN) (UPDATED!)
+app.put('/update_department/:id', async (req, res) => {
+  const { id } = req.params;  // Extract the department ID from the URL parameter
+  const { dep_name, dep_code } = req.body;  // Get the department name and code from the request body
 
-    db3.query(updateQuery, [id, dep_name, dep_code], (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result); 
-    })
-})
+  const updateQuery = `
+      UPDATE dprtmnt_table 
+      SET dprtmnt_name = ?, dprtmnt_code = ? 
+      WHERE id = ?`;
+
+  try {
+    const [result] = await db3.query(updateQuery, [dep_name, dep_code, id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ message: 'Department not found' });
+    }
+
+    res.status(200).send({ message: 'Department updated successfully' });
+  } catch (err) {
+    console.error('Error updating department:', err);
+    res.status(500).send({ message: 'Internal Server Error' });
+  }
+});
+
+
 
 // DELETE DEPARTMENT (SUPERADMIN)
 app.delete('/delete_department/id', (req, res) => {

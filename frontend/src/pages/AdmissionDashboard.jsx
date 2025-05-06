@@ -70,6 +70,15 @@ const AdmissionDashboardPanel = () => {
             </div>
 
             <div className="relative">
+                <Link to={'/search_cor'}>
+                    <div className="bg-white p-4 border-4 rounded-lg border-solid border-maroon-500 absolute left-16 top-8 w-enough">
+                        <CollectionsBookmark className="text-maroon-500 text-2xl"/>
+                    </div>
+                    <button className="bg-white text-maroon-500 border-4 rounded-lg border-solid border-maroon-500 p-4 w-80 rounded-md h-32 font-medium mr-4 mt-16 ml-8 flex items-end justify-center">SEARCH STUDENT COR</button>
+                </Link>
+            </div>
+
+            <div className="relative">
                 <Link to={'/program_tagging'}>
                     <div className="bg-white p-4 border-4 rounded-lg border-solid border-maroon-500 absolute left-16 top-8 w-enough">
                         <CollectionsBookmark className="text-maroon-500 text-2xl"/>
