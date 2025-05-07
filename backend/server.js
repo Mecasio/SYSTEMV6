@@ -1840,22 +1840,63 @@ app.get('/get_prof', async (req, res) => {
   }
 });
 
-// COLLEGE OF COMPUTER STUDIES prof filter
-app.get('/prof_list', async (req, res) => {
+// prof filter
+app.get('/prof_list/:dprtmnt_id', async (req, res) => {
+  const {dprtmnt_id} = req.params;
+
   try{
     const query = `SELECT pt.* FROM dprtmnt_profs_table as dpt
                   INNER JOIN prof_table as pt 
                   ON dpt.prof_id = pt.prof_id
                   INNER JOIN dprtmnt_table as dt
                   ON dt.dprtmnt_id = dpt.dprtmnt_id
-                  WHERE dpt.dprtmnt_id = 5`;
-    const [results] = await db3.query(query);
+                  WHERE dpt.dprtmnt_id = ? `;
+    const [results] = await db3.query(query, [dprtmnt_id]);
     res.status(200).send(results);
   } catch(error) {
     console.error(error);
     res.status(500).send(error);
   }
 })
+
+app.get('/room_list/:dprtmnt_id', async (req, res) => {
+  const {dprtmnt_id} = req.params;
+
+  try{
+    const query = `SELECT rt.* FROM dprtmnt_room_table as drt
+                  INNER JOIN room_table as rt 
+                  ON drt.room_id = rt.room_id
+                  INNER JOIN dprtmnt_table as dt
+                  ON dt.dprtmnt_id = drt.dprtmnt_id
+                  WHERE drt.dprtmnt_id = ? `;
+    const [results] = await db3.query(query, [dprtmnt_id]);
+    res.status(200).send(results);
+  } catch(error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+})
+
+app.get('/section_table/:dprtmnt_id', async (req, res) => {
+  const { dprtmnt_id } = req.params;
+
+  try {
+    const query = `
+      SELECT st.*
+      FROM dprtmnt_curriculum_table AS dct
+      INNER JOIN dprtmnt_section_table AS dst ON dct.curriculum_id = dst.curriculum_id
+      INNER JOIN section_table AS st ON dst.section_id = st.id
+      WHERE dct.dprtmnt_id = ?;
+    `;
+    
+    const [results] = await db3.query(query, [dprtmnt_id]);
+    res.status(200).send(results);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
+
 
 
 app.get('/day_list', async (req, res) => {

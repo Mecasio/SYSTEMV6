@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 
 const ScheduleChecker = () => {
@@ -17,10 +18,11 @@ const ScheduleChecker = () => {
   const [profList, setProfList] = useState([]);
   const [dayList, setDayList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
+  const { dprtmnt_id } = useParams(); 
 
   const fetchRoom = async () => {
     try{
-      const response = await axios.get('http://localhost:5000/room_list');
+      const response = await axios.get(`http://localhost:5000/room_list/${dprtmnt_id}`);
       setRoomList(response.data);
     }catch(error){
       console.log(error);
@@ -29,7 +31,7 @@ const ScheduleChecker = () => {
 
   const fetchCourseList = async () => {
     try{
-      const response = await axios.get('http://localhost:5000/course_list');
+      const response = await axios.get(`http://localhost:5000/course_list`);
       setCourseList(response.data)
     }catch(error){
       console.log(error);
@@ -46,11 +48,11 @@ const ScheduleChecker = () => {
   }
 
   const fetchProfList = async () => {
-    try{
-      const response = await axios.get('http://localhost:5000/prof_list');
-      setProfList(response.data)
-    }catch(error){
-      console.log(error);
+    try {
+      const res = await axios.get(`http://localhost:5000/prof_list/${dprtmnt_id}`);
+      setProfList(res.data);
+    } catch (err) {
+      console.error("Error fetching professors:", err);
     }
   }
 
@@ -65,7 +67,7 @@ const ScheduleChecker = () => {
 
   const fetchSectionList = async () => {
     try{
-      const response = await axios.get('http://localhost:5000/section_table');
+      const response = await axios.get(`http://localhost:5000/section_table/${dprtmnt_id}`);
       setSectionList(response.data)
     }catch(error){
       console.log(error);

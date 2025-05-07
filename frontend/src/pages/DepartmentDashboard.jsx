@@ -7,7 +7,7 @@ const DepartmentManagement = () => {
         <div className="px-8 p-2 w-full flex">
            
            <div className="relative ">
-                <Link to={'/schedule_checker'}>
+                <Link to={'/select_college'}>
                     <div className="bg-white border-4 p-4 rounded-lg border-solid border-maroon-500 absolute left-16 top-8 w-enough">
                         <CollectionsBookmark className="text-maroon-500" style={{fontSize: '2rem'}}/>
                     </div>
