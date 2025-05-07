@@ -23,46 +23,7 @@ const CourseTagging = () => {
   const employeeNum = getEmployeeNumFromToken();
   const filteredData = data.filter((item) => String(item.employeeID) === String(employeeNum));
 
-  const [profilePicture, setProfilePicture] = useState(null);
   const [personID, setPersonID] = useState('');
-
-//   useEffect(() => {
-//     const fetchItems = async () => {
-//       try {
-//         const [certificateofregistration,] = await Promise.all([
-//           axios.get("http://localhost:5000/certificate_of_registration"),
-
-//         ]);
-
-//         // Set original data
-//         setdata(certificateofregistration.data);
-
-//       } catch (error) {
-//         console.error("Error fetching data:", error);
-//       }
-//     };
-
-//     fetchItems();
-//   }, []);
-
-  const fetchProfilePicture = async (person_id) => {
-    try {
-      const res = await axios.get(`http://localhost:5000/api/user/${person_id}`);
-      if (res.data && res.data.profile_picture) {
-        console.log(res.data.profile_picture);
-        setProfilePicture(`http://localhost:5000/uploads/${res.data.profile_picture}`);
-      }
-    } catch (error) {
-      console.error("Error fetching profile picture:", error);
-      setProfilePicture(null);
-    }
-  };
-
-  useEffect(() => {
-    if (personID) {
-      fetchProfilePicture(personID);
-    }
-  }, [personID]);
 
   useEffect(() => {
     const updateDate = () => {
@@ -103,12 +64,6 @@ const CourseTagging = () => {
 
   const [subjectCounts, setSubjectCounts] = useState({});
 
-  useEffect(() => {
-    if (selectedSection) {
-      fetchSubjectCounts(selectedSection);
-    }
-  }, [selectedSection]);
-
   const fetchSubjectCounts = async (sectionId) => {
     try {
       const response = await axios.get("http://localhost:5000/subject-enrollment-count", {
@@ -118,14 +73,22 @@ const CourseTagging = () => {
       // Transform into object for easy lookup: { subject_id: enrolled_count }
       const counts = {};
       response.data.forEach((item) => {
-        counts[item.subject_id] = item.enrolled_count;
+        counts[item.course_id] = item.enrolled_count;
       });
 
       setSubjectCounts(counts);
+      fetchSubjectCounts(selectedSection); 
     } catch (err) {
       console.error("Failed to fetch subject counts", err);
+      
     }
   };
+
+  useEffect(() => {
+    if (selectedSection) {
+      fetchSubjectCounts(selectedSection);
+    }
+  }, [selectedSection]);
 
   useEffect(() => {
     if (currId) {
@@ -169,6 +132,7 @@ const CourseTagging = () => {
         setSections(response.data);
         setLoading(false);
       }, 700); // 3 seconds delay
+      
     } catch (err) {
       console.error("Error fetching department sections:", err);
       setError("Failed to load department sections");
@@ -179,9 +143,12 @@ const CourseTagging = () => {
   const handleSectionChange = (e) => {
     const sectionId = e.target.value;
     setSelectedSection(sectionId);
+    console.log(sectionId);
 
     // Find the selected section object from the array
-    const selectedSectionObj = sections.find((section) => section.department_section_id.toString() === sectionId);
+    const selectedSectionObj = sections.find(
+      (section) => section.section_id === parseInt(sectionId)
+    );    
 
     // Do something with the selected section if needed
     console.log("Selected section:", selectedSectionObj);
@@ -210,7 +177,7 @@ const CourseTagging = () => {
   };
 
   const addAllToCart = async () => {
-    const newCourses = courses.filter((c) => !isEnrolled(c.subject_id));
+    const newCourses = courses.filter((c) => !isEnrolled(c.course_id));
     if (!selectedSection) {
       alert("Please select a department section before adding the course.");
       return;
@@ -223,15 +190,15 @@ const CourseTagging = () => {
         newCourses.map(async (course) => {
           try {
             const res = await axios.post("http://localhost:5000/add-all-to-enrolled-courses", {
-              subject_id: course.subject_id,
+              subject_id: course.course_id,
               user_id: userId,
               curriculumID: currId, // Include curriculum_id
               departmentSectionID: selectedSection, // Include selected section
             });
 
-            console.log(`Response for subject ${course.subject_id}:`, res.data.message);
+            console.log(`Response for subject ${course.course_id}:`, res.data.message);
           } catch (err) {
-            console.error(`Error enrolling subject ${course.subject_id}:`, err.response?.data?.message || err.message);
+            console.error(`Error enrolling subject ${course.course_id}:`, err.response?.data?.message || err.message);
           }
         })
       );
@@ -239,6 +206,7 @@ const CourseTagging = () => {
       // Refresh enrolled courses list
       const { data } = await axios.get(`http://localhost:5000/enrolled_courses/${userId}/${currId}`);
       setEnrolled(data);
+      
     } catch (err) {
       console.error("Unexpected error during enrollment:", err);
     }
@@ -248,7 +216,7 @@ const CourseTagging = () => {
     try {
       // Delete the specific course
       await axios.delete(`http://localhost:5000/courses/delete/${id}`);
-
+      
       // Refresh enrolled courses list
       const { data } = await axios.get(`http://localhost:5000/enrolled_courses/${userId}/${currId}`);
       setEnrolled(data);
@@ -427,14 +395,14 @@ const CourseTagging = () => {
             </TableHead>
             <TableBody>
               {courses.map((c) => (
-                <TableRow key={c.program_tagging_id}>
+                <TableRow key={c.course_id}>
                   <TableCell>{c.course_code}</TableCell>
                   <TableCell>{c.course_description}</TableCell>
                   <TableCell>
-                    {subjectCounts[c.program_id] || 0}
+                    {subjectCounts[c.course_id] || 0}
                   </TableCell>
                   <TableCell>
-                    {!isEnrolled(c.program_id) ? (
+                    {!isEnrolled(c.course_id) ? (
                       <Button variant="contained" size="small" onClick={() => addToCart(c)} disabled={!userId}>
                         Enroll
                       </Button>
@@ -509,14 +477,15 @@ const CourseTagging = () => {
 
             <TableBody >
               {enrolled.map((e, idx) => (
+                
                 <TableRow key={idx} >
                   <TableCell style={{ display: "none" }}>{e.id}</TableCell>
-                  <TableCell style={{ display: "none" }}>{e.subject_id}</TableCell>
+                  <TableCell style={{ display: "none" }}>{e.course_id}</TableCell>
                   <TableCell style={{ textAlign: "center" }}>
                     {e.course_code}-{e.section_description}
                   </TableCell>
                   <TableCell style={{ textAlign: "center" }}>
-                    {e.subject_code}
+                    {e.program_code}-{e.description}
                   </TableCell>
                   <TableCell style={{ textAlign: "center" }}>{e.day_description}</TableCell>
                   <TableCell style={{ textAlign: "center" }}>{e.school_time_start}-{e.school_time_end}</TableCell>

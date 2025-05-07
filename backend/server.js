@@ -1,76 +1,76 @@
-const express = require('express');
-const mysql = require('mysql2/promise');
-const cors = require('cors');
+  const express = require('express');
+  const mysql = require('mysql2/promise');
+  const cors = require('cors');
 
-const webtoken = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const bodyparser = require('body-parser');
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs"); 
+  const webtoken = require('jsonwebtoken');
+  const bcrypt = require('bcryptjs');
+  const bodyparser = require('body-parser');
+  const multer = require("multer");
+  const path = require("path");
+  const fs = require("fs"); 
 
-require("dotenv").config();
-const app = express();
+  require("dotenv").config();
+  const app = express();
 
-//MIDDLEWARE
-app.use(express.json());
-app.use(cors());
-app.use(bodyparser.json());
-app.use(express.urlencoded({ extended: true }));
+  //MIDDLEWARE
+  app.use(express.json());
+  app.use(cors());
+  app.use(bodyparser.json());
+  app.use(express.urlencoded({ extended: true }));
 
-const uploadPath = path.join(__dirname, "uploads");
-app.use("/uploads", express.static(uploadPath));
+  const uploadPath = path.join(__dirname, "uploads");
+  app.use("/uploads", express.static(uploadPath));
 
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-}
+  if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath, { recursive: true });
+  }
 
-// Multer setup
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const randomName = Date.now() + "-" + Math.round(Math.random() * 1e9) + ext;
-    cb(null, randomName);
-  },
-});
+  // Multer setup
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      const randomName = Date.now() + "-" + Math.round(Math.random() * 1e9) + ext;
+      cb(null, randomName);
+    },
+  });
 
-const upload = multer({ storage });
+  const upload = multer({ storage });
 
-//MYSQL CONNECTION FOR ADMISSION
-const db = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'admission',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-});
+  //MYSQL CONNECTION FOR ADMISSION
+  const db = mysql.createPool({
+      host: 'localhost',
+      user: 'root',
+      password: '',
+      database: 'admission',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+  });
 
-//MYSQL CONNECTION FOR ENROLLMENT
-const db2 = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'enrollment',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-});
+  //MYSQL CONNECTION FOR ENROLLMENT
+  const db2 = mysql.createPool({
+      host: 'localhost',
+      user: 'root',
+      password: '',
+      database: 'enrollment',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+  });
 
-//MYSQL CONNECTION FOR ROOM MANAGEMENT AND OTHERS
-const db3 = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'earist_sis',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-});
+  //MYSQL CONNECTION FOR ROOM MANAGEMENT AND OTHERS
+  const db3 = mysql.createPool({
+      host: 'localhost',
+      user: 'root',
+      password: '',
+      database: 'earist_sis',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+  });
 
 /*---------------------------------START---------------------------------------*/ 
 
@@ -1714,7 +1714,7 @@ app.post("/login_prof", async (req, res) => {
     // Prepare subject-section mappings
     const mappings = results.map(row => ({
       department_section_id: row.department_section_id,
-      subject_id: row.subject_id
+      subject_id: row.course_id
     }));
 
     // Send successful login response with token and user details
@@ -1749,14 +1749,14 @@ app.get('/get_enrolled_students/:subject_id/:department_section_id/:active_schoo
     SELECT person_table.*, enrolled_subject.*, time_table.*
     FROM time_table
     INNER JOIN enrolled_subject
-        ON time_table.subject_id = enrolled_subject.subject_id
+        ON time_table.course_id = enrolled_subject.course_id
         AND time_table.department_section_id = enrolled_subject.department_section_id
         AND time_table.school_year_id = enrolled_subject.active_school_year_id
     INNER JOIN student_numbering
         ON enrolled_subject.student_number = student_numbering.student_number
     INNER JOIN person_table
         ON student_numbering.person_id = person_table.person_id
-    WHERE time_table.subject_id = ? 
+    WHERE time_table.course_id = ? 
         AND time_table.department_section_id = ? 
         AND time_table.school_year_id = ?
   `;
@@ -1791,7 +1791,7 @@ app.put('/add_grades', async (req, res) => {
   const sql = `
     UPDATE enrolled_subject 
     SET midterm = ?, finals = ?, final_grade = ?, en_remarks = ?
-    WHERE student_number = ? AND subject_id = ?
+    WHERE student_number = ? AND course_id = ?
   `;
 
   try {
@@ -1920,7 +1920,7 @@ app.post("/api/check-subject", async (req, res) => {
 
   const query = `
     SELECT * FROM schedule 
-    WHERE section_id = ? AND school_year_id = ? AND subject_id = ?
+    WHERE section_id = ? AND school_year_id = ? AND course_id = ?
   `;
 
   try {
@@ -1944,7 +1944,7 @@ app.post("/api/check-conflict", async (req, res) => {
     // Step 1: Check if the section + subject + school year is already assigned to another professor
     const checkSubjectQuery = `
       SELECT * FROM schedule 
-      WHERE section_id = ? AND subject_id = ? AND school_year_id = ? AND prof_id != ? 
+      WHERE section_id = ? AND course_id = ? AND school_year_id = ? AND prof_id != ? 
     `;
     const [subjectResult] = await db.query(checkSubjectQuery, [section_id, subject_id, school_year_id, prof_id]);
 
@@ -2145,7 +2145,7 @@ app.get("/enrolled_courses/:userId/:currId", async (req, res) => {
       return res.status(404).json({ error: "No active school year found" });
     }
 
-    const activeSchoolYearId = yearResult[0].active_school_year_id;
+    const activeSchoolYearId = yearResult[0].id;
 
     const sql = `
     SELECT 
@@ -2154,9 +2154,9 @@ app.get("/enrolled_courses/:userId/:currId", async (req, res) => {
       c.course_code,
       c.course_description,
       st.description,
-      ds.id,
-      pt.course_code,
-      IFNULL(rd.day_description, 'TBA') AS day_description,
+      ds.id AS department_section_id,
+      pt.program_code,
+      IFNULL(rd.description, 'TBA') AS day_description,
       IFNULL(tt.school_time_start, 'TBA') AS school_time_start,
       IFNULL(tt.school_time_end, 'TBA') AS school_time_end,
       IFNULL(rtbl.room_description, 'TBA') AS room_description,
@@ -2167,7 +2167,7 @@ app.get("/enrolled_courses/:userId/:currId", async (req, res) => {
         FROM enrolled_subject es2 
         WHERE es2.active_school_year_id = es.active_school_year_id 
           AND es2.department_section_id = es.department_section_id
-          AND es2.course_id = s.course_id
+          AND es2.course_id = es.course_id
       ) AS number_of_enrolled
 
     FROM enrolled_subject AS es
@@ -2179,15 +2179,15 @@ app.get("/enrolled_courses/:userId/:currId", async (req, res) => {
       ON st.id = ds.section_id
     INNER JOIN curriculum_table AS cr
       ON cr.curriculum_id = ds.curriculum_id
-    INNER JOIN course_table AS ct
-      ON ct.course_id = cr.course_id
+    INNER JOIN program_table AS pt
+      ON pt.program_id = cr.program_id
     LEFT JOIN time_table AS tt
       ON tt.school_year_id = es.active_school_year_id 
       AND tt.department_section_id = es.department_section_id 
       AND tt.course_id = es.course_id 
     LEFT JOIN room_day_table AS rd
       ON rd.id = tt.room_day
-    LEFT JOIN department_room_table as dr
+    LEFT JOIN dprtmnt_room_table as dr
       ON dr.dprtmnt_room_id = tt.department_room_id
     LEFT JOIN room_table as rtbl
       ON rtbl.room_id = dr.room_id
@@ -2288,7 +2288,7 @@ app.post("/add-to-enrolled-courses/:userId/:currId/", async (req, res) => {
       return res.status(404).json({ error: "No active school year found" });
     }
 
-    const activeSchoolYearId = yearResult[0].active_school_year_id;
+    const activeSchoolYearId = yearResult[0].id;
 
     const sql = "INSERT INTO enrolled_subject (course_id, student_number, active_school_year_id, curriculum_id, department_section_id) VALUES (?, ?, ?, ?, ?)";
     await db3.query(sql, [subject_id, userId, activeSchoolYearId, currId, department_section_id]);
@@ -2301,11 +2301,12 @@ app.post("/add-to-enrolled-courses/:userId/:currId/", async (req, res) => {
 // Delete course by subject_id (UPDATED!)
 app.delete("/courses/delete/:id", async (req, res) => {
   const { id } = req.params;
-  
+  console.log(id);
   try {
     const sql = "DELETE FROM enrolled_subject WHERE id = ?";
     await db3.query(sql, [id]);
     res.json({ message: "Course unenrolled successfully" });
+    
   } catch (err) {
     return res.status(500).json(err);
   }
@@ -2364,8 +2365,8 @@ app.post("/student-tagging", async (req, res) => {
         studentNumber: student.student_number,
         activeCurriculum: student.active_curriculum,
         yearLevel: student.year_level_id,
-        courseCode: student.course_code,
-        courseDescription: student.course_description,
+        courseCode: student.program_code,
+        courseDescription: student.program_description,
         firstName: student.first_name,
         middleName: student.middle_name,
         lastName: student.last_name,
@@ -2380,8 +2381,8 @@ app.post("/student-tagging", async (req, res) => {
       person_id: student.person_id, 
       activeCurriculum: student.active_curriculum,
       yearLevel: student.year_level_id,
-      courseCode: student.course_code,
-      courseDescription: student.course_description,
+      courseCode: student.program_code,
+      courseDescription: student.program_description,
       firstName: student.first_name,
       middleName: student.middle_name,
       lastName: student.last_name,
@@ -2394,8 +2395,8 @@ app.post("/student-tagging", async (req, res) => {
       person_id: student.person_id,
       activeCurriculum: student.active_curriculum,
       yearLevel: student.year_level_id,
-      courseCode: student.course_code,
-      courseDescription: student.course_description,
+      courseCode: student.program_code,
+      courseDescription: student.program_description,
       firstName: student.first_name,
       middleName: student.middle_name,
       lastName: student.last_name,
@@ -2447,6 +2448,7 @@ app.get("/api/department-sections", async (req, res) => {
   try {
     const [results] = await db3.query(query, [departmentId]);
     res.status(200).json(results);
+    console.log(results);
   } catch (err) {
     console.error("Error fetching department sections:", err);
     return res.status(500).json({ error: "Database error", details: err.message });
@@ -2482,16 +2484,16 @@ app.get("/subject-enrollment-count", async (req, res) => {
 
     const sql = `
       SELECT 
-        es.subject_id,
+        es.course_id,
         COUNT(*) AS enrolled_count
       FROM enrolled_subject AS es
       WHERE es.active_school_year_id = ?
         AND es.department_section_id = ?
-      GROUP BY es.subject_id
+      GROUP BY es.course_id
     `;
 
     const [result] = await db3.query(sql, [activeSchoolYearId, sectionId]);
-    res.json(result); // [{ subject_id: 1, enrolled_count: 25 }, { subject_id: 2, enrolled_count: 30 }]
+    res.json(result); // [{ course_id: 1, enrolled_count: 25 }, { course_id: 2, enrolled_count: 30 }]
   } catch (err) {
     console.error("Error fetching enrolled counts:", err);
     return res.status(500).json({ error: err.message });
