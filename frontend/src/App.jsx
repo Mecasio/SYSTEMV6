@@ -48,6 +48,7 @@ import ChangeGradingPeriod from './components/ChangeYearGradPer';
 import AccountDashboard from './pages/AccountDashboard';
 import ScheduleChecker from './components/ScheduleChecker';
 import SearchStudentCOR from './components/SearchCertificateOfGrades';
+import RoomRegistration from './components/RoomRegistration';
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -95,7 +96,7 @@ import SearchStudentCOR from './components/SearchCertificateOfGrades';
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
                 <Route path="/faculty_dashboard" element={<FacultyDashboard />}/>
                 <Route path="/personal_information" element={<ApplicantPersonalInfoForm />} />
-                <Route path="/room_registration" element={<ProtectedRoute><DepartmentRoom/></ProtectedRoute>}/> {/* not final */}
+                <Route path="/room_registration" element={<ProtectedRoute><RoomRegistration/></ProtectedRoute>}/> 
                 <Route path="/course_management" element={<ProtectedRoute><CourseManagement/></ProtectedRoute>}/>
                 <Route path="/program_tagging" element={<ProtectedRoute><ProgramTagging/></ProtectedRoute>}/>
                 <Route path="/course_panel" element={<ProtectedRoute><CoursePanel/></ProtectedRoute>}/>

@@ -6,11 +6,12 @@ import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material";
 const DepartmentRoom = () => {
 
   const [room, setRoom] = useState({
-    room_name: '',
-    department_id: ''
+    room_id: '',
+    dprtmnt_id: ''
   });
 
   const [departmentList, setDepartmentList] = useState([]);
+  const [roomList, setRoomList] = useState([]);
   const [departmentRoomList, setDepartmentRoomList] = useState([]);
   const [expandedDepartmentRoom, setExpandedDepartmentRoom] = useState(null);  
   const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);  
@@ -34,8 +35,19 @@ const DepartmentRoom = () => {
     }
   };
 
+  const fetchRoomDescription = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/room_list');
+      console.log(response.data);
+      setRoomList(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   useEffect(() => {
     fetchDepartment();
+    fetchRoomDescription();
   }, []);
 
   useEffect(() => {
@@ -46,9 +58,9 @@ const DepartmentRoom = () => {
 
   const handleAddingRoom = async () => {
     try {
-      await axios.post('http://localhost:5000/room', room);
+      await axios.post('http://localhost:5000/api/assign', room);
       fetchRoom(selectedDepartmentId);
-      setRoom({ room_name: '', department_id: '' });
+      setRoom({ room_id: '', dprtmnt_id: '' });
       console.log(room);
     } catch (err) {
       console.log(err);
@@ -70,14 +82,15 @@ const DepartmentRoom = () => {
   return (
     <Container className="container">
       <div>
-        <input
-          type="text"
-          placeholder="Enter the Room Name"
-          name="room_name"
-          value={room.room_name}
-          onChange={handleChangesForEverything}
-        />
-        <select name="department_id" id="departmentSelection" value={room.department_id} onChange={handleChangesForEverything}>
+        <select name="room_id" id="roomSelection" value={room.room_id} onChange={handleChangesForEverything}>
+          <option value="">Select a Room</option>
+          {roomList.map((room) => (
+            <option key={room.room_id} value={room.room_id}>
+              {room.room_description}
+            </option>
+          ))}
+        </select>
+        <select name="dprtmnt_id" id="departmentSelection" value={room.dprtmnt_id} onChange={handleChangesForEverything}>
           <option value="">Select a Department</option>
           {departmentList.map((department) => (
             <option key={department.dprtmnt_id} value={department.dprtmnt_id}>

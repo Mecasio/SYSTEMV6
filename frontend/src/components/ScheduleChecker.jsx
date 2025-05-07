@@ -17,7 +17,6 @@ const ScheduleChecker = () => {
     setMessage("");
 
     try {
-      // Step 1: Check if the professor is already assigned to the subject
       const subjectResponse = await axios.post("http://localhost:5000/api/check-subject", {
         section_id: selectedSection,
         school_year_id: selectedSchoolYear,
@@ -30,7 +29,6 @@ const ScheduleChecker = () => {
         return;
       }
 
-      // Step 2: Check for time conflicts
       const timeResponse = await axios.post("http://localhost:5000/api/check-conflict", {
         day: selectedDay,
         start_time: selectedStartTime,
@@ -39,6 +37,7 @@ const ScheduleChecker = () => {
         school_year_id: selectedSchoolYear,
         prof_id: selectedProf,
         room_id: selectedRoom,
+        subject_id: selectedSubject,
       });
 
       if (timeResponse.data.conflict) {
@@ -49,6 +48,28 @@ const ScheduleChecker = () => {
     } catch (error) {
       console.error("Error checking schedule:", error);
       setMessage("Schedule conflict detected! Please choose a different time.");
+    }
+  };
+
+  const handleInsert = async () => {
+    try {
+      const response = await axios.post("http://localhost:5000/api/insert-schedule", {
+        day: selectedDay,
+        start_time: selectedStartTime,
+        end_time: selectedEndTime,
+        section_id: selectedSection,
+        school_year_id: selectedSchoolYear,
+        prof_id: selectedProf,
+        room_id: selectedRoom,
+        subject_id: selectedSubject,
+      });
+
+      if (response.status === 200) {
+        setMessage("Schedule inserted successfully.");
+      }
+    } catch (error) {
+      console.error("Error inserting schedule:", error);
+      setMessage("Failed to insert schedule.");
     }
   };
 
@@ -70,7 +91,6 @@ const ScheduleChecker = () => {
         <br />
         <label>Section ID:</label>
         <input type="text" value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)} required />
-
         <br />
         <label>Start Time:</label>
         <input type="time" value={selectedStartTime} onChange={(e) => setSelectedStartTime(e.target.value)} required />
@@ -89,10 +109,9 @@ const ScheduleChecker = () => {
         <br />
         <label>Professor ID:</label>
         <input type="text" value={selectedProf} onChange={(e) => setSelectedProf(e.target.value)} required />
-        <br />
-        <br />
-        <br />
+        <br /><br />
         <button type="submit">Check Schedule</button>
+        <button type="button" onClick={handleInsert}>Insert Schedule</button>
       </form>
 
       {message && <p>{message}</p>}
@@ -100,4 +119,4 @@ const ScheduleChecker = () => {
   );
 };
 
-export default ScheduleChecker;
+export default ScheduleCheck

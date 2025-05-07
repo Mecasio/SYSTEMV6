@@ -608,7 +608,6 @@ app.post("/family_background", async (req, res) => {
   }
 });
 
-
 // UPDATE STUDENT FAMILY BACKGROUND (UPDATED!)
 app.put("/family_background/:id", async (req, res) => {
   const {
@@ -702,7 +701,6 @@ app.put("/family_background/:id", async (req, res) => {
     res.status(500).send({ error: "Failed to update family background record" });
   }
 });
-
 
 // DELETE STUDENT FAMILY BACKGROUND (UPDATED!)
 app.delete("/family_background/:id", async (req, res) => {
@@ -831,7 +829,6 @@ app.put('/student_profile_table/:id', async (req, res) => {
   }
 });
 
-
 // DELETE STUDENT PROFILE INFORMATION (UPDATED!)
 app.delete('/student_profile_table/:id', async (req, res) => {
   const { id } = req.params;
@@ -849,7 +846,6 @@ app.delete('/student_profile_table/:id', async (req, res) => {
       res.status(500).send({ message: 'Internal Server Error' });
   }
 });
-
 
 /*---------------------------  ENROLLMENT -----------------------*/ 
 
@@ -959,430 +955,557 @@ app.put('/update_department/:id', async (req, res) => {
   }
 });
 
-
-
-// DELETE DEPARTMENT (SUPERADMIN)
-app.delete('/delete_department/id', (req, res) => {
-    const {id} = req.query;
-    const deleteQuery = 'DELETE'
-    db3.query(deleteQuery, [id], (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result); 
-    })
-})
-
-// PROGRAM CREATION
-app.post('/program', (req, res) => { 
-    const { name, code } = req.body;
-
-    const insertProgramQuery = 'INSERT INTO program_table (program_description, program_code) VALUES (?, ?)';
-
-    db3.query(insertProgramQuery, [name, code], (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result);
-    });
+// DELETE DEPARTMENT (SUPERADMIN) (UPDATED!)
+app.delete('/delete_department/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  const deleteQuery = 'DELETE FROM dprtmnt_table WHERE id = ?';
+  
+  try {
+    const [result] = await db3.query(deleteQuery, [id]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ message: 'Department not found' });
+    }
+    
+    res.status(200).send({ message: 'Department deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting department:', err);
+    res.status(500).send({ message: 'Internal Server Error' });
+  }
 });
 
-// PROGRAM TABLE
-app.get('/get_program', (req, res) => {
-    const programQuery = 'SELECT * FROM program_table';
-    db3.query(programQuery, (err, result) => {
-     if (err) return res.status(500).send(err);
-     res.status(200).send(result);
-    })
+// PROGRAM CREATION (UPDATED!)
+app.post('/program', async (req, res) => {
+  const { name, code } = req.body;
+  
+  const insertProgramQuery = 'INSERT INTO program_table (program_description, program_code) VALUES (?, ?)';
+  
+  try {
+    const [result] = await db3.query(insertProgramQuery, [name, code]);
+    res.status(200).send({ message: 'Program created successfully', result });
+  } catch (err) {
+    console.error('Error creating program:', err);
+    res.status(500).send({ message: 'Internal Server Error' });
+  }
 });
 
-// UPDATE PROGRAM INFORMATION (SUPERADMIN)
-app.put('/update_program/id', (req, res) => {
-    const {id, name, code} = req.body;
-    const updateQuery = 'UPDATE '
+// PROGRAM TABLE (UPDATED!)
+app.get('/get_program', async (req, res) => {
+  const programQuery = 'SELECT * FROM program_table';
+  
+  try {
+    const [result] = await db3.query(programQuery);
+    res.status(200).send(result);
+  } catch (err) {
+    console.error('Error fetching programs:', err);
+    res.status(500).send({ message: 'Internal Server Error' });
+  }
+});
 
-    db3.query(updateQuery, [id, name, code], (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result); 
-    })
-})
+// UPDATE PROGRAM INFORMATION (SUPERADMIN)(UPDATED!)
+app.put('/update_program/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, code } = req.body;
+  
+  const updateQuery = 'UPDATE program_table SET program_description = ?, program_code = ? WHERE id = ?';
+  
+  try {
+    const [result] = await db3.query(updateQuery, [name, code, id]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ message: 'Program not found' });
+    }
+    
+    res.status(200).send({ message: 'Program updated successfully' });
+  } catch (err) {
+    console.error('Error updating program:', err);
+    res.status(500).send({ message: 'Internal Server Error' });
+  }
+});
 
-// DELETE PROGRAM (SUPERADMIN)
-app.delete('/delete_program/id', (req, res) => {
-    const {id} = req.query;
+// DELETE PROGRAM (SUPERADMIN) (UPDATED!)
+app.delete('/delete_program/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  const deleteQuery = 'DELETE FROM program_table WHERE id = ?';
+  
+  try {
+    const [result] = await db3.query(deleteQuery, [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ message: 'Program not found' });
+    }
+    
+    res.status(200).send({ message: 'Program deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting program:', err);
+    res.status(500).send({ message: 'Internal Server Error' });
+  }
+});  
 
-    const deleteQuery = 'DELETE'
-    db3.query(deleteQuery, [id], (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result); 
-    })
-})
+// CURRICULUM CREATION (UPDATED!)
+app.post("/curriculum", async (req, res) => {
+  const { year_id, program_id } = req.body;
 
-// CURRICULUM CREATION
-app.post('/curriculum', (req, res) => {
-    const {year_id, program_id} = req.body;
+  if (!year_id || !program_id) {
+    return res.status(400).json({ error: "Year ID and Program ID are required" });
+  }
 
-    const insertQuery = 'INSERT INTO curriculum_table(year_id, program_id) VALUES (?,?)';
+  try {
+    const sql = "INSERT INTO curriculum_table (year_id, program_id) VALUES (?, ?)";
+    const [result] = await db3.query(sql, [year_id, program_id]);
 
-    db3.query(insertQuery, [year_id, program_id], (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result); 
-    })
-})
-
-// CURRICULUM LIST
-app.get('/get_curriculum', (req, res) => {
-    const readQuery = `
-        SELECT ct.*, p.*, y.* 
-        FROM curriculum_table ct 
-        INNER JOIN program_table p ON ct.program_id = p.program_id
-        INNER JOIN year_table y ON ct.year_id = y.year_id
-    `;
-
-    db3.query(readQuery, (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result); 
+    res.status(201).json({
+      message: "Curriculum created successfully",
+      curriculum_id: result.insertId
     });
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({
+      error: "Internal Server Error",
+      details: err.message
+    });
+  }
+});
+
+// CURRICULUM LIST (UPDATED!)
+app.get("/get_curriculum", async (req, res) => {
+  const readQuery = `
+    SELECT ct.*, p.*, y.* 
+    FROM curriculum_table ct 
+    INNER JOIN program_table p ON ct.program_id = p.program_id
+    INNER JOIN year_table y ON ct.year_id = y.year_id
+  `;
+
+  try {
+    const [result] = await db3.query(readQuery);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({
+      error: "Internal Server Error",
+      details: err.message
+    });
+  }
 });
 
 // UPDATE CURRICULUM (SUPERADMIN)
 
 // DELETE CURRICULUM (SUPERADMIN)
 
-// COURSE TABLE
-app.post('/adding_course', (req, res) => {
-    const {course_code, course_description, course_unit, lab_unit} = req.body;
+/// COURSE TABLE - ADDING COURSE (UPDATED!)
+app.post("/adding_course", async (req, res) => {
+  const { course_code, course_description, course_unit, lab_unit } = req.body;
 
-    const courseQuery = 'INSERT INTO course_table(course_code, course_description, course_unit, lab_unit) VALUES (?,?,?,?)';
-    db3.query(courseQuery, [course_code, course_description, course_unit, lab_unit], (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result);
+  // Basic validation
+  if (!course_code || !course_description || !course_unit || !lab_unit) {
+    return res.status(400).json({ error: "All course fields are required" });
+  }
+
+  const courseQuery = `
+    INSERT INTO course_table (course_code, course_description, course_unit, lab_unit)
+    VALUES (?, ?, ?, ?)
+  `;
+
+  try {
+    const [result] = await db3.query(courseQuery, [
+      course_code,
+      course_description,
+      course_unit,
+      lab_unit
+    ]);
+
+    res.status(201).json({
+      message: "Course added successfully",
+      course_id: result.insertId
     });
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({
+      error: "Internal Server Error",
+      details: err.message
+    });
+  }
 });
 
-// READ COURSE
-app.get('/courselist', (req, res) => {
-    const readQuery = 'SELECT * FROM program_tagging_table as ptt INNER JOIN course_table as ct ON ptt.course_id = ct.course_id ';
-    db3.query(readQuery, (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result);
+// READ COURSE LIST (UPDATED!)
+app.get("/courselist", async (req, res) => {
+  const readQuery = `
+    SELECT * 
+    FROM program_tagging_table AS ptt 
+    INNER JOIN course_table AS ct 
+    ON ptt.course_id = ct.course_id
+  `;
+
+  try {
+    const [result] = await db3.query(readQuery);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({
+      error: "Internal Server Error",
+      details: err.message
     });
+  }
 });
 
 // UPDATE COURSE (SUPERADMIN)
 
 // DELETE COURSE (SUPERADMIN)
 
-// GET COURSES BY CURRICULUM ID
-app.get('/get_courses_by_curriculum/:curriculum_id', (req, res) => {
-    const { curriculum_id } = req.params;
-    
-    const query = `
-        SELECT c.* FROM program_tagging_table pt
-        INNER JOIN course_table c ON pt.course_id = c.course_id
-        WHERE pt.curriculum_id = ?
-    `;
+// GET COURSES BY CURRICULUM ID (UPDATED!)
+app.get("/get_courses_by_curriculum/:curriculum_id", async (req, res) => {
+  const { curriculum_id } = req.params;
 
-    db3.query(query, [curriculum_id], (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result);
+  const query = `
+    SELECT c.* 
+    FROM program_tagging_table pt
+    INNER JOIN course_table c ON pt.course_id = c.course_id
+    WHERE pt.curriculum_id = ?
+  `;
+
+  try {
+    const [result] = await db3.query(query, [curriculum_id]);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({
+      error: "Failed to retrieve courses",
+      details: err.message
     });
+  }
 });
 
-// COURSE TAGGING LIST
-app.get('/get_course', (req, res) => {
-    const getCourseQuery = `
-        SELECT 
-            yl.*, st.*, c.*
-        FROM program_tagging_table pt
-        INNER JOIN year_level_table yl ON pt.year_level_id = yl.year_level_id
-        INNER JOIN semester_table st ON pt.semester_id = st.semester_id
-        INNER JOIN course_table c ON pt.course_id = c.course_id
-    `;
+// COURSE TAGGING LIST (UPDATED!)
+app.get("/get_course", async (req, res) => {
+  const getCourseQuery = `
+    SELECT 
+      yl.*, st.*, c.*
+    FROM program_tagging_table pt
+    INNER JOIN year_level_table yl ON pt.year_level_id = yl.year_level_id
+    INNER JOIN semester_table st ON pt.semester_id = st.semester_id
+    INNER JOIN course_table c ON pt.course_id = c.course_id
+  `;
 
-    db3.query(getCourseQuery, (err, results) => {
-        if (err) {
-            console.log(err);
-            return res.status(500).send(err);
-        }
-        res.status(200).send(results);
+  try {
+    const [results] = await db3.query(getCourseQuery);
+    res.status(200).json(results);
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({
+      error: "Failed to retrieve course tagging list",
+      details: err.message
     });
+  }
 });
 
-// PROGRAM TAGGING TABLE
-app.post('/program_tagging', (req, res) => {
-    const {curriculum_id, year_level_id, semester_id, course_id} = req.body;
+// PROGRAM TAGGING TABLE (UPDATED!)
+app.post("/program_tagging", async (req, res) => {
+  const { curriculum_id, year_level_id, semester_id, course_id } = req.body;
 
-    const progTagQuery = 'INSERT INTO program_tagging_table (curriculum_id, year_level_id, semester_id, course_id) VALUES (?,?,?,?)';
-    db3.query(progTagQuery, [curriculum_id, year_level_id, semester_id, course_id], (err,result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result);
+  if (!curriculum_id || !year_level_id || !semester_id || !course_id) {
+    return res.status(400).json({ error: "All fields are required." });
+  }
+
+  const progTagQuery = `
+    INSERT INTO program_tagging_table 
+    (curriculum_id, year_level_id, semester_id, course_id) 
+    VALUES (?, ?, ?, ?)
+  `;
+
+  try {
+    const [result] = await db3.query(progTagQuery, [
+      curriculum_id,
+      year_level_id,
+      semester_id,
+      course_id,
+    ]);
+    res.status(200).json({ message: "Program tagged successfully", insertId: result.insertId });
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({
+      error: "Failed to tag program",
+      details: err.message,
     });
+  }
 });
 
-// YEAR TABLE
-app.post("/years", (req, res) => {
-    const { year_description } = req.body;
-    if (!year_description) {
-        return res.status(400).json({ error: "year_description is required" });
-    }
-  
-    const query = "INSERT INTO year_table (year_description, status) VALUES (?, 0)";
-    db3.query(query, [year_description], (err, result) => {
-        if (err) {
-            console.error("Insert error:", err);
-            return res.status(500).json({ error: "Insert failed" });
-        }
-        res.status(201).json({ year_id: result.insertId, year_description, status: 0 });
+// YEAR TABLE (UPDATED!)
+app.post("/years", async (req, res) => {
+  const { year_description } = req.body;
+
+  if (!year_description) {
+    return res.status(400).json({ error: "year_description is required" });
+  }
+
+  const query = "INSERT INTO year_table (year_description, status) VALUES (?, 0)";
+
+  try {
+    const [result] = await db3.query(query, [year_description]);
+    res.status(201).json({
+      year_id: result.insertId,
+      year_description,
+      status: 0
     });
+  } catch (err) {
+    console.error("Insert error:", err);
+    res.status(500).json({
+      error: "Insert failed",
+      details: err.message
+    });
+  }
 });
 
-// YEAR LIST
-app.get("/year_table", (req, res) => {
-    const query = "SELECT * FROM year_table";
-    db3.query(query, (err, result) => {
-        if (err) {
-          console.error("Query error:", err);
-          return res.status(500).json({ error: "Query failed" });
-        }
-        res.status(200).json(result);
+// YEAR LIST (UPDATED!)
+app.get("/year_table", async (req, res) => {
+  const query = "SELECT * FROM year_table";
+
+  try {
+    const [result] = await db3.query(query);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Query error:", err);
+    res.status(500).json({
+      error: "Query failed",
+      details: err.message
     });
+  }
 });
 
-// UPDATE YEAR PANEL INFORMATION
-app.put('/year_table/:id', (req, res) => {
-    const { status } = req.body;
-    const { id } = req.params;
-  
+// UPDATE YEAR PANEL INFORMATION (UPDATED!)
+app.put("/year_table/:id", async (req, res) => {
+  const { status } = req.body;
+  const { id } = req.params;
+
+  try {
     if (status === 1) {
-      // First deactivate all other years
+      // Deactivate all other years first
       const deactivateQuery = "UPDATE year_table SET status = 0";
-      db3.query(deactivateQuery, (deactivateErr) => {
-        if (deactivateErr) {
-          console.error("Deactivation error:", deactivateErr);
-          return res.status(500).json({ error: "Failed to deactivate all years" });
-        }
-  
-        // Activate the selected year
-        const activateQuery = "UPDATE year_table SET status = 1 WHERE year_id = ?";
-        db3.query(activateQuery, [id], (activateErr) => {
-          if (activateErr) {
-            console.error("Activation error:", activateErr);
-            return res.status(500).json({ error: "Failed to activate the selected year" });
-          }
-  
-          res.status(200).json({ message: "Year status updated successfully" });
-        });
-      });
+      await db3.query(deactivateQuery);
+
+      // Activate the selected year
+      const activateQuery = "UPDATE year_table SET status = 1 WHERE year_id = ?";
+      await db3.query(activateQuery, [id]);
+
+      res.status(200).json({ message: "Year status updated successfully" });
     } else {
-      // Just deactivate the selected year
+      // Deactivate the selected year
       const updateQuery = "UPDATE year_table SET status = 0 WHERE year_id = ?";
-      db3.query(updateQuery, [id], (err) => {
-        if (err) {
-          console.error("Deactivation error:", err);
-          return res.status(500).json({ error: "Failed to deactivate the selected year" });
-        }
-  
-        res.status(200).json({ message: "Year deactivated successfully" });
-      });
+      await db3.query(updateQuery, [id]);
+
+      res.status(200).json({ message: "Year deactivated successfully" });
     }
+  } catch (err) {
+    console.error("Error updating year status:", err);
+    res.status(500).json({
+      error: "Failed to update year status",
+      details: err.message,
+    });
+  }
 });
 
-// YEAR LEVEL PANEL
-app.post("/years_level", (req, res) => {
-    const { year_level_description } = req.body;
-    if (!year_level_description) {
-        return res.status(400).json({ error: "year_level_description is required" });
-    }
-  
-    const query = "INSERT INTO year_level_table (year_level_description) VALUES (?)";
-    db3.query(query, [year_level_description], (err, result) => {
-        if (err) {
-            console.error("Insert error:", err);
-            return res.status(500).json({ error: "Insert failed" });
-        }
-        res.status(201).json({
-            year_level_id: result.insertId,
-            year_level_description,
-        });
+// YEAR LEVEL PANEL (UPDATED!)
+app.post("/years_level", async (req, res) => {
+  const { year_level_description } = req.body;
+
+  if (!year_level_description) {
+    return res.status(400).json({ error: "year_level_description is required" });
+  }
+
+  const query = "INSERT INTO year_level_table (year_level_description) VALUES (?)";
+
+  try {
+    const [result] = await db3.query(query, [year_level_description]);
+    res.status(201).json({
+      year_level_id: result.insertId,
+      year_level_description,
     });
+  } catch (err) {
+    console.error("Insert error:", err);
+    res.status(500).json({ error: "Insert failed", details: err.message });
+  }
 });
   
+// YEAR LEVEL TABLE (UPDATED!)
+app.get('/get_year_level', async (req, res) => {
+  const query = 'SELECT * FROM year_level_table';
 
-// YEAR LEVEL TABLE
-app.get('/get_year_level', (req, res) => {
-    const query = 'SELECT * FROM year_level_table';
-    db3.query(query, (err,result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result);
-    });
+  try {
+    const [result] = await db3.query(query);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Query error:", err);
+    res.status(500).json({ error: "Failed to retrieve year level data", details: err.message });
+  }
 });
 
-// SEMESTER PANEL
-app.post("/semesters", (req, res) => {
-    const { semester_description } = req.body;
-    if (!semester_description) {
-        return res.status(400).json({ error: "semester_description is required" });
-    }
-  
-    const query = "INSERT INTO semester_table (semester_description) VALUES (?)";
-    db3.query(query, [semester_description], (err, result) => {
-        if (err) {
-            console.error("Insert error:", err);
-            return res.status(500).json({ error: "Insert failed" });
-        }
-        res.status(201).json({
-            semester_id: result.insertId,
-            semester_description,
-        });
+// SEMESTER PANEL (UPDATED!)
+app.post("/semesters", async (req, res) => {
+  const { semester_description } = req.body;
+
+  if (!semester_description) {
+    return res.status(400).json({ error: "semester_description is required" });
+  }
+
+  const query = "INSERT INTO semester_table (semester_description) VALUES (?)";
+
+  try {
+    const [result] = await db3.query(query, [semester_description]);
+    res.status(201).json({
+      semester_id: result.insertId,
+      semester_description,
     });
+  } catch (err) {
+    console.error("Insert error:", err);
+    res.status(500).json({ error: "Insert failed", details: err.message });
+  }
 });
 
-// SEMESTER TABLE
-app.get('/get_semester', (req, res) => {
-    const query = 'SELECT * FROM semester_table';
-    db3.query(query, (err,result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result);
-    });
+// SEMESTER TABLE (UPDATED!)
+app.get('/get_semester', async (req, res) => {
+  const query = 'SELECT * FROM semester_table';
+
+  try {
+    const [result] = await db3.query(query);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Query error:", err);
+    res.status(500).json({ error: "Query failed", details: err.message });
+  }
 });
 
-// GET SCHOOL YEAR
-app.get("/school_years", (req, res) => {
-    const query = `
-      SELECT sy.*, yt.year_description, s.semester_description
-      FROM active_school_year_table sy
-      JOIN year_table yt ON sy.year_id = yt.year_id
-      JOIN semester_table s ON sy.semester_id = s.semester_id
-    `;
-    db3.query(query, (err, result) => {
-      if (err) {
-        console.error("Fetch error:", err);
-        return res.status(500).json({ error: "Failed to fetch school years" });
-      }
-      res.json(result);
-    });
-  });
+// GET SCHOOL YEAR (UPDATED!)
+app.get("/school_years", async (req, res) => {
+  const query = `
+    SELECT sy.*, yt.year_description, s.semester_description
+    FROM active_school_year_table sy
+    JOIN year_table yt ON sy.year_id = yt.year_id
+    JOIN semester_table s ON sy.semester_id = s.semester_id
+  `;
 
-// SCHOOL YEAR PANEL
-app.post("/school_years", (req, res) => {
-    const { year_id, semester_id, activator } = req.body;
-  
-    if (!year_id || !semester_id) {
-      return res.status(400).json({ error: "Missing fields" });
-    }
-  
-    const insertSchoolYear = () => {
-      const insertQuery = `
-        INSERT INTO active_school_year_table (year_id, semester_id, astatus, active)
-        VALUES (?, ?, ?, 0)
-      `;
+  try {
+    const [result] = await db3.query(query);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Fetch error:", err);
+    res.status(500).json({ error: "Failed to fetch school years", details: err.message });
+  }
+});
 
-      db3.query(insertQuery, [year_id, semester_id, activator, 0], (err, result) => {
-        if (err) {
-          console.error("Insert error:", err);
-          return res.status(500).json({ error: "Insert failed" });
-        }
-        res.status(201).json({ school_year_id: result.insertId });
-      });
-    };
-  
+// SCHOOL YEAR PANEL (UPDATED!)
+app.post("/school_years", async (req, res) => {
+  const { year_id, semester_id, activator } = req.body;
+
+  if (!year_id || !semester_id) {
+    return res.status(400).json({ error: "Missing fields" });
+  }
+
+  try {
     // If activating a school year, deactivate all others first
     if (activator === 1) {
       const deactivateQuery = `UPDATE active_school_year_table SET astatus = 0`;
-      db3.query(deactivateQuery, (err) => {
-        if (err) {
-          console.error("Deactivation error:", err);
-          return res.status(500).json({ error: "Deactivation failed" });
-        }
-        insertSchoolYear(); // Proceed to insert after deactivation
-      });
-    } else {
-      insertSchoolYear(); // No need to deactivate others if inserting as inactive
+      await db3.query(deactivateQuery);
     }
+
+    // Insert new school year record
+    const insertQuery = `
+      INSERT INTO active_school_year_table (year_id, semester_id, astatus, active)
+      VALUES (?, ?, ?, 0)
+    `;
+    const [result] = await db3.query(insertQuery, [year_id, semester_id, activator]);
+
+    res.status(201).json({ school_year_id: result.insertId });
+
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ error: "Failed to process the school year", details: err.message });
+  }
 });
 
-// UPDATE SCHOOL YEAR INFORMATION
-app.put("/school_years/:id", (req, res) => {
-    const { id } = req.params;
-    const { activator } = req.body;
+// UPDATE SCHOOL YEAR INFORMATION (UPDATED!)
+app.put("/school_years/:id", async (req, res) => {
+  const { id } = req.params;
+  const { activator } = req.body;
 
+  try {
     if (parseInt(activator) === 1) {
       // First deactivate all, then activate the selected one
       const deactivateAllQuery = "UPDATE active_school_year_table SET astatus = 0";
-      
-      db3.query(deactivateAllQuery, (err) => {
-        if (err) {
-          console.error("Deactivation error:", err);
-          return res.status(500).json({ error: "Failed to deactivate all school years" });
-        }
-  
-        const activateQuery = "UPDATE active_school_year_table SET astatus = 1 WHERE id = ?";
-        db3.query(activateQuery, [id], (err) => {
-          if (err) {
-            console.error("Activation error:", err);
-            return res.status(500).json({ error: "Failed to activate school year" });
-          }
-          return res.status(200).json({ message: "School year activated and others deactivated" });
-        });
-      });
+      await db3.query(deactivateAllQuery);
+
+      const activateQuery = "UPDATE active_school_year_table SET astatus = 1 WHERE id = ?";
+      await db3.query(activateQuery, [id]);
+
+      return res.status(200).json({ message: "School year activated and others deactivated" });
     } else {
       // Just deactivate the selected one
       const query = "UPDATE active_school_year_table SET astatus = 0 WHERE id = ?";
-      db3.query(query, [id], (err) => {
-        if (err) {
-          console.error("Deactivation error:", err);
-          return res.status(500).json({ error: "Failed to deactivate school year" });
-        }
-        return res.status(200).json({ message: "School year deactivated" });
-      });
+      await db3.query(query, [id]);
+
+      return res.status(200).json({ message: "School year deactivated" });
     }
-});
-  
-// ROOM CREATION
-app.post('/room', (req, res) => {
-    const { room_name, department_id } = req.body;
-
-    if(department_id === ''){
-        return console.log("No department id received");
-    };
-
-    const insertRoomQuery = 'INSERT INTO room_table (room_description) VALUES (?)';
-    db3.query(insertRoomQuery, [room_name], (err, roomResult) => {
-        if (err) return res.status(500).send(err);
-
-        const room_id = roomResult.insertId;
-
-        const linkRoomQuery = 'INSERT INTO dprtmnt_room_table (dprtmnt_id, room_id, lock_status) VALUES (?, ?, 0)';
-        db3.query(linkRoomQuery, [department_id, room_id], (err, linkResult) => {
-            if (err) return res.status(500).send(err);
-
-            res.status(200).send({ roomId: room_id, linkId: linkResult.insertId });
-        });
-    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ error: "Failed to update school year", details: err.message });
+  }
 });
 
-// ROOM LIST
-app.get('/get_room', (req, res) => {
-    const { department_id } = req.query;
+// ROOM CREATION (UPDATED!)
+app.post('/room', async (req, res) => {
+  const {room_name} = req.body;
 
-    const getRoomQuery = `
-        SELECT r.room_id, r.room_description, d.dprtmnt_name
-        FROM room_table r
-        INNER JOIN dprtmnt_room_table drt ON r.room_id = drt.room_id
-        INNER JOIN dprtmnt_table d ON drt.dprtmnt_id = d.dprtmnt_id
-        WHERE drt.dprtmnt_id = ? 
-    `;
-    
-    db3.query(getRoomQuery, [department_id], (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result);
-    });
+  try{
+    const insertQuery = 'INSERT INTO room_table (room_description) VALUES (?)';
+    const [result] = await db3.query(insertQuery, [room_name]);
+    res.status(200).send({message: 'Room Successfully Created', result});
+  }catch(error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
+
+app.get('/room_list', async (req, res) => {
+  try {
+    const getQuery = 'SELECT * FROM room_table';
+    const [result] = await db3.query(getQuery);
+    res.status(200).send(result);
+  } catch(err){
+    console.error(err);
+    res.status(500).send(err);
+  }
+})
+
+// ROOM LIST (UPDATED!)
+app.get('/get_room', async (req, res) => {
+  const { department_id } = req.query;
+
+  if (!department_id) {
+      return res.status(400).json({ error: "Department ID is required" });
+  }
+
+  const getRoomQuery = `
+      SELECT r.room_id, r.room_description, d.dprtmnt_name
+      FROM room_table r
+      INNER JOIN dprtmnt_room_table drt ON r.room_id = drt.room_id
+      INNER JOIN dprtmnt_table d ON drt.dprtmnt_id = d.dprtmnt_id
+      WHERE drt.dprtmnt_id = ?
+  `;
+
+  try {
+      const [result] = await db3.query(getRoomQuery, [department_id]);
+      res.status(200).json(result);
+  } catch (err) {
+      console.error("Error fetching rooms:", err);
+      res.status(500).json({ error: "Failed to fetch rooms", details: err.message });
+  }
 });
 
 // UPDATE ROOM (SUPERADMIN)
 
 // DELETE ROOM (SUPERADMIN)
 
-//
-
-app.get('/api/assignments', (req, res) => {
+// DEPARTMENT ROOM PANEL (UPDATED!)
+app.get('/api/assignments', async (req, res) => {
   const query = `
     SELECT 
       drt.dprtmnt_room_id, 
@@ -1394,348 +1517,482 @@ app.get('/api/assignments', (req, res) => {
     INNER JOIN dprtmnt_table dt ON drt.dprtmnt_id = dt.dprtmnt_id
     INNER JOIN room_table rt ON drt.room_id = rt.room_id
   `;
-  db3.query(query, (err, results) => {
-    if (err) return res.status(500).json(err);
-    res.json(results);
-  });
+
+  try {
+    const [results] = await db3.query(query);
+    res.status(200).json(results);
+  } catch (err) {
+    console.error("Error fetching assignments:", err);
+    res.status(500).json({ error: "Failed to fetch assignments", details: err.message });
+  }
 });
 
-app.post('/api/assign', (req, res) => {
+// POST ROOM DEPARTMENT (UPDATED!)
+app.post('/api/assign', async (req, res) => {
   const { dprtmnt_id, room_id } = req.body;
+
   if (!dprtmnt_id || !room_id) {
     return res.status(400).json({ message: 'Department and Room ID are required' });
   }
 
-  const checkQuery = `
-    SELECT * FROM dprtmnt_room_table 
-    WHERE dprtmnt_id = ? AND room_id = ?
-  `;
-  db3.query(checkQuery, [dprtmnt_id, room_id], (err, results) => {
-    if (err) return res.status(500).json(err);
-    if (results.length > 0) {
+  try {
+    // Check if the room is already assigned to the department
+    const checkQuery = `
+      SELECT * FROM dprtmnt_room_table 
+      WHERE dprtmnt_id = ? AND room_id = ?
+    `;
+    const [checkResults] = await db3.query(checkQuery, [dprtmnt_id, room_id]);
+
+    if (checkResults.length > 0) {
       return res.status(400).json({ message: 'Room already assigned to this department' });
     }
 
+    // Assign the room to the department
     const insertQuery = `
       INSERT INTO dprtmnt_room_table (dprtmnt_id, room_id)
       VALUES (?, ?)
     `;
-    db3.query(insertQuery, [dprtmnt_id, room_id], (err, result) => {
-      if (err) return res.status(500).json(err);
-      res.json({ message: 'Room successfully assigned to department', insertId: result.insertId });
-    });
-  });
+    const [insertResult] = await db3.query(insertQuery, [dprtmnt_id, room_id]);
+
+    return res.json({ message: 'Room successfully assigned to department', insertId: insertResult.insertId });
+  } catch (err) {
+    console.error("Error assigning room:", err);
+    return res.status(500).json({ error: 'Internal server error', details: err.message });
+  }
 });
 
-// SECTIONS
-app.post('/section_table', (req, res) => {
-    const { description } = req.body;
-    if (!description) {
-      return res.status(400).send('Description is required');
-    }
-  
+// SECTIONS (UPDATED!)
+app.post('/section_table', async (req, res) => {
+  const { description } = req.body;
+  if (!description) {
+    return res.status(400).json({ error: 'Description is required' });
+  }
+
+  try {
     const query = 'INSERT INTO section_table (description) VALUES (?)';
-    db3.query(query, [description], (err, result) => {
-      if (err) {
-        console.error('Error inserting section:', err);
-        return res.status(500).send('Internal Server Error');
-      }
-      res.status(201).send(result);
-    });
+    const [result] = await db3.query(query, [description]);
+    res.status(201).json({ message: 'Section created successfully', sectionId: result.insertId });
+  } catch (err) {
+    console.error('Error inserting section:', err);
+    return res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  }
 });
 
-
-
-// SECTIONS LIST
-app.get('/section_table', (req, res) => {
+// SECTIONS LIST (UPDATED!)
+app.get('/section_table', async (req, res) => {
+  try {
     const query = 'SELECT * FROM section_table';
-    db3.query(query, (err, result) => {
-      if (err) {
-        console.error('Error fetching sections:', err);
-        return res.status(500).send('Internal Server Error');
-      }
-      res.status(200).send(result);
-    });
+    const [result] = await db3.query(query);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error('Error fetching sections:', err);
+    return res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  }
 });
 
 // UPDATE SECTIONS (SUPERADMIN)
 
 // DELETE SECTIONS (SUPERADMIN)
 
-// DEPARTMENT SECTIONS
-app.post('/department_section', (req, res) => {
-    const { curriculum_id, section_id } = req.body;
+// DEPARTMENT SECTIONS (UPDATED!)
+app.post('/department_section', async (req, res) => {
+  const { curriculum_id, section_id } = req.body;
 
-    const query = 'INSERT INTO dprtmnt_section_table (curriculum_id, section_id, dsstat) VALUES (?,?,0)';
-    db3.query(query, [curriculum_id, section_id, 0], (err, result) => {
-      if (err) {
-        console.error('Error inserting section:', err);
-        return res.status(500).send('Internal Server Error');
-      }
-      res.status(201).send(result);
-    });
+  if (!curriculum_id || !section_id) {
+    return res.status(400).json({ error: 'Curriculum ID and Section ID are required' });
+  }
+
+  try {
+    const query = 'INSERT INTO dprtmnt_section_table (curriculum_id, section_id, dsstat) VALUES (?, ?, 0)';
+    const [result] = await db3.query(query, [curriculum_id, section_id]);
+    
+    res.status(201).json({ message: 'Department section created successfully', sectionId: result.insertId });
+  } catch (err) {
+    console.error('Error inserting department section:', err);
+    res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  }
 });
 
-// PROFFESOR REGISTRATION
+// PROFESSOR REGISTRATION (UPDATED!)
 app.post('/register_prof', async (req, res) => {
-    const {fname, mname, lname, email, password} = req.body;
+  const { fname, mname, lname, email, password } = req.body;
 
+  // Validate input
+  if (!fname || !lname || !email || !password) {
+    return res.status(400).json({ error: 'First name, last name, email, and password are required' });
+  }
+
+  try {
+    // Hash password
     const hashedProfPassword = await bcrypt.hash(password, 10);
-    
-    const queryForProf = 'INSERT INTO prof_table (fname, mname, lname, email, password, status) VALUES (?,?,?,?,?,?)';
-    
-    db3.query(queryForProf, [fname, mname, lname, email, hashedProfPassword, 0], (err, result)=>{
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result);
+
+    // Insert professor into the database
+    const queryForProf = 'INSERT INTO prof_table (fname, mname, lname, email, password, status) VALUES (?, ?, ?, ?, ?, ?)';
+    const [result] = await db3.query(queryForProf, [fname, mname, lname, email, hashedProfPassword, 0]);
+
+    // Return success response
+    res.status(201).json({
+      message: 'Professor registered successfully',
+      professorId: result.insertId,
     });
+
+  } catch (err) {
+    // Log the error and return an error response
+    console.error('Error registering professor:', err);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      details: err.message,
+    });
+  }
 });
 
-//
-app.post("/login_prof", (req, res) => {
-    const { email, password } = req.body;
-  
-    if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-  
-    const sql = `SELECT prof_table.*, time_table.*
-    FROM prof_table
-    INNER JOIN time_table ON prof_table.prof_id = time_table.professor_id
-    WHERE prof_table.email = ?`;
-    db3.query(sql, [email], async (err, results) => {
-      if (err || results.length === 0) {
-        return res.status(400).json({ message: "Invalid username or password" });
-      }
-  
-      const user = results[0];
-      const isMatch = await bcrypt.compare(password, user.password);
-  
-      if (!isMatch) {
-        return res.status(400).json({ message: "Invalid username or password" });
-      }
-  
-      const token = webtoken.sign(
-        { prof_id: user.prof_id, fname: user.fname, mname: user.mname, lname: user.lname, email: user.email, school_year_id: user.school_year_id},  // role is included in the token
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-  
-      // Log to confirm that role is included in the response
-      console.log("Login response:", { token, prof_id: user.prof_id, email: user.email, });
-  
-      const mappings = results.map(row => ({
-        department_section_id: row.department_section_id,
-        subject_id: row.subject_id
-      }));
+// LOGIN PROFESSOR (UPDATED!)
+app.post("/login_prof", async (req, res) => {
+  const { email, password } = req.body;
 
-      res.json({
-        message: "Login successful",
-        token,
-        prof_id: user.prof_id,
+  // Validate input
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+
+  try {
+    // Fetch professor details and related time table records
+    const sql = `
+      SELECT prof_table.*, time_table.*
+      FROM prof_table
+      INNER JOIN time_table ON prof_table.prof_id = time_table.professor_id
+      WHERE prof_table.email = ?
+    `;
+    const [results] = await db3.query(sql, [email]);
+
+    // If no matching professor found
+    if (results.length === 0) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const user = results[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    // Check if the password matches
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Generate JWT token
+    const token = webtoken.sign(
+      { 
+        prof_id: user.prof_id, 
         fname: user.fname, 
         mname: user.mname, 
         lname: user.lname, 
-        email: user.email,
-        subject_section_mappings: mappings,
-        school_year_id: user.school_year_id
-      });
+        email: user.email, 
+        school_year_id: user.school_year_id 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    // Log the login attempt (for debugging purposes)
+    console.log("Login response:", { token, prof_id: user.prof_id, email: user.email });
+
+    // Prepare subject-section mappings
+    const mappings = results.map(row => ({
+      department_section_id: row.department_section_id,
+      subject_id: row.subject_id
+    }));
+
+    // Send successful login response with token and user details
+    res.json({
+      message: "Login successful",
+      token,
+      prof_id: user.prof_id,
+      fname: user.fname, 
+      mname: user.mname, 
+      lname: user.lname, 
+      email: user.email,
+      subject_section_mappings: mappings,
+      school_year_id: user.school_year_id
     });
+
+  } catch (err) {
+    console.error('Error during login:', err);
+    res.status(500).json({ message: "Internal server error", details: err.message });
+  }
 });
 
-//
-app.get('/get_enrolled_students/:subject_id/:department_section_id/:active_school_year_id', (req, res) => {
-    const { subject_id, department_section_id, active_school_year_id } = req.params;
+// GET ENROLLED STUDENTS (UPDATED!)
+app.get('/get_enrolled_students/:subject_id/:department_section_id/:active_school_year_id', async (req, res) => {
+  const { subject_id, department_section_id, active_school_year_id } = req.params;
 
-    const filterStudents = `
-      SELECT person_table.*, enrolled_subject.*, time_table.*
-        FROM time_table
-        INNER JOIN enrolled_subject
-            ON time_table.subject_id = enrolled_subject.subject_id
-            AND time_table.department_section_id = enrolled_subject.department_section_id
-            AND time_table.school_year_id = enrolled_subject.active_school_year_id
-        INNER JOIN student_numbering
-            ON enrolled_subject.student_number = student_numbering.student_number
-        INNER JOIN person_table
-            ON student_numbering.person_id = person_table.person_id
-        WHERE time_table.subject_id = ? 
-            AND time_table.department_section_id = ? 
-            AND time_table.school_year_id = ?
-    `;
-  
-    db3.query(filterStudents, [subject_id, department_section_id, active_school_year_id], (err, result) => {
-      if (err) {
-        console.error("Query failed:", err);
-        return res.status(500).json({ message: "Server error while fetching students." });
-      }
-  
-      if (result.length === 0) {
-        return res.status(404).json({ message: "No students found for this subject-section combo." });
-      }
-  
-      res.json(result);
-    });
-});
+  // Validate the inputs
+  if (!subject_id || !department_section_id || !active_school_year_id) {
+    return res.status(400).json({ message: 'Subject ID, Department Section ID, and Active School Year ID are required.' });
+  }
 
-// UPDATE ENROLLED STUDENT'S GRADES
-app.put('/add_grades', (req, res) => {
-    const { midterm, finals, final_grade, en_remarks, student_number, subject_id} = req.body;
-    console.log('Received data:', { midterm, finals, final_grade, en_remarks, student_number, subject_id });
-  
-    const sql = `
-      UPDATE enrolled_subject 
-      SET midterm = ?, finals = ?, final_grade = ?, en_remarks = ?
-      WHERE student_number = ? AND subject_id = ?
-    `;
-  
-    db3.query(sql, [midterm, finals, final_grade, en_remarks, student_number, subject_id], (err, result) => {
-      if (err) {
-        console.error("Failed to update grades:", err);
-        return res.status(500).json({ message: "Server error" });
-      }
-      res.status(200).json({ message: "Grades updated successfully!" });
-    });
-});
+  const filterStudents = `
+    SELECT person_table.*, enrolled_subject.*, time_table.*
+    FROM time_table
+    INNER JOIN enrolled_subject
+        ON time_table.subject_id = enrolled_subject.subject_id
+        AND time_table.department_section_id = enrolled_subject.department_section_id
+        AND time_table.school_year_id = enrolled_subject.active_school_year_id
+    INNER JOIN student_numbering
+        ON enrolled_subject.student_number = student_numbering.student_number
+    INNER JOIN person_table
+        ON student_numbering.person_id = person_table.person_id
+    WHERE time_table.subject_id = ? 
+        AND time_table.department_section_id = ? 
+        AND time_table.school_year_id = ?
+  `;
 
-// PROFESSOR LIST
-app.get('/get_prof', (req, res) => {
-    const {department_id} = req.query;
+  try {
+    // Execute the query using promise-based `execute` method
+    const [result] = await db3.execute(filterStudents, [subject_id, department_section_id, active_school_year_id]);
 
-    const getProfQuery = `
-    SELECT p.*, d.dprtmnt_name
-    FROM prof_table p
-    INNER JOIN dprtmnt_profs_table dpt ON p.prof_id = dpt.prof_id
-    INNER JOIN dprtmnt_table d ON dpt.dprtmnt_id = d.dprtmnt_id
-    WHERE dpt.dprtmnt_id = ?
-    `;
-
-    db3.query(getProfQuery, [department_id], (err,result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send(result);
-    });
-});
-
-// REQUIREMENTS PANEL
-app.post("/requirements", (req, res) => {
-    const { requirements_description } = req.body;
-    if (!requirements_description) {
-      return res.status(400).json({ error: "Description required" });
+    // Check if no students were found
+    if (result.length === 0) {
+      return res.status(404).json({ message: "No students found for this subject-section combination." });
     }
-  
-    const query = "INSERT INTO requirements (requirements_description) VALUES (?)";
-    db.query(query, [requirements_description], (err, result) => {
-      if (err) {
-        console.error("Insert error:", err);
-        return res.status(500).json({ error: "Failed to save requirement" });
-      }
-      res.status(201).json({ requirements_id: result.insertId });
+
+    // Send the response with the result
+    res.json({
+      totalStudents: result.length,
+      students: result
     });
+
+  } catch (err) {
+    console.error("Query failed:", err);
+    return res.status(500).json({ message: "Server error while fetching students." });
+  }
 });
 
-// GET THE REQUIREMENTS
-app.get("/requirements", (req, res) => {
-    const query = "SELECT * FROM requirements ORDER BY requirements_id DESC";
-    db.query(query, (err, results) => {
-      if (err) {
-        console.error("Fetch error:", err);
-        return res.status(500).json({ error: "Failed to fetch requirements" });
+// UPDATE ENROLLED STUDENT'S GRADES (UPDATED!)
+app.put('/add_grades', async (req, res) => {
+  const { midterm, finals, final_grade, en_remarks, student_number, subject_id } = req.body;
+  console.log('Received data:', { midterm, finals, final_grade, en_remarks, student_number, subject_id });
+
+  // SQL query to update grades
+  const sql = `
+    UPDATE enrolled_subject 
+    SET midterm = ?, finals = ?, final_grade = ?, en_remarks = ?
+    WHERE student_number = ? AND subject_id = ?
+  `;
+
+  try {
+      // Execute the query with await to handle the promise
+      const [result] = await db3.execute(sql, [midterm, finals, final_grade, en_remarks, student_number, subject_id]);
+
+      // Check if any rows were affected (i.e., if the update was successful)
+      if (result.affectedRows > 0) {
+          res.status(200).json({ message: "Grades updated successfully!" });
+      } else {
+          res.status(404).json({ message: "No matching record found to update." });
       }
-      res.json(results);
-    });
+  } catch (err) {
+      console.error("Failed to update grades:", err);
+      res.status(500).json({ message: "Server error" });
+  }
 });
 
-// SCHEDULE CHECKER
-// app.post("/api/check-subject", async (req, res) => {
-//   const { section_id, school_year_id, prof_id, subject_id } = req.body;
+// PROFESSOR LIST (UPDATED!)
+app.get('/get_prof', async (req, res) => {
+  const { department_id } = req.query;
 
-//   if (!section_id || !school_year_id || !subject_id) {
-//     return res.status(400).json({ error: "Missing required fields" });
-//   }
+  // Validate the input
+  if (!department_id) {
+      return res.status(400).json({ message: 'Department ID is required.' });
+  }
 
-//   const query = `
-//     SELECT * FROM schedule 
-//     WHERE section_id = ? AND school_year_id = ? AND subject_id = ?
-//   `;
+  const getProfQuery = `
+  SELECT p.*, d.dprtmnt_name
+  FROM prof_table p
+  INNER JOIN dprtmnt_profs_table dpt ON p.prof_id = dpt.prof_id
+  INNER JOIN dprtmnt_table d ON dpt.dprtmnt_id = d.dprtmnt_id
+  WHERE dpt.dprtmnt_id = ?
+  `;
 
-//   try {
-//     const [result] = await db.query(query, [section_id, school_year_id, subject_id]);
+  try {
+      // Execute the query using promise-based `execute` method
+      const [result] = await db3.execute(getProfQuery, [department_id]);
 
-//     if (result.length > 0) {
-//       return res.json({ exists: true });
-//     } else {
-//       return res.json({ exists: false });
-//     }
-//   } catch (error) {
-//     console.error("Database query error:", error);
-//     return res.status(500).json({ error: "Internal server error" });
-//   }
-// });
+      // Send the response with the result
+      res.status(200).json(result);
 
-// app.post("/api/check-conflict", async (req, res) => {
-//   const { day, start_time, end_time, section_id, school_year_id, prof_id, room_id, subject_id } = req.body;
+  } catch (err) {
+      console.error("Error fetching professors:", err);
+      return res.status(500).json({ message: 'Server error while fetching professors.' });
+  }
+});
 
-//   try {
-//     // Step 1: Check if the section + subject + school year is already assigned to another professor
-//     const checkSubjectQuery = `
-//       SELECT * FROM schedule 
-//       WHERE section_id = ? AND subject_id = ? AND school_year_id = ? AND prof_id != ? 
-//     `;
-//     const [subjectResult] = await db.query(checkSubjectQuery, [section_id, subject_id, school_year_id, prof_id]);
+// REQUIREMENTS PANEL (UPDATED!)
+app.post("/requirements", async (req, res) => {
+  const { requirements_description } = req.body;
 
-//     if (subjectResult.length > 0) {
-//       return res.status(409).json({ conflict: true, message: "This subject is already assigned to another professor in this section and school year." });
-//     }
+  // Validate the input
+  if (!requirements_description) {
+    return res.status(400).json({ error: "Description required" });
+  }
 
-//     // Step 2: Check for overlapping time conflicts
-//     const checkTimeQuery = `
-//       SELECT * FROM schedule 
-//       WHERE day = ? 
-//       AND school_year_id = ?
-//       AND (prof_id = ? OR section_id = ? OR room_id = ?) 
-//       AND (
-//         (? >= start_time AND ? < end_time) OR  -- New start time falls within existing schedule
-//         (? > start_time AND ? <= end_time) OR  -- New end time falls within existing schedule
-//         (start_time >= ? AND start_time < ?) OR  -- Existing start time falls within new schedule
-//         (end_time > ? AND end_time <= ?)  -- Existing end time falls within new schedule
-//       )
-//     `;
+  const query = "INSERT INTO requirements (requirements_description) VALUES (?)";
 
-//     const [timeResult] = await db.query(checkTimeQuery, [day, school_year_id, prof_id, section_id, room_id, start_time, start_time, end_time, end_time, start_time, end_time, start_time, end_time]);
+  try {
+    // Execute the query using promise-based `execute` method
+    const [result] = await db.execute(query, [requirements_description]);
 
-//     if (timeResult.length > 0) {
-//       return res.status(409).json({ conflict: true, message: "Schedule conflict detected! Please choose a different time." });
-//     }
+    // Respond with the inserted ID
+    res.status(201).json({ requirements_id: result.insertId });
 
-//     return res.status(200).json({ conflict: false, message: "Schedule is available." });
-//   } catch (error) {
-//     console.error("Database query error:", error);
-//     return res.status(500).json({ error: "Internal server error" });
-//   }
-// });
+  } catch (err) {
+    console.error("Insert error:", err);
+    return res.status(500).json({ error: "Failed to save requirement" });
+  }
+});
 
+// GET THE REQUIREMENTS (UPDATED!)
+app.get("/requirements", async (req, res) => {
+  const query = "SELECT * FROM requirements ORDER BY requirements_id DESC";
 
+  try {
+    // Execute the query using promise-based `execute` method
+    const [results] = await db.execute(query);
 
+    // Send the results in the response
+    res.json(results);
 
+  } catch (err) {
+    console.error("Fetch error:", err);
+    return res.status(500).json({ error: "Failed to fetch requirements" });
+  }
+});
 
+//SCHEDULE CHECKER
+app.post("/api/check-subject", async (req, res) => {
+  const { section_id, school_year_id, prof_id, subject_id } = req.body;
+
+  if (!section_id || !school_year_id || !subject_id) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const query = `
+    SELECT * FROM schedule 
+    WHERE section_id = ? AND school_year_id = ? AND subject_id = ?
+  `;
+
+  try {
+    const [result] = await db.query(query, [section_id, school_year_id, subject_id]);
+
+    if (result.length > 0) {
+      return res.json({ exists: true });
+    } else {
+      return res.json({ exists: false });
+    }
+  } catch (error) {
+    console.error("Database query error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/api/check-conflict", async (req, res) => {
+  const { day, start_time, end_time, section_id, school_year_id, prof_id, room_id, subject_id } = req.body;
+
+  try {
+    // Step 1: Check if the section + subject + school year is already assigned to another professor
+    const checkSubjectQuery = `
+      SELECT * FROM schedule 
+      WHERE section_id = ? AND subject_id = ? AND school_year_id = ? AND prof_id != ? 
+    `;
+    const [subjectResult] = await db.query(checkSubjectQuery, [section_id, subject_id, school_year_id, prof_id]);
+
+    if (subjectResult.length > 0) {
+      return res.status(409).json({ conflict: true, message: "This subject is already assigned to another professor in this section and school year." });
+    }
+
+    // Step 2: Check for overlapping time conflicts
+    const checkTimeQuery = `
+      SELECT * FROM schedule 
+      WHERE day = ? 
+      AND school_year_id = ?
+      AND (prof_id = ? OR section_id = ? OR room_id = ?) 
+      AND (
+        (? >= start_time AND ? < end_time) OR  
+        (? > start_time AND ? <= end_time) OR  
+        (start_time >= ? AND start_time < ?) OR  
+        (end_time > ? AND end_time <= ?)  
+      )
+    `;
+
+    const [timeResult] = await db.query(checkTimeQuery, [
+      day,
+      school_year_id,
+      prof_id,
+      section_id,
+      room_id,
+      start_time,
+      start_time,
+      end_time,
+      end_time,
+      start_time,
+      end_time,
+      start_time,
+      end_time
+    ]);
+
+    if (timeResult.length > 0) {
+      return res.status(409).json({ conflict: true, message: "Schedule conflict detected! Please choose a different time." });
+    }
+
+    return res.status(200).json({ conflict: false, message: "Schedule is available." });
+  } catch (error) {
+    console.error("Database query error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// INSERT SCHEDULE
+app.post("/api/insert-schedule", async (req, res) => {
+  const { day, start_time, end_time, section_id, school_year_id, prof_id, room_id, subject_id } = req.body;
+
+  if (!day || !start_time || !end_time || !section_id || !school_year_id || !prof_id || !room_id || !subject_id) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const query = `
+    INSERT INTO schedule (day, start_time, end_time, section_id, school_year_id, prof_id, room_id, subject_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  try {
+    await db.query(query, [day, start_time, end_time, section_id, school_year_id, prof_id, room_id, subject_id]);
+    res.status(200).json({ message: "Schedule inserted successfully" });
+  } catch (error) {
+    console.error("Error inserting schedule:", error);
+    res.status(500).json({ error: "Failed to insert schedule" });
+  }
+}); 
 
 // STUDENT NUMBERING
 
-// GET STUDENTS THAT HAVE NO STUDENT NUMBER
+// GET STUDENTS THAT HAVE NO STUDENT NUMBER (UPDATED!)
 app.get("/api/persons", async (req, res) => {
   try {
-    const [rows] = await db3.query(`
+    // Execute the query using the promise-based API
+    const [rows] = await db3.execute(`
       SELECT p.* 
       FROM enrollment.person_table p
       JOIN person_status_table ps ON p.person_id = ps.person_id
       WHERE ps.student_registration_status = 0
     `);
+
+    // Send the result as JSON
     res.json(rows);
+
   } catch (err) {
-    console.error(err);
+    console.error("Database query error:", err);
     res.status(500).send("Server error");
   }
 });
 
-// ASSIGN A STUDENT NUMBER TO THAT STUDENT
+// ASSIGN A STUDENT NUMBER TO THAT STUDENT (UPDATED!)
 app.post("/api/assign-student-number", async (req, res) => {
   const connection = await db3.getConnection();
   
@@ -1800,7 +2057,7 @@ app.post("/api/assign-student-number", async (req, res) => {
   }
 });
 
-// Corrected route with parameter
+// Corrected route with parameter (UPDATED!)
 app.get("/courses/:currId", async (req, res) => {
   const { currId } = req.params;
 
@@ -1821,7 +2078,7 @@ app.get("/courses/:currId", async (req, res) => {
   `;
 
   try {
-    const [result] = await pool.query(sql, [currId]);
+    const [result] = await db3.query(sql, [currId]);
     res.json(result);
   } catch (err) {
     console.error("Error in /courses:", err);
@@ -1830,14 +2087,14 @@ app.get("/courses/:currId", async (req, res) => {
   }
 });
 
-//
+//(UPDATED!)
 app.get("/enrolled_courses/:userId/:currId", async (req, res) => {
   const { userId, currId } = req.params;
 
   try {
     // Step 1: Get the active_school_year_id
     const activeYearSql = `SELECT active_school_year_id FROM active_school_year WHERE astatus = 1 LIMIT 1`;
-    const [yearResult] = await pool.query(activeYearSql);
+    const [yearResult] = await db3.query(activeYearSql);
 
     if (yearResult.length === 0) {
       return res.status(404).json({ error: "No active school year found" });
@@ -1897,7 +2154,7 @@ app.get("/enrolled_courses/:userId/:currId", async (req, res) => {
     ORDER BY s.subject_id ASC;
     `;
 
-    const [result] = await pool.query(sql, [userId, activeSchoolYearId, currId]);
+    const [result] = await db3.query(sql, [userId, activeSchoolYearId, currId]);
     res.json(result);
   } catch (err) {
     console.error("Error in /enrolled_courses:", err);
@@ -1905,14 +2162,14 @@ app.get("/enrolled_courses/:userId/:currId", async (req, res) => {
   }
 });
 
-//
+//(UPDATED!)
 app.post("/add-all-to-enrolled-courses", async (req, res) => {
   const { subject_id, user_id, curriculumID, departmentSectionID } = req.body;
   console.log("Received request:", { subject_id, user_id, curriculumID, departmentSectionID });
 
   try {
     const activeYearSql = `SELECT active_school_year_id, semester_id FROM active_school_year WHERE astatus = 1 LIMIT 1`;
-    const [yearResult] = await pool.query(activeYearSql);
+    const [yearResult] = await db3.query(activeYearSql);
 
     if (yearResult.length === 0) {
       return res.status(404).json({ error: "No active school year found" });
@@ -1929,7 +2186,7 @@ app.post("/add-all-to-enrolled-courses", async (req, res) => {
       LIMIT 1
     `;
 
-    const [checkResult] = await pool.query(checkSql, [subject_id, curriculumID]);
+    const [checkResult] = await db3.query(checkSql, [subject_id, curriculumID]);
 
     if (!checkResult.length) {
       console.warn(`Subject ${subject_id} not found in tagging table`);
@@ -1952,7 +2209,7 @@ app.post("/add-all-to-enrolled-courses", async (req, res) => {
       WHERE subject_id = ? AND student_number = ? AND active_school_year_id = ?
     `;
 
-    const [dupResult] = await pool.query(checkDuplicateSql, [subject_id, user_id, activeSchoolYearId]);
+    const [dupResult] = await db3.query(checkDuplicateSql, [subject_id, user_id, activeSchoolYearId]);
 
     if (dupResult.length > 0) {
       console.log(`Skipping subject ${subject_id}, already enrolled for student ${user_id}`);
@@ -1964,7 +2221,7 @@ app.post("/add-all-to-enrolled-courses", async (req, res) => {
       VALUES (?, ?, ?, ?, ?)
     `;
 
-    await pool.query(insertSql, [subject_id, user_id, activeSchoolYearId, curriculumID, departmentSectionID]);
+    await db3.query(insertSql, [subject_id, user_id, activeSchoolYearId, curriculumID, departmentSectionID]);
     console.log(`Student ${user_id} successfully enrolled in subject ${subject_id}`);
     res.status(200).json({ message: "Course enrolled successfully" });
   } catch (err) {
@@ -1973,14 +2230,14 @@ app.post("/add-all-to-enrolled-courses", async (req, res) => {
   }
 });
 
-//
+//(UPDATED!)
 app.post("/add-to-enrolled-courses/:userId/:currId/", async (req, res) => {
   const { subject_id, department_section_id } = req.body;
   const { userId, currId } = req.params;
 
   try {
     const activeYearSql = `SELECT active_school_year_id FROM active_school_year WHERE astatus = 1 LIMIT 1`;
-    const [yearResult] = await pool.query(activeYearSql);
+    const [yearResult] = await db3.query(activeYearSql);
 
     if (yearResult.length === 0) {
       return res.status(404).json({ error: "No active school year found" });
@@ -1989,33 +2246,33 @@ app.post("/add-to-enrolled-courses/:userId/:currId/", async (req, res) => {
     const activeSchoolYearId = yearResult[0].active_school_year_id;
 
     const sql = "INSERT INTO enrolled_subject (subject_id, student_number, active_school_year_id, curriculum_id, department_section_id) VALUES (?, ?, ?, ?, ?)";
-    await pool.query(sql, [subject_id, userId, activeSchoolYearId, currId, department_section_id]);
+    await db3.query(sql, [subject_id, userId, activeSchoolYearId, currId, department_section_id]);
     res.json({ message: "Course enrolled successfully" });
   } catch (err) {
     return res.status(500).json(err);
   }
 });
 
-// Delete course by subject_id
+// Delete course by subject_id (UPDATED!)
 app.delete("/courses/delete/:id", async (req, res) => {
   const { id } = req.params;
   
   try {
     const sql = "DELETE FROM enrolled_subject WHERE id = ?";
-    await pool.query(sql, [id]);
+    await db3.query(sql, [id]);
     res.json({ message: "Course unenrolled successfully" });
   } catch (err) {
     return res.status(500).json(err);
   }
 });
 
-// Delete all courses for user
+// Delete all courses for user (UPDATED!)
 app.delete("/courses/user/:userId", async (req, res) => {
   const { userId } = req.params;
   
   try {
     const activeYearSql = `SELECT active_school_year_id FROM active_school_year WHERE astatus = 1 LIMIT 1`;
-    const [yearResult] = await pool.query(activeYearSql);
+    const [yearResult] = await db3.query(activeYearSql);
 
     if (yearResult.length === 0) {
       return res.status(404).json({ error: "No active school year found" });
@@ -2024,14 +2281,14 @@ app.delete("/courses/user/:userId", async (req, res) => {
     const activeSchoolYearId = yearResult[0].active_school_year_id;
 
     const sql = "DELETE FROM enrolled_subject WHERE student_number = ? AND active_school_year_id = ?";
-    await pool.query(sql, [userId, activeSchoolYearId]);
+    await db3.query(sql, [userId, activeSchoolYearId]);
     res.json({ message: "All courses unenrolled successfully" });
   } catch (err) {
     return res.status(500).json(err);
   }
 });
 
-// Login User
+// Login User (UPDATED!)
 app.post("/student-tagging", async (req, res) => {
   const { studentNumber } = req.body;
 
@@ -2048,7 +2305,7 @@ app.post("/student-tagging", async (req, res) => {
     INNER JOIN person_table as ptbl ON ptbl.person_id = sn.person_id  
     WHERE ss.student_number = ?`;
     
-    const [results] = await pool.query(sql, [studentNumber]);
+    const [results] = await db3.query(sql, [studentNumber]);
 
     if (results.length === 0) {
       return res.status(400).json({ message: "Invalid Student Number" });
@@ -2106,10 +2363,10 @@ app.post("/student-tagging", async (req, res) => {
 
 let lastSeenId = 0;
 
-//
+// (UPDATED!)
 app.get("/check-new", async (req, res) => {
   try {
-    const [results] = await pool.query("SELECT * FROM enrolled_subject ORDER BY id DESC LIMIT 1");
+    const [results] = await db3.query("SELECT * FROM enrolled_subject ORDER BY id DESC LIMIT 1");
     
     if (results.length > 0) {
       const latest = results[0];
@@ -2126,7 +2383,7 @@ app.get("/check-new", async (req, res) => {
   }
 });
 
-//
+// (UPDATED!)
 app.get("/api/department-sections", async (req, res) => {
   const { departmentId } = req.query;
 
@@ -2143,7 +2400,7 @@ app.get("/api/department-sections", async (req, res) => {
   `;
 
   try {
-    const [results] = await pool.query(query, [departmentId]);
+    const [results] = await db3.query(query, [departmentId]);
     res.status(200).json(results);
   } catch (err) {
     console.error("Error fetching department sections:", err);
@@ -2151,12 +2408,12 @@ app.get("/api/department-sections", async (req, res) => {
   }
 });
 
-// Express route
+// Express route (UPDATED!)
 app.get("/departments", async (req, res) => {
   const sql = "SELECT department_id, department_code FROM department_table";
 
   try {
-    const [result] = await pool.query(sql);
+    const [result] = await db3.query(sql);
     res.json(result);
   } catch (err) {
     console.error("Error fetching departments:", err);
@@ -2164,13 +2421,13 @@ app.get("/departments", async (req, res) => {
   }
 });
 
-// 📌 Count how many students enrolled per subject for a selected section
+// 📌 Count how many students enrolled per subject for a selected section (UPDATED!)
 app.get("/subject-enrollment-count", async (req, res) => {
   const { sectionId } = req.query; // department_section_id
 
   try {
     const activeYearSql = `SELECT active_school_year_id FROM active_school_year WHERE astatus = 1 LIMIT 1`;
-    const [yearResult] = await pool.query(activeYearSql);
+    const [yearResult] = await db3.query(activeYearSql);
 
     if (yearResult.length === 0) {
       return res.status(404).json({ error: "No active school year found" });
@@ -2188,7 +2445,7 @@ app.get("/subject-enrollment-count", async (req, res) => {
       GROUP BY es.subject_id
     `;
 
-    const [result] = await pool.query(sql, [activeSchoolYearId, sectionId]);
+    const [result] = await db3.query(sql, [activeSchoolYearId, sectionId]);
     res.json(result); // [{ subject_id: 1, enrolled_count: 25 }, { subject_id: 2, enrolled_count: 30 }]
   } catch (err) {
     console.error("Error fetching enrolled counts:", err);
@@ -2196,13 +2453,13 @@ app.get("/subject-enrollment-count", async (req, res) => {
   }
 });
 
-// Get user by person_id
+// Get user by person_id (UPDATED!)
 app.get("/api/user/:person_id", async (req, res) => {
   const { person_id } = req.params;
 
   try {
     const sql = "SELECT profile_picture FROM person_table WHERE person_id = ?";
-    const [results] = await pool.query(sql, [person_id]);
+    const [results] = await db2.query(sql, [person_id]);
 
     if (results.length === 0) {
       return res.status(404).send("User not found");
@@ -2215,7 +2472,7 @@ app.get("/api/user/:person_id", async (req, res) => {
   }
 });
 
-// REGISTER (CHECK)
+// REGISTER (CHECK)  (UPDATED!)
 app.post("/api/register", async (req, res) => {
   const { first_name, middle_name, last_name } = req.body;
 
@@ -2271,7 +2528,7 @@ app.post('/grade_period_activate/:id', async (req, res) => {
 
 /* ------------------------------------------- UPLOAD  ---------------------------------------------------------- */
 
-// UPOAD PROFILE IMAGE (CHECK)
+// UPOAD PROFILE IMAGE (CHECK) (UPDATED!)
 app.post("/api/upload-profile-picture", upload.single("profile_picture"), async (req, res) => {
   if (!req.file) {
     return res.status(400).send("No file uploaded");

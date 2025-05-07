@@ -399,17 +399,18 @@ const SearchStudentCOR = () => {
                             justifyContent: "center",
                             alignItems: "center",
                             position: "relative",
+                            border: 'solid 1px black' 
                           }}
                         >
                           {profilePicture ? (
                             <img
                               src={profilePicture}
                               alt="Profile"
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              style={{ width: "100%", height: "100%", objectFit: "cover", border: 'solid 1px black' }}
                             />
                           ) : (
                             <span style={{ fontSize: "12px", color: "#666" }}>
-                              <img src={TempPicture} className="ProfilePicture" alt="" srcset="" />
+                              No profile picture
                             </span>
                           )}
 
@@ -503,7 +504,7 @@ const SearchStudentCOR = () => {
               <td colSpan={16} style={{ border: "1px solid black", fontSize: "62.5%" }}>
                 <input
                   type="text"
-                  value={data[0]?.student_no || "224-08640M"}
+                  value={data[0]?.student_no || ""}
                   readOnly
                   style={{
                     fontFamily: "Arial, sans-serif",
@@ -537,7 +538,7 @@ const SearchStudentCOR = () => {
               <td colSpan={16} style={{ border: "1px solid black", fontSize: "62.5%" }}>
                 <input
                   type="text"
-                  value={data[0]?.college || "College of Computer Studies"}
+                  value={data[0]?.college || ""}
                   readOnly
                   style={{
                     fontFamily: "Arial, sans-serif",
@@ -577,7 +578,7 @@ const SearchStudentCOR = () => {
               <td colSpan={16} style={{ border: "1px solid black", fontSize: "62.5%" }}>
                 <input
                   type="text"
-                  value={data[0]?.name || "Mecasio, Arden B."}
+                  value={data[0]?.name || ""}
                   readOnly
                   style={{
                     fontFamily: "Arial, sans-serif",
@@ -614,7 +615,7 @@ const SearchStudentCOR = () => {
               <td colSpan={16} style={{ border: "1px solid black", fontSize: "62.5%" }}>
                 <input
                   type="text"
-                  value={data[0]?.program || "Bachelor of Science Major in Information Technology"}
+                  value={data[0]?.program || ""}
                   readOnly
                   style={{
                     fontFamily: "Arial, sans-serif",
@@ -653,7 +654,7 @@ const SearchStudentCOR = () => {
               <td colSpan={9} style={{ border: "1px solid black", fontSize: "62.5%" }}>
                 <input
                   type="text"
-                  value={data[0]?.gender || "Male"}
+                  value={data[0]?.gender || ""}
                   readOnly
                   style={{
                     fontFamily: "Arial, sans-serif",
@@ -727,7 +728,7 @@ const SearchStudentCOR = () => {
               <td colSpan={9} style={{ border: "1px solid black", fontSize: "62.5%" }}>
                 <input
                   type="text"
-                  value={data[0]?.curriculum || "2018-2019"}
+                  value={data[0]?.curriculum || ""}
                   readOnly
                   style={{
                     fontFamily: "Arial, sans-serif",
@@ -747,19 +748,19 @@ const SearchStudentCOR = () => {
                 <input type="text" value={"Age:"} style={{ fontWeight: "bold", color: "black", fontFamily: 'Arial, sans-serif', fontSize: '12px', width: "98%", border: "none", outline: "none", background: "none" }} />
               </td>
               <td colSpan={9} style={{ fontSize: "62.5%", border: "1px solid black" }}>
-                <input type="text" value={data[0]?.age || "21"} readOnly style={{ fontFamily: "Arial, sans-serif", color: "black", width: "98%", fontSize: "12px", border: "none", outline: "none", background: "none" }} />
+                <input type="text" value={data[0]?.age || ""} readOnly style={{ fontFamily: "Arial, sans-serif", color: "black", width: "98%", fontSize: "12px", border: "none", outline: "none", background: "none" }} />
               </td>
               <td colSpan={4} style={{ fontSize: "50%", border: "1px solid black" }}>
                 <input type="text" value={"Year Level:"} style={{ fontWeight: "bold", color: "black", fontFamily: 'Arial, sans-serif', fontSize: '12px', width: "98%", border: "none", outline: "none", background: "none" }} />
               </td>
               <td colSpan={9} style={{ fontSize: "62.5%", border: "1px solid black" }}>
-                <input type="text" value={data[0]?.year_level || "Third Year-Regular"} readOnly style={{ fontFamily: "Arial, sans-serif", color: "black", width: "98%", fontSize: "12px", border: "none", outline: "none", background: "none" }} />
+                <input type="text" value={data[0]?.year_level || ""} readOnly style={{ fontFamily: "Arial, sans-serif", color: "black", width: "98%", fontSize: "12px", border: "none", outline: "none", background: "none" }} />
               </td>
               <td colSpan={8} style={{ fontSize: "50%", border: "1px solid black" }}>
                 <input type="text" value={"Scholarship/Discount:"} style={{ fontWeight: "bold", color: "black", fontFamily: 'Arial, sans-serif', fontSize: '12px', width: "98%", border: "none", outline: "none", background: "none" }} />
               </td>
               <td colSpan={6} style={{ fontSize: "62.5%", border: "1px solid black" }}>
-                <input type="text" value={data[0]?.scholarship_discount || "UNIFAST-FHE"} readOnly style={{ fontFamily: "Arial, sans-serif", color: "black", width: "98%", fontSize: "12px", border: "none", outline: "none", background: "none" }} />
+                <input type="text" value={data[0]?.scholarship_discount || ""} readOnly style={{ fontFamily: "Arial, sans-serif", color: "black", width: "98%", fontSize: "12px", border: "none", outline: "none", background: "none" }} />
               </td>
             </tr>
 
@@ -783,7 +784,7 @@ const SearchStudentCOR = () => {
               <td colSpan={12} style={{ border: "1px solid black", fontSize: "62.5%" }}>
                 <input
                   type="text"
-                  value={data[0]?.email_address || "4rdenMecasio@gmail.com"}
+                  value={data[0]?.email_address || ""}
                   readOnly
                   style={{
                     fontFamily: "Arial, sans-serif",
