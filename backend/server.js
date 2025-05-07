@@ -1128,26 +1128,26 @@ app.post("/adding_course", async (req, res) => {
   }
 });
 
-// READ COURSE LIST (UPDATED!)
-app.get("/courselist", async (req, res) => {
-  const readQuery = `
-    SELECT * 
-    FROM program_tagging_table AS ptt 
-    INNER JOIN course_table AS ct 
-    ON ptt.course_id = ct.course_id
-  `;
+// READ COURSE LIST (UPDATED!)  
+// app.get("/courselist", async (req, res) => {
+//   const readQuery = `
+//     SELECT * 
+//     FROM program_tagging_table AS ptt 
+//     INNER JOIN course_table AS ct 
+//     ON ptt.course_id = ct.course_id
+//   `;
 
-  try {
-    const [result] = await db3.query(readQuery);
-    res.status(200).json(result);
-  } catch (err) {
-    console.error("Database error:", err);
-    res.status(500).json({
-      error: "Internal Server Error",
-      details: err.message
-    });
-  }
-});
+//   try {
+//     const [result] = await db3.query(readQuery);
+//     res.status(200).json(result);
+//   } catch (err) {
+//     console.error("Database error:", err);
+//     res.status(500).json({
+//       error: "Internal Server Error",
+//       details: err.message
+//     });
+//   }
+// });
 
 // UPDATE COURSE (SUPERADMIN)
 
@@ -1194,6 +1194,22 @@ app.get("/get_course", async (req, res) => {
     console.error("Database error:", err);
     res.status(500).json({
       error: "Failed to retrieve course tagging list",
+      details: err.message
+    });
+  }
+});
+
+// COURSE LIST (UPDATED!)
+app.get("/course_list", async (req, res) => {
+  const query = "SELECT * FROM course_table";
+
+  try {
+    const [result] = await db3.query(query);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Query error:", err);
+    res.status(500).json({
+      error: "Query failed",
       details: err.message
     });
   }
@@ -1824,6 +1840,35 @@ app.get('/get_prof', async (req, res) => {
   }
 });
 
+// COLLEGE OF COMPUTER STUDIES prof filter
+app.get('/prof_list', async (req, res) => {
+  try{
+    const query = `SELECT pt.* FROM dprtmnt_profs_table as dpt
+                  INNER JOIN prof_table as pt 
+                  ON dpt.prof_id = pt.prof_id
+                  INNER JOIN dprtmnt_table as dt
+                  ON dt.dprtmnt_id = dpt.dprtmnt_id
+                  WHERE dpt.dprtmnt_id = 5`;
+    const [results] = await db3.query(query);
+    res.status(200).send(results);
+  } catch(error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+})
+
+
+app.get('/day_list', async (req, res) => {
+  try{
+    const query = 'SELECT * FROM room_day_table';
+    const [result] = await db3.query(query);
+    res.status(200).send(result)
+  }catch(error){
+    console.error(error);
+    res.status(500).send(error);
+  }
+})
+
 // REQUIREMENTS PANEL (UPDATED!)
 app.post("/requirements", async (req, res) => {
   const { requirements_description } = req.body;
@@ -1950,19 +1995,19 @@ app.post("/api/check-conflict", async (req, res) => {
 
 // INSERT SCHEDULE
 app.post("/api/insert-schedule", async (req, res) => {
-  const { day, start_time, end_time, section_id, school_year_id, prof_id, room_id, subject_id } = req.body;
+  const { day, start_time, end_time, section_id, subject_id, prof_id, room_id, school_year_id} = req.body;
 
   if (!day || !start_time || !end_time || !section_id || !school_year_id || !prof_id || !room_id || !subject_id) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
   const query = `
-    INSERT INTO schedule (day, start_time, end_time, section_id, school_year_id, prof_id, room_id, subject_id)
+    INSERT INTO time_table (room_day, school_time_start, school_time_end, department_section_id, course_id, professor_id, department_room_id, school_year_id)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   try {
-    await db.query(query, [day, start_time, end_time, section_id, school_year_id, prof_id, room_id, subject_id]);
+    await db3.query(query, [day, start_time, end_time, section_id, subject_id, prof_id, room_id, school_year_id,]);
     res.status(200).json({ message: "Schedule inserted successfully" });
   } catch (error) {
     console.error("Error inserting schedule:", error);
@@ -2063,18 +2108,18 @@ app.get("/courses/:currId", async (req, res) => {
 
   const sql = `
     SELECT 
-      ctt.course_tagging_table_id,
+      ctt.program_tagging_id,
       ctt.curriculum_id,
-      ctt.subject_id,
+      ctt.course_id,
       ctt.year_level_id,
       ctt.semester_id,
-      s.subject_code,
-      s.subject_description
-    FROM course_tagging_table AS ctt
-    INNER JOIN subject_table AS s ON s.subject_id = ctt.subject_id
+      s.course_code,
+      s.course_description
+    FROM program_tagging_table AS ctt
+    INNER JOIN course_table AS s ON s.course_id = ctt.course_id
 
     WHERE ctt.curriculum_id = ?
-    ORDER BY s.subject_id ASC
+    ORDER BY s.course_id ASC
   `;
 
   try {
@@ -2093,7 +2138,7 @@ app.get("/enrolled_courses/:userId/:currId", async (req, res) => {
 
   try {
     // Step 1: Get the active_school_year_id
-    const activeYearSql = `SELECT active_school_year_id FROM active_school_year WHERE astatus = 1 LIMIT 1`;
+    const activeYearSql = `SELECT id FROM active_school_year_table WHERE astatus = 1 LIMIT 1`;
     const [yearResult] = await db3.query(activeYearSql);
 
     if (yearResult.length === 0) {
@@ -2104,13 +2149,13 @@ app.get("/enrolled_courses/:userId/:currId", async (req, res) => {
 
     const sql = `
     SELECT 
-      es.enrolled_subject_id,
-      es.subject_id,
-      s.subject_code,
-      s.subject_description,
-      st.section_description,
-      ds.department_section_id,
-      ct.course_code,
+      es.id,
+      es.course_id,
+      c.course_code,
+      c.course_description,
+      st.description,
+      ds.id,
+      pt.course_code,
       IFNULL(rd.day_description, 'TBA') AS day_description,
       IFNULL(tt.school_time_start, 'TBA') AS school_time_start,
       IFNULL(tt.school_time_end, 'TBA') AS school_time_end,
@@ -2122,28 +2167,28 @@ app.get("/enrolled_courses/:userId/:currId", async (req, res) => {
         FROM enrolled_subject es2 
         WHERE es2.active_school_year_id = es.active_school_year_id 
           AND es2.department_section_id = es.department_section_id
-          AND es2.subject_id = s.subject_id
+          AND es2.course_id = s.course_id
       ) AS number_of_enrolled
 
     FROM enrolled_subject AS es
-    INNER JOIN subject_table AS s 
-      ON s.subject_id = es.subject_id
-    INNER JOIN department_section AS ds
-      ON ds.department_section_id = es.department_section_id
+    INNER JOIN course_table AS c
+      ON c.course_id = es.course_id
+    INNER JOIN dprtmnt_section_table AS ds
+      ON ds.id = es.department_section_id
     INNER JOIN section_table AS st
-      ON st.section_id = ds.section_id
-    INNER JOIN curriculum AS cr
+      ON st.id = ds.section_id
+    INNER JOIN curriculum_table AS cr
       ON cr.curriculum_id = ds.curriculum_id
     INNER JOIN course_table AS ct
       ON ct.course_id = cr.course_id
     LEFT JOIN time_table AS tt
       ON tt.school_year_id = es.active_school_year_id 
       AND tt.department_section_id = es.department_section_id 
-      AND tt.subject_id = es.subject_id 
-    LEFT JOIN room_day AS rd
-      ON rd.day_id = tt.room_day
-    LEFT JOIN department_room as dr
-      ON dr.department_room_id = tt.department_room_id
+      AND tt.course_id = es.course_id 
+    LEFT JOIN room_day_table AS rd
+      ON rd.id = tt.room_day
+    LEFT JOIN department_room_table as dr
+      ON dr.dprtmnt_room_id = tt.department_room_id
     LEFT JOIN room_table as rtbl
       ON rtbl.room_id = dr.room_id
     LEFT JOIN prof_table 
@@ -2151,7 +2196,7 @@ app.get("/enrolled_courses/:userId/:currId", async (req, res) => {
     WHERE es.student_number = ? 
       AND es.active_school_year_id = ?
       AND es.curriculum_id = ?
-    ORDER BY s.subject_id ASC;
+    ORDER BY c.course_id ASC;
     `;
 
     const [result] = await db3.query(sql, [userId, activeSchoolYearId, currId]);
@@ -2168,21 +2213,21 @@ app.post("/add-all-to-enrolled-courses", async (req, res) => {
   console.log("Received request:", { subject_id, user_id, curriculumID, departmentSectionID });
 
   try {
-    const activeYearSql = `SELECT active_school_year_id, semester_id FROM active_school_year WHERE astatus = 1 LIMIT 1`;
+    const activeYearSql = `SELECT id, semester_id FROM active_school_year_table WHERE astatus = 1 LIMIT 1`;
     const [yearResult] = await db3.query(activeYearSql);
 
     if (yearResult.length === 0) {
       return res.status(404).json({ error: "No active school year found" });
     }
 
-    const activeSchoolYearId = yearResult[0].active_school_year_id;
+    const activeSchoolYearId = yearResult[0].id;
     const activeSemesterId = yearResult[0].semester_id;
     console.log("Active semester ID:", activeSemesterId);
 
     const checkSql = `
       SELECT year_level_id, semester_id, curriculum_id 
-      FROM course_tagging_table 
-      WHERE subject_id = ? AND curriculum_id = ? 
+      FROM program_tagging_table 
+      WHERE course_id = ? AND curriculum_id = ? 
       LIMIT 1
     `;
 
@@ -2206,7 +2251,7 @@ app.post("/add-all-to-enrolled-courses", async (req, res) => {
 
     const checkDuplicateSql = `
       SELECT * FROM enrolled_subject 
-      WHERE subject_id = ? AND student_number = ? AND active_school_year_id = ?
+      WHERE course_id = ? AND student_number = ? AND active_school_year_id = ?
     `;
 
     const [dupResult] = await db3.query(checkDuplicateSql, [subject_id, user_id, activeSchoolYearId]);
@@ -2217,7 +2262,7 @@ app.post("/add-all-to-enrolled-courses", async (req, res) => {
     }
 
     const insertSql = `
-      INSERT INTO enrolled_subject (subject_id, student_number, active_school_year_id, curriculum_id, department_section_id) 
+      INSERT INTO enrolled_subject (course_id, student_number, active_school_year_id, curriculum_id, department_section_id) 
       VALUES (?, ?, ?, ?, ?)
     `;
 
@@ -2236,7 +2281,7 @@ app.post("/add-to-enrolled-courses/:userId/:currId/", async (req, res) => {
   const { userId, currId } = req.params;
 
   try {
-    const activeYearSql = `SELECT active_school_year_id FROM active_school_year WHERE astatus = 1 LIMIT 1`;
+    const activeYearSql = `SELECT id FROM active_school_year_table WHERE astatus = 1 LIMIT 1`;
     const [yearResult] = await db3.query(activeYearSql);
 
     if (yearResult.length === 0) {
@@ -2245,7 +2290,7 @@ app.post("/add-to-enrolled-courses/:userId/:currId/", async (req, res) => {
 
     const activeSchoolYearId = yearResult[0].active_school_year_id;
 
-    const sql = "INSERT INTO enrolled_subject (subject_id, student_number, active_school_year_id, curriculum_id, department_section_id) VALUES (?, ?, ?, ?, ?)";
+    const sql = "INSERT INTO enrolled_subject (course_id, student_number, active_school_year_id, curriculum_id, department_section_id) VALUES (?, ?, ?, ?, ?)";
     await db3.query(sql, [subject_id, userId, activeSchoolYearId, currId, department_section_id]);
     res.json({ message: "Course enrolled successfully" });
   } catch (err) {
@@ -2271,14 +2316,14 @@ app.delete("/courses/user/:userId", async (req, res) => {
   const { userId } = req.params;
   
   try {
-    const activeYearSql = `SELECT active_school_year_id FROM active_school_year WHERE astatus = 1 LIMIT 1`;
+    const activeYearSql = `SELECT id FROM active_school_year_table WHERE astatus = 1 LIMIT 1`;
     const [yearResult] = await db3.query(activeYearSql);
 
     if (yearResult.length === 0) {
       return res.status(404).json({ error: "No active school year found" });
     }
 
-    const activeSchoolYearId = yearResult[0].active_school_year_id;
+    const activeSchoolYearId = yearResult[0].id;
 
     const sql = "DELETE FROM enrolled_subject WHERE student_number = ? AND active_school_year_id = ?";
     await db3.query(sql, [userId, activeSchoolYearId]);
@@ -2298,11 +2343,11 @@ app.post("/student-tagging", async (req, res) => {
 
   try {
     const sql = `
-    SELECT * FROM student_status as ss 
-    INNER JOIN curriculum as c ON c.curriculum_id = ss.active_curriculum
-    INNER JOIN course_table as ct ON c.course_id = ct.course_id
-    INNER JOIN student_numbering as sn ON sn.student_number = ss.student_number
-    INNER JOIN person_table as ptbl ON ptbl.person_id = sn.person_id  
+    SELECT * FROM student_status_table as ss 
+    INNER JOIN curriculum_table as c ON c.curriculum_id = ss.active_curriculum
+    INNER JOIN program_table as pt ON c.program_id = pt.program_id
+    INNER JOIN student_numbering_table as sn ON sn.student_number = ss.student_number
+    INNER JOIN enrollment.person_table as ptbl ON ptbl.person_id = sn.person_id  
     WHERE ss.student_number = ?`;
     
     const [results] = await db3.query(sql, [studentNumber]);
@@ -2389,14 +2434,14 @@ app.get("/api/department-sections", async (req, res) => {
 
   const query = `
     SELECT * 
-    FROM department_table as dt
-    INNER JOIN department_curriculum as dc ON dc.department_id = dt.department_id 
-    INNER JOIN curriculum as c ON c.curriculum_id = dc.curriculum_id
-    INNER JOIN department_section as ds ON ds.curriculum_id = c.curriculum_id
-    INNER JOIN course_table as ct ON c.course_id = ct.course_id
-    INNER JOIN section_table as st ON st.section_id = ds.section_id
-    WHERE dt.department_id = ?
-    ORDER BY ds.department_section_id
+    FROM dprtmnt_table as dt
+    INNER JOIN dprtmnt_curriculum_table as dc ON dc.dprtmnt_id  = dt.dprtmnt_id
+    INNER JOIN curriculum_table as c ON c.curriculum_id = dc.curriculum_id
+    INNER JOIN dprtmnt_section_table as ds ON ds.curriculum_id = c.curriculum_id
+    INNER JOIN program_table as pt ON c.program_id = pt.program_id
+    INNER JOIN section_table as st ON st.id = ds.section_id
+    WHERE dt.dprtmnt_id = ?
+    ORDER BY ds.id
   `;
 
   try {
@@ -2410,7 +2455,7 @@ app.get("/api/department-sections", async (req, res) => {
 
 // Express route (UPDATED!)
 app.get("/departments", async (req, res) => {
-  const sql = "SELECT department_id, department_code FROM department_table";
+  const sql = "SELECT dprtmnt_id, dprtmnt_code FROM dprtmnt_table";
 
   try {
     const [result] = await db3.query(sql);
@@ -2426,14 +2471,14 @@ app.get("/subject-enrollment-count", async (req, res) => {
   const { sectionId } = req.query; // department_section_id
 
   try {
-    const activeYearSql = `SELECT active_school_year_id FROM active_school_year WHERE astatus = 1 LIMIT 1`;
+    const activeYearSql = `SELECT id FROM active_school_year_table WHERE astatus = 1 LIMIT 1`;
     const [yearResult] = await db3.query(activeYearSql);
 
     if (yearResult.length === 0) {
       return res.status(404).json({ error: "No active school year found" });
     }
 
-    const activeSchoolYearId = yearResult[0].active_school_year_id;
+    const activeSchoolYearId = yearResult[0].id;
 
     const sql = `
       SELECT 
@@ -2458,7 +2503,7 @@ app.get("/api/user/:person_id", async (req, res) => {
   const { person_id } = req.params;
 
   try {
-    const sql = "SELECT profile_picture FROM person_table WHERE person_id = ?";
+    const sql = "SELECT profile_img FROM person_table WHERE person_id = ?";
     const [results] = await db2.query(sql, [person_id]);
 
     if (results.length === 0) {

@@ -187,7 +187,7 @@ const CourseTagging = () => {
     console.log("Selected section:", selectedSectionObj);
   };
 
-  const isEnrolled = (subject_id) => enrolled.some((item) => item.subject_id === subject_id);
+  const isEnrolled = (course_id) => enrolled.some((item) => item.course_id === course_id);
 
   const addToCart = async (course) => {
     if (!selectedSection) {
@@ -195,8 +195,8 @@ const CourseTagging = () => {
       return;
     }
 
-    if (!isEnrolled(course.subject_id)) {
-      const payload = { subject_id: course.subject_id, department_section_id: selectedSection };
+    if (!isEnrolled(course.course_id)) {
+      const payload = { subject_id: course.course_id, department_section_id: selectedSection };
       try {
         await axios.post(`http://localhost:5000/add-to-enrolled-courses/${userId}/${currId}/`, payload);
 
@@ -357,15 +357,16 @@ const CourseTagging = () => {
     <Container className="mt-8">
       <Grid container spacing={2} justifyContent="center" textAlign="center">
         {departments.map((dept, index) => (
-          <Grid key={dept.department_id}>
+          <Grid key={dept.dprtmnt_id}>
             <Button
               fullWidth
-              variant={selectedDepartment === dept.department_id ? "contained" : "outlined"}
-              color={selectedDepartment === dept.department_id ? "primary" : "inherit"}
-              value={dept.department_id}
-              onClick={() => handleSelect(dept.department_id)}
+              key={index}
+              variant={selectedDepartment === dept.dprtmnt_id ? "contained" : "outlined"}
+              color={selectedDepartment === dept.dprtmnt_id ? "primary" : "inherit"}
+              value={dept.dprtmnt_id}
+              onClick={() => handleSelect(dept.dprtmnt_id)}
             >
-              {dept.department_code}
+              {dept.dprtmnt_code}
             </Button>
           </Grid>
         ))}
@@ -426,14 +427,14 @@ const CourseTagging = () => {
             </TableHead>
             <TableBody>
               {courses.map((c) => (
-                <TableRow key={c.course_tagging_table_id}>
-                  <TableCell>{c.subject_code}</TableCell>
-                  <TableCell>{c.subject_description}</TableCell>
+                <TableRow key={c.program_tagging_id}>
+                  <TableCell>{c.course_code}</TableCell>
+                  <TableCell>{c.course_description}</TableCell>
                   <TableCell>
-                    {subjectCounts[c.subject_id] || 0}
+                    {subjectCounts[c.program_id] || 0}
                   </TableCell>
                   <TableCell>
-                    {!isEnrolled(c.subject_id) ? (
+                    {!isEnrolled(c.program_id) ? (
                       <Button variant="contained" size="small" onClick={() => addToCart(c)} disabled={!userId}>
                         Enroll
                       </Button>
@@ -475,8 +476,8 @@ const CourseTagging = () => {
                   <em>Select a department section</em>
                 </MenuItem>
                 {sections.map((section) => (
-                  <MenuItem key={section.department_section_id} value={section.department_section_id}>
-                    {section.course_code} - {section.section_description}
+                  <MenuItem key={section.id} value={section.id}>
+                    {section.program_code} - {section.description}
                   </MenuItem>
                 ))}
               </TextField>

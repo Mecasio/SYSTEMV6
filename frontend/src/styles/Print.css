@@ -65,7 +65,7 @@
     }
 
     .code-header{
-        max-width: 2rem !impor;
+        max-width: 2rem !important;
         border: solid 2px black !important;
     }
   }
