@@ -16,22 +16,12 @@ const ScheduleFilterer = () => {
     }
   };
 
-  const fetchProfessorsByDepartment = async (dprtmnt_id) => {
-    try {
-      const res = await axios.get(`http://localhost:5000/prof_list/${dprtmnt_id}`);
-      setSelectedProfessors(res.data);
-    } catch (err) {
-      console.error("Error fetching professors:", err);
-    }
-  };
-
   useEffect(() => {
     fetchDepartments();
   }, []);
 
   const handleFilterID = (id) => {
     setFilterDepId(id);
-    fetchProfessorsByDepartment(id);
     navigate(`/schedule_checker/${id}`)
   };
 
