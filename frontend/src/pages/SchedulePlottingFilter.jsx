@@ -31,6 +31,7 @@ const ScheduleFilterer = () => {
       {departmentList.map((department) => (
         <button 
           key={department.dprtmnt_id} 
+          className='rounded bg-'
           onClick={() => handleFilterID(department.dprtmnt_id)}
         >
           {department.dprtmnt_name} - {department.dprtmnt_code}

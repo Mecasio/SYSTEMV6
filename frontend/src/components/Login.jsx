@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from 'react-router-dom';
 import { Container, Checkbox } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
@@ -12,6 +12,15 @@ const Login = ({ setIsAuthenticated }) => {
     });
 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            setIsAuthenticated(true);
+            navigate('/dashboard');
+        }
+    }, [navigate, setIsAuthenticated]);
+
     const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState(""); 
 
