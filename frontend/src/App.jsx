@@ -80,10 +80,10 @@ import ScheduleFilterer from './pages/SchedulePlottingFilter';
             <Navbar isAuthenticated={isAuthenticated}/>
           </header>
 
-          <div className="app-format">
+          <div className="min-h-screen flex">
             {isAuthenticated && (
-              <article className='min-w-[19rem] h-full flex'>
-                <SideBar setIsAuthenticated={setIsAuthenticated} />
+              <article className='min-w-[19rem] min-h-screen flex'>
+                <SideBar setIsAuthenticated={setIsAuthenticated} style={{height: '100%'}}/>
               </article>
             )}
 

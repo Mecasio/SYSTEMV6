@@ -1,4 +1,5 @@
 #root {
+  height: 100vh;
   overflow: auto;
   scrollbar-width: none;
 }
@@ -9,7 +10,7 @@
 }
 
 main{
-  width:'100%'
+  width: 100%;
 }
 
 
