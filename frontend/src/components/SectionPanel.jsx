@@ -19,11 +19,10 @@ const SectionPanel = () => {
   const [description, setDescription] = useState('');
   const [sections, setSections] = useState([]);
 
-  // Fetch all sections from the server on component mount
   useEffect(() => {
     fetchSections();
   }, []);
-  
+
   const fetchSections = async () => {
     try {
       const response = await axios.get('http://localhost:5000/section_table');
@@ -33,75 +32,74 @@ const SectionPanel = () => {
     }
   };
 
-  // Handle form submission to insert a new section
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      // Send the description as part of an object in the request body
       await axios.post('http://localhost:5000/section_table', { description });
-  
-      // Clear the input field after successful submission
       setDescription('');
-  
-      // Fetch the updated sections after insertion
-      fetchSections(); // Re-fetch sections to update the list
+      fetchSections();
     } catch (err) {
       console.log(err);
     }
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Typography variant="h5" gutterBottom>
-          Section Panel Form
-        </Typography>
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Box display="flex" gap={3}>
+        {/* Left Form Section */}
+        <Paper elevation={3} sx={{ flex: 1, p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Section Panel Form
+          </Typography>
 
-        {/* Form to insert a new section */}
-        <form onSubmit={handleSubmit}>
-          <Box display="flex" alignItems="center" gap={2} mb={2}>
-            <TextField
-              label="Section Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              fullWidth
-              required
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              sx={{ backgroundColor: '#7b1f1f', color: '#fff' }}
-            >
-              Insert
-            </Button>
-          </Box>
-        </form>
+          <form onSubmit={handleSubmit}>
+            <Box display="flex" flexDirection="column" gap={2}>
+              <TextField
+                label="Section Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                fullWidth
+                required
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                sx={{ backgroundColor: '#7b1f1f', color: '#fff' }}
+              >
+                Insert
+              </Button>
+            </Box>
+          </form>
+        </Paper>
 
-        {/* Displaying the list of sections */}
-        <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-          Section List
-        </Typography>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell><strong>ID</strong></TableCell>
-                <TableCell><strong>Section Description</strong></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {sections.map((section) => (
-                <TableRow key={section.id}>
-                  <TableCell>{section.id}</TableCell>
-                  <TableCell>{section.description}</TableCell>
+        {/* Right Table Display Section */}
+        <Paper elevation={3} sx={{ flex: 2, p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Section List
+          </Typography>
+          <TableContainer sx={{ maxHeight: 400, overflowY: 'auto' }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell><strong>ID</strong></TableCell>
+                  <TableCell><strong>Section Description</strong></TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+              </TableHead>
+              <TableBody>
+                {sections.map((section) => (
+                  <TableRow key={section.id}>
+                    <TableCell>{section.id}</TableCell>
+                    <TableCell>{section.description}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      </Box>
     </Container>
   );
 };
 
 export default SectionPanel;
+  

@@ -1129,25 +1129,34 @@ app.post("/adding_course", async (req, res) => {
 });
 
 // READ COURSE LIST (UPDATED!)  
-// app.get("/courselist", async (req, res) => {
-//   const readQuery = `
-//     SELECT * 
-//     FROM program_tagging_table AS ptt 
-//     INNER JOIN course_table AS ct 
-//     ON ptt.course_id = ct.course_id
-//   `;
+app.get("/prgram_tagging_list", async (req, res) => {
+  const readQuery = `
+     SELECT 
+      pt.program_tagging_id,
+      c.year_id AS curriculum_description,
+      co.course_code,
+      co.course_description,
+      yl.year_level_description,
+      s.semester_description
+    FROM 
+      program_tagging_table pt
+    JOIN curriculum_table c ON pt.curriculum_id = c.curriculum_id
+    JOIN course_table co ON pt.course_id = co.course_id
+    JOIN year_level_table yl ON pt.year_level_id = yl.year_level_id
+    JOIN semester_table s ON pt.semester_id = s.semester_id
+  `;
 
-//   try {
-//     const [result] = await db3.query(readQuery);
-//     res.status(200).json(result);
-//   } catch (err) {
-//     console.error("Database error:", err);
-//     res.status(500).json({
-//       error: "Internal Server Error",
-//       details: err.message
-//     });
-//   }
-// });
+  try {
+    const [result] = await db3.query(readQuery);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({
+      error: "Internal Server Error",
+      details: err.message
+    });
+  }
+});
 
 // UPDATE COURSE (SUPERADMIN)
 
@@ -1577,6 +1586,31 @@ app.post('/api/assign', async (req, res) => {
   }
 });
 
+app.delete('/api/unassign/:room_id', async (req, res) => {
+  const { room_id } = req.params;
+
+  if (!room_id) {
+    return res.status(400).json({ message: 'Room ID is required' });
+  }
+
+  try {
+    const deleteQuery = `
+      DELETE FROM dprtmnt_room_table WHERE room_id = ?
+    `;
+    const [result] = await db3.query(deleteQuery, [room_id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Room not found in assignments' });
+    }
+
+    return res.json({ message: 'Room successfully unassigned' });
+  } catch (err) {
+    console.error('Error unassigning room:', err);
+    return res.status(500).json({ error: 'Internal server error', details: err.message });
+  }
+});
+
+
 // SECTIONS (UPDATED!)
 app.post('/section_table', async (req, res) => {
   const { description } = req.body;
@@ -1629,6 +1663,29 @@ app.post('/department_section', async (req, res) => {
   }
 });
 
+app.get('/department_section', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        pt.program_code,  
+        yt.year_description,
+        st.description AS section_description
+      FROM dprtmnt_section_table dst
+      INNER JOIN curriculum_table ct ON dst.curriculum_id = ct.curriculum_id
+      INNER JOIN program_table pt ON ct.program_id = pt.program_id
+      INNER JOIN year_table yt ON ct.year_id = yt.year_id
+      INNER JOIN section_table st ON dst.section_id = st.id
+    `;
+
+    const [rows] = await db3.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 // PROFESSOR REGISTRATION (UPDATED!)
 app.post('/register_prof', async (req, res) => {
   const { fname, mname, lname, email, password } = req.body;
@@ -1676,11 +1733,11 @@ app.post("/login_prof", async (req, res) => {
     const sql = `
       SELECT prof_table.*, time_table.*
       FROM prof_table
-      INNER JOIN time_table ON prof_table.prof_id = time_table.professor_id
+      LEFT JOIN time_table ON prof_table.prof_id = time_table.professor_id
       WHERE prof_table.email = ?
     `;
     const [results] = await db3.query(sql, [email]);
-
+    console.log("Query result:", results);
     // If no matching professor found
     if (results.length === 0) {
       return res.status(400).json({ message: "Invalid email or password" });
@@ -1752,10 +1809,10 @@ app.get('/get_enrolled_students/:subject_id/:department_section_id/:active_schoo
         ON time_table.course_id = enrolled_subject.course_id
         AND time_table.department_section_id = enrolled_subject.department_section_id
         AND time_table.school_year_id = enrolled_subject.active_school_year_id
-    INNER JOIN student_numbering
-        ON enrolled_subject.student_number = student_numbering.student_number
-    INNER JOIN person_table
-        ON student_numbering.person_id = person_table.person_id
+    INNER JOIN student_numbering_table
+        ON enrolled_subject.student_number = student_numbering_table.student_number
+    INNER JOIN enrollment.person_table
+        ON student_numbering_table.person_id = person_table.person_id
     WHERE time_table.course_id = ? 
         AND time_table.department_section_id = ? 
         AND time_table.school_year_id = ?
@@ -1948,6 +2005,25 @@ app.get("/requirements", async (req, res) => {
   } catch (err) {
     console.error("Fetch error:", err);
     return res.status(500).json({ error: "Failed to fetch requirements" });
+  }
+});
+
+// DELETE (REQUIREMNET PANEL)
+app.delete("/requirements_table/:id", async (req, res) => {
+  const { id } = req.params;
+  const query = "DELETE FROM requirements WHERE requirements_id = ?";
+
+  try {
+    const [result] = await db.execute(query, [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Requirement not found" });
+    }
+
+    res.status(200).json({ message: "Requirement deleted successfully" });
+  } catch (err) {
+    console.error("Delete error:", err);
+    res.status(500).json({ error: "Failed to delete requirement" });
   }
 });
 

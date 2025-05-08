@@ -121,9 +121,9 @@ const SchoolYearPanel = () => {
                 <tbody>
                     {schoolYears.map((sy, index) => (
                         <tr key={index}>
-                            <td className="p-2 border">{`${sy.year_description}-${parseInt(sy.year_description) + 1}`}</td>
-                            <td className="p-2 border">{sy.semester_description}</td>
-                            <td className="p-2 border">{getStatus(sy.activator)}</td>
+                            <td className="p-2 border text-center">{`${sy.year_description}-${parseInt(sy.year_description) + 1}`}</td>
+                            <td className="p-2 border text-center">{sy.semester_description}</td>
+                            <td className="p-2 border text-center">{getStatus(sy.activator)}</td>
                         </tr>
                     ))}
                 </tbody>

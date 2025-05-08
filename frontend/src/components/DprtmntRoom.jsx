@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from 'axios';
-import { Container } from "@mui/material";
-import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material";
+import {
+  Container, Box, Button, Select, MenuItem, Typography, Paper, Grid
+} from "@mui/material";
 
 const DepartmentRoom = () => {
 
@@ -10,64 +11,64 @@ const DepartmentRoom = () => {
     dprtmnt_id: ''
   });
 
+  const [assignedRoomIds, setAssignedRoomIds] = useState([]);
   const [departmentList, setDepartmentList] = useState([]);
   const [roomList, setRoomList] = useState([]);
-  const [departmentRoomList, setDepartmentRoomList] = useState([]);
-  const [expandedDepartmentRoom, setExpandedDepartmentRoom] = useState(null);  
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);  
+  const [assignedRooms, setAssignedRooms] = useState({});
 
+  // Fetch departments
   const fetchDepartment = async () => {
     try {
       const response = await axios.get('http://localhost:5000/get_department');
       setDepartmentList(response.data);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching departments:', err);
     }
   };
 
-  const fetchRoom = async (departmentId) => {
-    try {
-      const response = await axios.get(`http://localhost:5000/get_room?department_id=${departmentId}`);
-      console.log("Rooms for department:", response.data);
-      setDepartmentRoomList(response.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const fetchRoomDescription = async () => {
+  // Fetch room descriptions (list of rooms)
+  const fetchRoomList = async () => {
     try {
       const response = await axios.get('http://localhost:5000/room_list');
-      console.log(response.data);
       setRoomList(response.data);
     } catch (err) {
-      console.log(err);
+      console.log('Error fetching room list:', err);
     }
-  }
+  };
+
+  // Fetch room assignments grouped by department
+  const fetchRoomAssignments = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/assignments');
+      const assignments = response.data;
+
+      // Group rooms by department id
+      const groupedAssignments = assignments.reduce((acc, assignment) => {
+        const deptId = assignment.dprtmnt_id;
+        if (!acc[deptId]) acc[deptId] = [];
+        acc[deptId].push({
+          room_id: assignment.dprtmnt_room_id,
+          room_description: assignment.room_description,
+        });
+        return acc;
+      }, {});
+
+      // Extract assigned room IDs
+      const assignedIds = assignments.map((a) => a.room_id || a.dprtmnt_room_id);
+      setAssignedRoomIds(assignedIds);
+      setAssignedRooms(groupedAssignments);
+    } catch (err) {
+      console.error('Error fetching assignments:', err);
+    }
+  };
 
   useEffect(() => {
     fetchDepartment();
-    fetchRoomDescription();
+    fetchRoomList();
+    fetchRoomAssignments();
   }, []);
 
-  useEffect(() => {
-    if (selectedDepartmentId) {
-      fetchRoom(selectedDepartmentId);
-    }
-  }, [selectedDepartmentId]);
-
-  const handleAddingRoom = async () => {
-    try {
-      await axios.post('http://localhost:5000/api/assign', room);
-      fetchRoom(selectedDepartmentId);
-      setRoom({ room_id: '', dprtmnt_id: '' });
-      console.log(room);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const handleChangesForEverything = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setRoom(prev => ({
       ...prev,
@@ -75,69 +76,141 @@ const DepartmentRoom = () => {
     }));
   };
 
-  const handleDropDownForRooms = (departmentId) => {
-    setExpandedDepartmentRoom(expandedDepartmentRoom === departmentId ? null : departmentId);
+  const handleAssignRoom = async () => {
+    try {
+      await axios.post('http://localhost:5000/api/assign', room);
+      fetchRoomAssignments();  // Re-fetch assignments after posting
+      setRoom({ room_id: '', dprtmnt_id: '' });
+    } catch (err) {
+      console.log('Error assigning room:', err);
+    }
+  };
+
+  // Handle unassigning a room from a department
+  const handleUnassignRoom = async (room_id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/unassign/${room_id}`);
+      fetchRoomAssignments();  // Re-fetch assignments after unassigning
+    } catch (err) {
+      console.log('Error unassigning room:', err);
+    }
   };
 
   return (
-    <Container className="container">
-      <div>
-        <select name="room_id" id="roomSelection" value={room.room_id} onChange={handleChangesForEverything}>
-          <option value="">Select a Room</option>
-          {roomList.map((room) => (
-            <option key={room.room_id} value={room.room_id}>
-              {room.room_description}
-            </option>
-          ))}
-        </select>
-        <select name="dprtmnt_id" id="departmentSelection" value={room.dprtmnt_id} onChange={handleChangesForEverything}>
-          <option value="">Select a Department</option>
-          {departmentList.map((department) => (
-            <option key={department.dprtmnt_id} value={department.dprtmnt_id}>
-              {department.dprtmnt_name}
-            </option>
-          ))}
-        </select>
-        <button onClick={handleAddingRoom}>Save</button>
-      </div>
+    <Container maxWidth="lg" style={{ paddingTop: '20px' }}>
+      <Typography variant="h5" gutterBottom>
+        Assign Room to Department
+      </Typography>
 
-      <div>
-        {departmentList.map((department) => (
-          <div key={department.dprtmnt_id}>
-            <div
-              className="items"
-              onClick={() => {
-                setSelectedDepartmentId(department.dprtmnt_id);
-                handleDropDownForRooms(department.dprtmnt_id);
-              }}
-            >
-              <span className="name">
-                <p>{department.dprtmnt_name}</p>
-              </span>
-              <i>
-                {expandedDepartmentRoom === department.dprtmnt_id ? <ArrowDropUp /> : <ArrowDropDown />}
-              </i>
-            </div>
+      <Box display="flex" gap={2} mb={4}>
+        <Select
+          name="room_id"
+          value={room.room_id}
+          onChange={handleChange}
+          displayEmpty
+          fullWidth
+        >
+          <MenuItem value="">Select Available Room</MenuItem>
+          {roomList
+            .filter(room => !assignedRoomIds.includes(room.room_id))
+            .map((room) => (
+              <MenuItem key={room.room_id} value={room.room_id}>
+                {room.room_description}
+              </MenuItem>
+          ))}
+        </Select>
 
-            {/* Show rooms for this department when expanded */}
-            {expandedDepartmentRoom === department.dprtmnt_id && (
-              departmentRoomList.length > 0 ? (
-                <div className="roomList" style={{ display: 'flex', gap: '1%' }}>
-                  {departmentRoomList.map((room) => (
-                    <div className="room" key={room.room_id}>
-                      <span style={{ padding: '2px 10px', background: 'maroon', color: 'white' }}>
-                        Room {room.room_description}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p>No rooms available for this department.</p>
-              )
-            )}
-          </div>
+        <Select
+          name="dprtmnt_id"
+          value={room.dprtmnt_id}
+          onChange={handleChange}
+          displayEmpty
+          fullWidth
+        >
+          <MenuItem value="">Select Department</MenuItem>
+          {departmentList.map((dept) => (
+            <MenuItem key={dept.dprtmnt_id} value={dept.dprtmnt_id}>
+              {dept.dprtmnt_name}
+            </MenuItem>
+          ))}
+        </Select>
+
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleAssignRoom}
+          disabled={!room.room_id || !room.dprtmnt_id}
+        >
+          Save
+        </Button>
+      </Box>
+
+      <Typography variant="h6" gutterBottom>
+        Department Room Assignments
+      </Typography>
+
+      <Grid container spacing={1}>
+        {departmentList.map((dept) => (
+          <Grid item xs={12} md={4} key={dept.dprtmnt_id}>
+            <Paper elevation={2} style={{ padding: '10px' }}>
+              <Typography variant="subtitle2" style={{ fontSize: '14px', marginBottom: '8px' }}>
+                {dept.dprtmnt_name}
+              </Typography>
+
+              <Box display="flex" flexWrap="wrap" gap={0.5}>
+                {assignedRooms[dept.dprtmnt_id] && assignedRooms[dept.dprtmnt_id].length > 0 ? (
+                  assignedRooms[dept.dprtmnt_id].map((room) => (
+                    <Box
+                      key={room.room_id}
+                      position="relative"
+                      sx={{
+                        backgroundColor: '#800000',
+                        color: 'white',
+                        borderRadius: '4px',
+                        padding: '6px 8px',
+                        fontSize: '12px',
+                        marginBottom: '4px',
+                        marginRight: '4px',
+                        minWidth: '80px',
+                      }}
+                    >
+                      Room {room.room_description}
+                      <Button
+                        onClick={() => handleUnassignRoom(room.room_id)}
+                        size="small"
+                        sx={{
+                          position: 'absolute',
+                          top: '-6px',
+                          right: '-6px',
+                          minWidth: '22px',
+                          height: '22px',
+                          padding: '0',
+                          color: 'white',
+                          backgroundColor: 'rgba(0,0,0,0.4)',
+                          borderRadius: '50%',
+                          fontSize: '14px',
+                          lineHeight: '1',
+                          '&:hover': {
+                            backgroundColor: 'rgba(0,0,0,0.6)',
+                          }
+                        }}
+                      >
+                        ×
+                      </Button>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography variant="body2" style={{ fontSize: '12px' }}>
+                    No rooms assigned.
+                  </Typography>
+                )}
+              </Box>
+
+            </Paper>
+          </Grid>
         ))}
-      </div>
+      </Grid>
+
     </Container>
   );
 };

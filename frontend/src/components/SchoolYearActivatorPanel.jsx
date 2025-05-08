@@ -39,7 +39,7 @@ const SchoolYearActivatorPanel = () => {
 
     return (
         <div className="p-4 max-w-2xl mx-auto">
-            <h2 className="text-xl font-bold mb-4">School Year Activator Panel</h2>
+            <h2 className="text-xl font-bold mb-4 text-center">School Year Activator Panel</h2>
             <table className="w-full border border-gray-300">
                 <thead>
                     <tr className="bg-gray-200">

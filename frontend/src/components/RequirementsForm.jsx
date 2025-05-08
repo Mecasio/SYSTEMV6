@@ -5,7 +5,7 @@ const RequirementsForm = () => {
   const [description, setDescription] = useState("");
   const [requirements, setRequirements] = useState([]);
 
-  // Fetch requirements on load
+  // Fetch all requirements
   const fetchRequirements = async () => {
     try {
       const res = await axios.get("http://localhost:5000/requirements");
@@ -19,7 +19,7 @@ const RequirementsForm = () => {
     fetchRequirements();
   }, []);
 
-  // Save requirement
+  // Handle submission of a new requirement
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!description.trim()) return;
@@ -28,38 +28,76 @@ const RequirementsForm = () => {
       await axios.post("http://localhost:5000/requirements", {
         requirements_description: description,
       });
-      setDescription(""); // Clear input
-      fetchRequirements(); // Refresh list
+      setDescription("");
+      fetchRequirements();
     } catch (err) {
       console.error("Error saving requirement:", err);
     }
   };
 
-  return (
-    <div className="max-w-xl mx-auto p-4">
-      <h2 className="text-xl font-bold mb-4">Add Requirement</h2>
-      <form onSubmit={handleSubmit} className="flex gap-2 mb-6">
-        <input
-          type="text"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter requirement description"
-          className="flex-1 border p-2 rounded"
-        />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Save
-        </button>
-      </form>
+  // Handle deletion of a requirement
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/requirements_table/${id}`);
+      fetchRequirements(); // Refresh list
+    } catch (err) {
+      console.error("Error deleting requirement:", err);
+    }
+  };
 
-      <h3 className="text-lg font-semibold mb-2">Saved Requirements</h3>
-      <ul className="list-disc pl-6">
-        {requirements.map((req) => (
-          <li key={req.requirements_id}>{req.requirements_description}</li>
-        ))}
-      </ul>
+  return (
+    <div className="max-w-7xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+      <h2 className="text-2xl font-semibold text-center text-black mb-6">
+        Manage Requirements
+      </h2>
+
+      <div className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-8">
+        {/* Left Side - Form */}
+        <div className="md:w-1/2 bg-gray-50 p-6 rounded-lg shadow-sm">
+          <h3 className="text-xl font-semibold text-black mb-4">
+            Add a New Requirement
+          </h3>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter requirement description"
+              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="submit"
+              className="w-full py-3 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition duration-300"
+            >
+              Save Requirement
+            </button>
+          </form>
+        </div>
+
+        {/* Right Side - Display Saved Requirements */}
+        <div className="md:w-1/2 bg-gray-50 p-6 rounded-lg shadow-sm max-h-96 overflow-y-auto">
+          <h3 className="text-xl font-semibold text-gray-700 mb-4">
+            Saved Requirements
+          </h3>
+          <ul className="space-y-2">
+            {requirements.map((req) => (
+              <li
+                key={req.requirements_id}
+                className="bg-white p-3 border border-gray-200 rounded-lg shadow-sm flex justify-between items-center"
+              >
+                <span className="text-gray-800">{req.requirements_description}</span>
+                <button
+                  className="text-red-600 hover:text-red-800"
+                  onClick={() => handleDelete(req.requirements_id)}
+                >
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 };
