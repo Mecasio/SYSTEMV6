@@ -28,15 +28,17 @@ const ScheduleFilterer = () => {
   return (
     <div>
       <h2>Select a Department</h2>
-      {departmentList.map((department) => (
-        <button 
-          key={department.dprtmnt_id} 
-          className='rounded bg-'
-          onClick={() => handleFilterID(department.dprtmnt_id)}
-        >
-          {department.dprtmnt_name} - {department.dprtmnt_code}
-        </button>
-      ))}
+      <div className='flex gap-[1rem]'>
+        {departmentList.map((department) => (
+          <button 
+            key={department.dprtmnt_id} 
+            className='rounded border border-maroon-500 p-2 px-5'
+            onClick={() => handleFilterID(department.dprtmnt_id)}
+          >
+           {department.dprtmnt_code}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
