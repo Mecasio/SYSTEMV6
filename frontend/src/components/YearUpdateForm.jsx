@@ -33,39 +33,39 @@ const YearUpdateForm = () => {
   }, []);
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div>
       <h2 className="text-2xl font-bold text-center mb-6">Year Update Form</h2>
-      <h3 className="text-lg font-semibold mb-4">Year Entries</h3>
-
-      <table className="w-full border-collapse shadow-md">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-3 border text-left text-gray-600">Year</th>
-            <th className="p-3 border text-left text-gray-600">Status</th>
-            <th className="p-3 border text-left text-gray-600">Activator</th>
-          </tr>
-        </thead>
-        <tbody>
-          {years.map((entry) => (
-            <tr key={entry.year_id} className="hover:bg-gray-50">
-              <td className="p-3 border">{entry.year_description}</td>
-              <td className="p-3 border">
-                {entry.status === 1 ? "Active" : "Inactive"}
-              </td>
-              <td className="p-3 border flex justify-center items-center">
-                <button
-                  onClick={() => toggleActivator(entry.year_id, entry.status)}
-                  className={`px-4 py-2 rounded-lg font-semibold text-white transition-all ${
-                    entry.status === 1 ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
-                  }`}
-                >
-                  {entry.status === 1 ? "Deactivate" : "Activate"}
-                </button>
-              </td>
+      <div className="max-w-2xl mx-auto max-h-[450px] overflow-y-scroll">
+        <table className="w-full border-collapse shadow-md">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-3 border text-left text-gray-600">Year</th>
+              <th className="p-3 border text-left text-gray-600">Status</th>
+              <th className="p-3 border text-left text-gray-600">Activator</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {years.map((entry) => (
+              <tr key={entry.year_id} className="hover:bg-gray-50">
+                <td className="p-3 border">{entry.year_description}</td>
+                <td className="p-3 border">
+                  {entry.status === 1 ? "Active" : "Inactive"}
+                </td>
+                <td className="p-3 border flex justify-center items-center">
+                  <button
+                    onClick={() => toggleActivator(entry.year_id, entry.status)}
+                    className={`px-4 py-2 rounded-lg font-semibold text-white transition-all ${
+                      entry.status === 1 ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
+                    }`}
+                  >
+                    {entry.status === 1 ? "Deactivate" : "Activate"}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

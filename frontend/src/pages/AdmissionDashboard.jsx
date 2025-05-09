@@ -4,6 +4,7 @@ import {Link} from 'react-router-dom';
 
 const AdmissionDashboardPanel = () => {
     return (
+    <div className="max-h-[600px] overflow-y-scroll">
         <div className="p-2 px-10 w-full grid grid-cols-3">
            
            <div className="relative">
@@ -87,7 +88,7 @@ const AdmissionDashboardPanel = () => {
                 </Link>
             </div>
 
-            <div className="relative">
+            <div className="relative mb-10">
                 <Link to={'/program_tagging'}>
                     <div className="bg-white p-4 border-4 rounded-lg border-solid border-maroon-500 absolute left-16 top-8 w-enough">
                         <CollectionsBookmark className="text-maroon-500 text-2xl"/>
@@ -96,7 +97,7 @@ const AdmissionDashboardPanel = () => {
                 </Link>
             </div>
         </div>
-
+    </div>
     )
 }
 

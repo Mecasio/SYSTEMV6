@@ -1402,7 +1402,7 @@ app.get('/get_semester', async (req, res) => {
 // GET SCHOOL YEAR (UPDATED!)
 app.get("/school_years", async (req, res) => {
   const query = `
-    SELECT sy.*, yt.year_description, s.semester_description
+    SELECT sy.*, yt.year_description, s.semester_description, 
     FROM active_school_year_table sy
     JOIN year_table yt ON sy.year_id = yt.year_id
     JOIN semester_table s ON sy.semester_id = s.semester_id

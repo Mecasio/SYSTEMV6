@@ -61,6 +61,7 @@ const styles = {
     margin: '0 auto',
     backgroundColor: '#f9f9f9',
     borderRadius: '8px',
+    marginTop: '30px',
     boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
   },
   heading: {

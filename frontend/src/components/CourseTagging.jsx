@@ -3,8 +3,6 @@ import axios from "axios";
 import { Box, Button, Grid, Typography, Table, TableBody, TableCell, TableHead, TableRow, Paper, TextField, MenuItem, Container } from "@mui/material";
 import LinearWithValueLabel from './LinearWithValueLabel';
 import { jwtDecode } from "jwt-decode";
-import FreeTuitionImage from "../assets/FreeTuition.png";
-import EaristLogo from "../assets/EaristLogo.png";
 
 const CourseTagging = () => {
 
@@ -44,6 +42,7 @@ const CourseTagging = () => {
     const interval = setInterval(updateDate, 1000);
     return () => clearInterval(interval);
   }, []);
+  
   const [courses, setCourses] = useState([]);
   const [enrolled, setEnrolled] = useState([]);
   const [studentNumber, setStudentNumber] = useState("");
@@ -77,7 +76,7 @@ const CourseTagging = () => {
       });
 
       setSubjectCounts(counts);
-      fetchSubjectCounts(selectedSection); 
+
     } catch (err) {
       console.error("Failed to fetch subject counts", err);
       
@@ -297,33 +296,9 @@ const CourseTagging = () => {
     setSelectedDepartment(departmentId);
   };
 
-  const containerStyle = {
-    width: "100%",
-    position: "fixed",
-    top: 0,
-    left: 0,
-    height: "100vh",
-
-    display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "center",
-    padding: "20px",
-    boxSizing: "border-box",
-    marginTop: "50px",
-    color: "Black",
-    overflowY: "scroll",
-  };
-
-  const contentStyle = {
-    color: "black",
-    width: "100%",
-    maxWidth: "800px",
-    paddingBottom: "90px",
-  };
-
   return (
     <Container className="mt-8">
-      <Grid container spacing={2} justifyContent="center" textAlign="center">
+      <Grid container spacing={4} gap={2} justifyContent="center" textAlign="center" style={{backgroundColor: "white", padding: "1rem 0rem"}}>
         {departments.map((dept, index) => (
           <Grid key={dept.dprtmnt_id}>
             <Button
@@ -339,7 +314,7 @@ const CourseTagging = () => {
           </Grid>
         ))}
       </Grid>
-      <Box p={4} display="grid" gridTemplateColumns="1fr 1fr" gap={4}>
+      <Box p={4} display="grid" gridTemplateColumns="1fr 1fr" gap={4} style={{marginLeft: '-5rem', maxHeight: '500px', overflowY: "scroll", overflowX: "hidden", width: '80rem'}}>
         {/* Available Courses */}
         <Box component={Paper} p={2}>
           {/* Search Student */}

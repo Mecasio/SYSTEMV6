@@ -65,6 +65,7 @@ const SchoolYearPanel = () => {
     };
 
     const getStatus = (activatorValue) => {
+        console.log(activatorValue)
         return activatorValue === 1 ? "Active" : "Inactive";
     };
 
@@ -110,6 +111,7 @@ const SchoolYearPanel = () => {
             </form>
 
             <h3 className="text-lg font-semibold mb-2">Saved School Years:</h3>
+            <div className="max-h-[250px] overflow-y-scroll">
             <table className="w-full border border-gray-300">
                 <thead>
                     <tr className="bg-gray-200">
@@ -123,11 +125,12 @@ const SchoolYearPanel = () => {
                         <tr key={index}>
                             <td className="p-2 border text-center">{`${sy.year_description}-${parseInt(sy.year_description) + 1}`}</td>
                             <td className="p-2 border text-center">{sy.semester_description}</td>
-                            <td className="p-2 border text-center">{getStatus(sy.activator)}</td>
+                            <td className="p-2 border text-center">{getStatus(sy.astatus)}</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
+            </div>
         </div>
     );
 };
