@@ -50,13 +50,13 @@ const StudentNumbering = () => {
             <h1>Assign Student Number</h1>
             <div style={{ display: 'flex', gap: '20px' }}>
                 <div style={{ flex: 1 }}>
-                    <h2>Person List</h2>
+                    <h2 className=''>Person List</h2>
                     {persons.length === 0 && <p>No available persons.</p>}
-                    <ul>
-                        {persons.map((person) => (
-                            <li key={person.person_id}>
+                    <ul className=''>
+                        {persons.map((person, index) => (
+                            <li key={person.person_id} className='p-2 border-[2px] mt-2 w-[20rem] cursor-pointer text-maroon-500 rounded border-maroon-500'>
                                 <button onClick={() => handlePersonClick(person)}>
-                                    {person.first_name} {person.middle_name} {person.last_name}
+                                    {index + 1}.  {person.first_name} {person.middle_name} {person.last_name}
                                 </button>
                             </li>
                         ))}
@@ -67,7 +67,7 @@ const StudentNumbering = () => {
                     {selectedPerson ? (
                         <div>
                             <p><strong>Name:</strong> {selectedPerson.first_name} {selectedPerson.middle_name} {selectedPerson.last_name}</p>
-                            <button onClick={handleAssignNumber}>Assign Student Number</button>
+                            <button onClick={handleAssignNumber} className='p-2 px-4 border-[2px] mt-2 rounded border-maroon-500 text-maroon-500'>Assign Student Number</button>
                         </div>
                     ) : (
                         <p>No person selected.</p>

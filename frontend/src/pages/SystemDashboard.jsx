@@ -29,7 +29,7 @@ const SystemDashboardPanel = () => {
                         <div className="bg-white p-4 border-4 rounded-lg border-solid border-maroon-500 absolute left-16 top-8 w-enough">
                             <EditNote className="text-maroon-500 transform scale-[1.3] ml-1" style={{fontSize: '2rem'}}/>
                         </div>
-                        <button className="bg-white text-maroon-500 border-4 rounded-lg border-solid border-maroon-500 p-4 w-[16rem] rounded-md h-32 font-medium mr-3 mt-16 ml-8 flex items-end justify-center">SECTION PANEL FORM</button>
+                        <button className="bg-white text-maroon-500 border-4 rounded-lg border-solid border-maroon-500 p-4 w-[18rem] rounded-md h-32 font-medium mr-3 mt-16 ml-8 flex items-end justify-center">SECTION PANEL FORM</button>
                     </Link>
                 </div>
                 
@@ -57,7 +57,7 @@ const SystemDashboardPanel = () => {
                         <div className="bg-white p-4 border-4 rounded-lg border-solid border-maroon-500 absolute left-16 top-8 w-enough">
                             <Description className="text-maroon-500 " style={{fontSize: '2rem'}}/>
                         </div>
-                        <button className="bg-white text-maroon-500 border-4 rounded-lg border-solid border-maroon-500 p-4 w-[16rem] rounded-md h-32 font-medium mr-3 mt-16 ml-8 flex items-end justify-center">SCHOOL YEAR UPDATE </button>
+                        <button className="bg-white text-maroon-500 border-4 rounded-lg border-solid border-maroon-500 p-4 w-[16rem] rounded-md h-32 font-medium mr-3 mt-16 ml-8 flex items-end justify-center">YEAR UPDATE PANEL</button>
                     </Link>
                 </div>
     
@@ -66,7 +66,7 @@ const SystemDashboardPanel = () => {
                         <div className="bg-white p-4 border-4 rounded-lg border-solid border-maroon-500 absolute left-16 top-8 w-enough">
                             <EditNote className="text-maroon-500 transform scale-[1.3] ml-1" style={{fontSize: '2rem'}}/>
                         </div>
-                        <button className="bg-white text-maroon-500 border-4 rounded-lg border-solid border-maroon-500 p-4 w-[16rem] rounded-md h-32 font-medium mr-3 mt-16 ml-8 flex items-end justify-center">YEAR ACTIVATOR FORM</button>
+                        <button className="bg-white text-maroon-500 border-4 rounded-lg border-solid border-maroon-500 p-4 w-[18rem] rounded-md h-32 font-medium mr-3 mt-16 ml-8 flex items-end justify-center">SHOOL YEAR ACTIVATOR PANEL</button>
                     </Link>
                 </div>
                 

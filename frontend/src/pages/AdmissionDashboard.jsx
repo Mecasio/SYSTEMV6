@@ -62,6 +62,15 @@ const AdmissionDashboardPanel = () => {
             </div>
 
             <div className="relative">
+                <Link to={'/student_numbering'}>
+                    <div className="bg-white p-4 border-4 rounded-lg border-solid border-maroon-500 absolute left-16 top-8 w-enough">
+                        <CollectionsBookmark className="text-maroon-500 text-2xl"/>
+                    </div>
+                    <button className="bg-white text-maroon-500 border-4 rounded-lg border-solid border-maroon-500 p-4 w-80 rounded-md h-32 font-medium mr-4 mt-16 ml-8 flex items-end justify-center">STUDENT NUMBERING PANEL</button>
+                </Link>
+            </div>
+
+            <div className="relative">
                 <Link to={'/course_tagging'}>
                     <div className="bg-white p-4 border-4 rounded-lg border-solid border-maroon-500 absolute left-16 top-8 w-enough">
                         <CollectionsBookmark className="text-maroon-500 text-2xl"/>

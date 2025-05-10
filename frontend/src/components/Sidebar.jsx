@@ -31,47 +31,47 @@
           <Link to="/dashboard">
           <li className={`w-full flex items-center border border-maroon-500 px-2 rounded button-hover ${location.pathname === "/dashboard" ? "bg-maroon-500 text-white" : ""}`} >
             <Dashboard/>
-            <span className='pl-4 p-2 px-0'>Dashboard</span>
+            <span className='pl-4 p-2 px-0 pointer-events-none'>Dashboard</span>
           </li>
           </Link>
 
           <Link to="/admission_dashboard">
           <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/admission_dashboard" ? "bg-maroon-500 text-white" : ""}`}>
             <Business />
-            <span className='pl-4 p-2 px-0'>Admission Management</span>
+            <span className='pl-4 p-2 px-0 pointer-events-none'>Admission Management</span>
           </li>
           </Link>
 
           <Link to="/course_management">
           <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/course_management" ? "bg-maroon-500 text-white" : ""}`}>
             <LibraryBooks />
-            <span className='pl-4 p-2 px-0'>Courses Management</span>
+            <span className='pl-4 p-2 px-0 pointer-events-none'>Courses Management</span>
           </li>
           </Link>
 
           <Link to="/department_dashboard">
           <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/department_dashboard" ? "bg-maroon-500 text-white" : ""}`}>
             <Apartment />
-            <span className='pl-4 p-2 px-0 mr-2'>Department Management</span>
+            <span className='pl-4 p-2 px-0 mr-2 pointer-events-none'>Department Management</span>
           </li>
           </Link>
 
           <Link to="/system_dashboard">
           <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/system_dashboard" ? "bg-maroon-500 text-white" : ""}`}>
             <Settings />
-            <span className='pl-4 p-2 px-0'>System Management</span>
+            <span className='pl-4 p-2 px-0 pointer-events-none'>System Management</span>
           </li>
           </Link>
 
           <Link to="/account_dashboard">
           <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/account_dashboard" ? "bg-maroon-500 text-white" : ""}`}>
             <People />
-            <span className='pl-4 p-2 px-0'>Accounts</span>
+            <span className='pl-4 p-2 px-0 pointer-events-none'>Accounts</span>
           </li>
           </Link>
           <li className='w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 cursor-pointer button-hover'>
             <LogoutOutlined />
-            <button className='pl-4 p-2 px-0' onClick={Logout}>Logout</button>
+            <button className='pl-4 p-2 px-0 pointer-events-none' onClick={Logout}>Logout</button>
           </li>
         </ul>
 

@@ -2200,7 +2200,7 @@ app.post("/api/assign-student-number", async (req, res) => {
     }
 
     // Insert into student_numbering
-    await connection.query("INSERT INTO student_numbering_table (id, person_id) VALUES (?, ?)", [student_number, person_id]);
+    await connection.query("INSERT INTO student_numbering_table (student_number, person_id) VALUES (?, ?)", [student_number, person_id]);
 
     // Update counter
     await connection.query("UPDATE student_counter SET que_number = ?", [que_number]);
