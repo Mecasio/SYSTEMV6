@@ -34,13 +34,12 @@ import AdmForm from './components/adm_form';
 import FamilyBackgroundForm from './components/FamilyBackground';
 import EducationalAttainmentForm from './components/EducationalAttainment';
 import ApplicantRequirement from './components/applicant_requirement';
-import ApplicantForm from './components/Applicant';
 import RequirementsForm from './components/RequirementsForm';
 import Dashboard from './pages/Dashboard';
 import AdmissionDashboardPanel from './pages/AdmissionDashboard';
 import SystemDashboardPanel from './pages/SystemDashboard';
 import DepartmentManagement from './pages/DepartmentDashboard';
-import ApplicantPersonalInfoForm from './components/PersonalInformation';
+import PersonalInfoForm from './components/PersonalInformation';
 import StudentNumbering from './components/StudentNumbering';
 import CourseTagging from './components/CourseTagging';
 import UserRegistrationForm from './components/UserRegistrationForm';
@@ -50,6 +49,11 @@ import ScheduleChecker from './components/ScheduleChecker';
 import SearchStudentCOR from './components/SearchCertificateOfGrades';
 import RoomRegistration from './components/RoomRegistration';
 import ScheduleFilterer from './pages/SchedulePlottingFilter';
+import ApplicantPersonalInfoForm from './components/ApplicantPersonalInfo';
+import ApplicantFamilyBackground from './components/ApplicantFamilyBckgrndForm';
+import ApplicantEducationalAttainment from './components/ApplicantEducAttainmnt';
+import ApplicantHealthMedicalRecords from './components/ApplicantHeatlthRecords';
+import ApplicantOtherInformation from './components/ApplicantOtherInfo';
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -96,7 +100,7 @@ import ScheduleFilterer from './pages/SchedulePlottingFilter';
                 <Route path="/login_prof" element={<LoginProf setIsAuthenticated={setIsAuthenticated}/>}/>
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
                 <Route path="/faculty_dashboard" element={<FacultyDashboard />}/>
-                <Route path="/personal_information" element={<ApplicantPersonalInfoForm />} />
+                <Route path="/personal_information" element={<PersonalInfoForm />} />
                 <Route path="/room_registration" element={<ProtectedRoute><RoomRegistration/></ProtectedRoute>}/> 
                 <Route path="/course_management" element={<ProtectedRoute><CourseManagement/></ProtectedRoute>}/>
                 <Route path="/program_tagging" element={<ProtectedRoute><ProgramTagging/></ProtectedRoute>}/>
@@ -120,7 +124,6 @@ import ScheduleFilterer from './pages/SchedulePlottingFilter';
                 <Route path="/family_background" element={<ProtectedRoute><FamilyBackgroundForm /></ProtectedRoute>} />
                 <Route path="/educational_attainment_form" element={<ProtectedRoute><EducationalAttainmentForm /></ProtectedRoute>} />
                 <Route path="/applicant_requirement" element={<ProtectedRoute><ApplicantRequirement /></ProtectedRoute>} />
-                <Route path="/application_form" element={<ProtectedRoute><ApplicantForm /></ProtectedRoute>} />
                 <Route path="/requirements_form" element={<ProtectedRoute><RequirementsForm /></ProtectedRoute>} />
                 <Route path="/admission_dashboard" element={<ProtectedRoute><AdmissionDashboardPanel /></ProtectedRoute>} />
                 <Route path="/department_dashboard" element={<ProtectedRoute><DepartmentManagement /></ProtectedRoute>} />
@@ -134,6 +137,11 @@ import ScheduleFilterer from './pages/SchedulePlottingFilter';
                 <Route path="/department_room" element={<ProtectedRoute><DepartmentRoom /></ProtectedRoute>} />
                 <Route path="/search_cor" element={<ProtectedRoute><SearchStudentCOR /></ProtectedRoute>} />
                 <Route path="/select_college" element={<ProtectedRoute><ScheduleFilterer /></ProtectedRoute>} />
+                <Route path="/applicant_personal_information" element={<ProtectedRoute><ApplicantPersonalInfoForm /></ProtectedRoute>} />
+                <Route path="/applicant_family_background" element={<ProtectedRoute><ApplicantFamilyBackground/></ProtectedRoute>} />
+                <Route path="/applicant_educational_attainment" element={<ProtectedRoute><ApplicantEducationalAttainment /></ProtectedRoute>} />
+                <Route path="/applicant_health_medical_records" element={<ProtectedRoute><ApplicantHealthMedicalRecords/></ProtectedRoute>} />
+                <Route path="/applicant_other_information" element={<ProtectedRoute><ApplicantOtherInformation/></ProtectedRoute>} />
               </Routes>
             </main>
           </div>

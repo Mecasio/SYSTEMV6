@@ -11,7 +11,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { jwtDecode } from "jwt-decode";
 
-const FamilyBackground = () => {
+const ApplicantFamilyBackground = () => {
   const getPersonIdFromToken = () => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -1421,4 +1421,4 @@ const FamilyBackground = () => {
   );
 };
 
-export default FamilyBackground;
+export default ApplicantFamilyBackground;

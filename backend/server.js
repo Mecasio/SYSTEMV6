@@ -239,613 +239,230 @@ app.delete("/applicant-requirements/:id", async (req, res) => {
   }
 });
 
-// GET ALL APPLICANTS (UPDATED!)
-app.get("/applicants", async (req, res) => {
+// -------------------------------------------- GET APPLICANT ADMISSION DATA ------------------------------------------------//
+app.get("/person_table", async (req, res) => {
   try {
-    const query = "SELECT * FROM applicant_table";
-    const [result] = await db.query(query);
-    res.status(200).send(result);
+    const [results] = await db.query("SELECT * FROM person_table");
+    res.status(200).send(results);
   } catch (error) {
-    console.log("Database Error: ", error);
-    res.status(500).send(err);  
+    res.status(500).send({ message: "Error fetching Personal Information", error });
   }
 });
 
-// APPLICANT PANEL FORM (UPDATED!)
-app.post("/applicants", async (req, res) => {
-  const {
-    lastName,
-    firstName,
-    middleName,
-    extension,
-    nickname,
-    height,
-    weight,
-    lrnNumber,
-    gender,
-    birthOfDate,
-    age,
-    birthPlace,
-    languageDialectSpoken,
-    citizenship,
-    religion,
-    civilStatus,
-    tribeEthnicGroup,
-    cellphoneNumber,
-    emailAddress,
-    telephoneNumber,
-    facebookAccount,
-    presentAddress,
-    permanentAddress,
-    street,
-    barangay,
-    zipCode,
-    region,
-    province,
-    municipality,
-    dswdHouseholdNumber,
-    campus,
-    academicProgram,
-    classifiedAs,
-    program,
-    yearLevel,
+// -------------------------------------------- TO ADD APPLICANT FORM ------------------------------------------------//
+app.post("/person_table", async (req, res) => {
+  const { 
+    profile_picture, campus, academicProgram, classifiedAs, program, program2, program3, yearLevel,
+    lastName, firstName, middleName, extension, nickname, height, weight,
+    lrnNumber, gender, pwdType, pwdId, birthOfDate, age, birthPlace,
+    languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup,
+    cellphoneNumber, emailAddress, telephoneNumber, facebookAccount,
+    presentStreet, presentBarangay, presentZipCode, presentRegion,
+    presentProvince, presentMunicipality, presentDswdHouseholdNumber,
+    permanentStreet, permanentBarangay, permanentZipCode, permanentRegion,
+    permanentProvince, permanentMunicipality, permanentDswdHouseholdNumber,
+    solo_parent, father_deceased, father_family_name, father_given_name,
+    father_middle_name, father_ext, father_nickname, father_education_level,
+    father_last_school, father_course, father_year_graduated, father_school_address,
+    father_contact, father_occupation, father_employer, father_income, father_email,
+    mother_deceased, mother_family_name, mother_given_name, mother_middle_name,
+    mother_nickname, mother_education_level, mother_last_school, mother_course,
+    mother_year_graduated, mother_school_address, mother_contact, mother_occupation,
+    mother_employer, mother_income, mother_email, guardian,
+    guardian_family_name, guardian_given_name, guardian_middle_name, guardian_ext,
+    guardian_nickname, guardian_address, guardian_contact, guardian_email,
+    annual_income, schoolLevel, schoolLastAttended, schoolAddress, courseProgram,
+    honor, generalAverage, yearGraduated, strand, cough, colds, fever, asthma, fainting, heartDisease, tuberculosis, frequentHeadaches,
+    hernia, chronicCough, headNeckInjury, hiv, highBloodPressure, diabetesMellitus, allergies, cancer,
+    smoking, alcoholDrinking, hospitalized, hospitalizationDetails, medications, hadCovid, covidDate,
+    vaccine1Brand, vaccine1Date, vaccine2Brand, vaccine2Date, booster1Brand, booster1Date, booster2Brand,
+    booster2Date, chestXray, cbc, urinalysis, otherworkups, symptomsToday, remarks, termsOfAgreement
   } = req.body;
 
   const query = `
-    INSERT INTO applicant_table (
-      campus, academicProgram, classifiedAs, program, yearLevel, lastName, firstName, middleName, extension, nickname,
-      height, weight, lrnNumber, gender, birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion,
-      civilStatus, tribeEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount, presentAddress, 
-      permanentAddress, street, barangay, zipCode, region, province, municipality, dswdHouseholdNumber
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO person_table (
+      profile_picture, campus, academicProgram, classifiedAs, program, program2, program3, yearLevel,
+      lastName, firstName, middleName, extension, nickname, height, weight,
+      lrnNumber, gender, pwdType, pwdId, birthOfDate, age, birthPlace,
+      languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup,
+      cellphoneNumber, emailAddress, telephoneNumber, facebookAccount,
+      presentStreet, presentBarangay, presentZipCode, presentRegion,
+      presentProvince, presentMunicipality, presentDswdHouseholdNumber,
+      permanentStreet, permanentBarangay, permanentZipCode, permanentRegion,
+      permanentProvince, permanentMunicipality, permanentDswdHouseholdNumber,
+      solo_parent, father_deceased, father_family_name, father_given_name,
+      father_middle_name, father_ext, father_nickname, father_education_level,
+      father_last_school, father_course, father_year_graduated, father_school_address,
+      father_contact, father_occupation, father_employer, father_income, father_email,
+      mother_deceased, mother_family_name, mother_given_name, mother_middle_name,
+      mother_nickname, mother_education_level, mother_last_school, mother_course,
+      mother_year_graduated, mother_school_address, mother_contact, mother_occupation,
+      mother_employer, mother_income, mother_email, guardian,
+      guardian_family_name, guardian_given_name, guardian_middle_name, guardian_ext,
+      guardian_nickname, guardian_address, guardian_contact, guardian_email,
+      annual_income, schoolLevel, schoolLastAttended, schoolAddress, courseProgram,
+      honor, generalAverage, yearGraduated, strand, cough, colds, fever, asthma, fainting, heartDisease, tuberculosis, frequentHeadaches,
+      hernia, chronicCough, headNeckInjury, hiv, highBloodPressure, diabetesMellitus, allergies, cancer,
+      smoking, alcoholDrinking, hospitalized, hospitalizationDetails, medications, hadCovid, covidDate,
+      vaccine1Brand, vaccine1Date, vaccine2Brand, vaccine2Date, booster1Brand, booster1Date, booster2Brand,
+      booster2Date, chestXray, cbc, urinalysis, otherworkups, symptomsToday, remarks, termsOfAgreement
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   try {
     const [result] = await db.query(query, [
-      campus, academicProgram, classifiedAs, program, yearLevel, lastName, firstName, middleName, extension, nickname,
-      height, weight, lrnNumber, gender, birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion,
-      civilStatus, tribeEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount, presentAddress,
-      permanentAddress, street, barangay, zipCode, region, province, municipality, dswdHouseholdNumber
+      profile_picture, campus, academicProgram, classifiedAs, program, program2, program3, yearLevel,
+      lastName, firstName, middleName, extension, nickname, height, weight,
+      lrnNumber, gender, pwdType, pwdId, birthOfDate, age, birthPlace,
+      languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup,
+      cellphoneNumber, emailAddress, telephoneNumber, facebookAccount,
+      presentStreet, presentBarangay, presentZipCode, presentRegion,
+      presentProvince, presentMunicipality, presentDswdHouseholdNumber,
+      permanentStreet, permanentBarangay, permanentZipCode, permanentRegion,
+      permanentProvince, permanentMunicipality, permanentDswdHouseholdNumber,
+      solo_parent, father_deceased, father_family_name, father_given_name,
+      father_middle_name, father_ext, father_nickname, father_education_level,
+      father_last_school, father_course, father_year_graduated, father_school_address,
+      father_contact, father_occupation, father_employer, father_income, father_email,
+      mother_deceased, mother_family_name, mother_given_name, mother_middle_name,
+      mother_nickname, mother_education_level, mother_last_school, mother_course,
+      mother_year_graduated, mother_school_address, mother_contact, mother_occupation,
+      mother_employer, mother_income, mother_email, guardian,
+      guardian_family_name, guardian_given_name, guardian_middle_name, guardian_ext,
+      guardian_nickname, guardian_address, guardian_contact, guardian_email,
+      annual_income, schoolLevel, schoolLastAttended, schoolAddress, courseProgram,
+      honor, generalAverage, yearGraduated, strand, cough, colds, fever, asthma, fainting, heartDisease, tuberculosis, frequentHeadaches,
+      hernia, chronicCough, headNeckInjury, hiv, highBloodPressure, diabetesMellitus, allergies, cancer,
+      smoking, alcoholDrinking, hospitalized, hospitalizationDetails, medications, hadCovid, covidDate,
+      vaccine1Brand, vaccine1Date, vaccine2Brand, vaccine2Date, booster1Brand, booster1Date, booster2Brand,
+      booster2Date, chestXray, cbc, urinalysis, otherworkups, symptomsToday, remarks,	termsOfAgreement
     ]);
 
-    res.status(201).send({ message: "Applicant added", id: result.insertId });
-  } catch (err) {
-    console.error("Database error:", err);
-    res.status(500).send({ error: "Failed to add applicant" });
-  }
-});
-
-// UPDATE APPLICANT INFORMATION (UPDATED!)
-app.put("/applicants/:id", async (req, res) => {
-  const { id } = req.params;
-  const {
-    campus,
-    academicProgram,
-    classifiedAs,
-    program,
-    yearLevel,
-    lastName,
-    firstName,
-    middleName,
-    extension,
-    nickname,
-    height,
-    weight,
-    lrnNumber,
-    gender,
-    birthOfDate,
-    age,
-    birthPlace,
-    languageDialectSpoken,
-    citizenship,
-    religion,
-    civilStatus,
-    tribeEthnicGroup,
-    cellphoneNumber,
-    emailAddress,
-    telephoneNumber,
-    facebookAccount,
-    presentAddress,
-    permanentAddress,
-    street,
-    barangay,
-    zipCode,
-    region,
-    province,
-    municipality,
-    dswdHouseholdNumber,
-  } = req.body;
-
-  const query = `
-    UPDATE applicant_table SET 
-      campus=?, academicProgram=?, classifiedAs=?, program=?, yearLevel=?, lastName=?, firstName=?, middleName=?, 
-      extension=?, nickname=?, height=?, weight=?, lrnNumber=?, gender=?, birthOfDate=?, age=?, birthPlace=?, 
-      languageDialectSpoken=?, citizenship=?, religion=?, civilStatus=?, tribeEthnicGroup=?, cellphoneNumber=?, 
-      emailAddress=?, telephoneNumber=?, facebookAccount=?, presentAddress=?, permanentAddress=?, street=?, 
-      barangay=?, zipCode=?, region=?, province=?, municipality=?, dswdHouseholdNumber=?
-    WHERE id=?
-  `;
-
-  try {
-    const [result] = await db.query(query, [
-      campus, academicProgram, classifiedAs, program, yearLevel, lastName, firstName, middleName, extension, nickname,
-      height, weight, lrnNumber, gender, birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion,
-      civilStatus, tribeEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount, presentAddress, 
-      permanentAddress, street, barangay, zipCode, region, province, municipality, dswdHouseholdNumber, id
-    ]);
-
-    res.status(200).send({ message: "Applicant updated" });
-  } catch (err) {
-    console.error("Database update error:", err);
-    res.status(500).send({ error: "Failed to update applicant" });
-  }
-});
-
-// DELETE APPLICANT (UPDATED!)
-app.delete("/applicants/:id", async (req, res) => {
-    const { id } = req.params;
-
-    if (isNaN(id)) {
-      return res.status(400).send({ message: "Invalid applicant ID" });
-    }
-
-    try {  
-      const query = "DELETE FROM applicant_table WHERE id = ?";
-      const [result] = await db.query(query, [id]);
-      
-      if (result.affectedRows === 0) {
-        return res.status(404).send({ message: "Applicant not found" });
-      }
-
-      res.status(200).send({ message: "Applicant deleted", result });
-    } catch (error) {
-      res.status(500).send(error);
-    }
-});
-
-// GET STUDENT EDUCATIONAL ATTAINMENT (UPDATED!)
-app.get("/educational_attainment", async (req, res) => {
-  try {  
-    const query = "SELECT * FROM educational_attainment_table";
-    const [result] = await db.query(query);
-
-    res.status(200).send(result);
+    res.status(201).send({ message: "Personal information created", person_id: result.insertId });
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).send({ message: "Error creating personal information", error });
   }
 });
 
-// EDUCATIONAL ATTAINMENT PANEL FORM (UPDATED!)
-app.post("/educational_attainment", async (req, res) => {
+
+// -------------------------------------------- UPDATE APPLICANT FORM ------------------------------------------------//
+app.put("/person_table/:person_id", (req, res) => {
+  const { person_id } = req.params;
+
   const {
-    schoolLevel,
-    schoolLastAttended,
-    schoolAddress,
-    courseProgram,
-    honor,
-    generalAverage,
-    yearGraduated,
-    strand,
+    profile_picture, campus, academicProgram, classifiedAs, program, program2, program3, yearLevel,
+    lastName, firstName, middleName, extension, nickname, height, weight,
+    lrnNumber, gender, pwdType, pwdId, birthOfDate, age, birthPlace,
+    languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup,
+    otherEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount,
+    presentStreet, presentBarangay, presentZipCode, presentRegion,
+    presentProvince, presentMunicipality, presentDswdHouseholdNumber,
+    permanentStreet, permanentBarangay, permanentZipCode, permanentRegion,
+    permanentProvince, permanentMunicipality, permanentDswdHouseholdNumber,
+    solo_parent, father_deceased, father_family_name, father_given_name,
+    father_middle_name, father_ext, father_nickname, father_education_level,
+    father_last_school, father_course, father_year_graduated, father_school_address,
+    father_contact, father_occupation, father_employer, father_income, father_email,
+    mother_deceased, mother_family_name, mother_given_name, mother_middle_name,
+    mother_nickname, mother_education_level, mother_last_school, mother_course,
+    mother_year_graduated, mother_school_address, mother_contact, mother_occupation,
+    mother_employer, mother_income, mother_email, guardian,
+    guardian_family_name, guardian_given_name, guardian_middle_name, guardian_ext,
+    guardian_nickname, guardian_address, guardian_contact, guardian_email,
+    annual_income, schoolLevel, schoolLastAttended, schoolAddress, courseProgram,
+    honor, generalAverage, yearGraduated, strand, cough, colds, fever, asthma, faintingSpells, heartDisease, tuberculosis, frequentHeadaches,
+    hernia, chronicCough, headNeckInjury, hiv, highBloodPressure, diabetesMellitus, allergies, cancer,
+    smokingCigarette, alcoholDrinking, hospitalized, hospitalizationDetails, medications, hadCovid, covidDate,
+    vaccine1Brand, vaccine1Date, vaccine2Brand, vaccine2Date, booster1Brand, booster1Date, booster2Brand,
+    booster2Date, chestXray, cbc, urinalysis, otherworkups, symptomsToday, remarks, termsOfAgreement
   } = req.body;
 
-  const query = `
-    INSERT INTO educational_attainment_table 
-      (schoolLevel, schoolLastAttended, schoolAddress, courseProgram, honor, generalAverage, yearGraduated, strand) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  const updateQuery = `
+    UPDATE person_table SET
+      profile_picture = ?, campus = ?, academicProgram = ?, classifiedAs = ?, program = ?, program2 = ?, program3 = ?, yearLevel = ?,
+      lastName = ?, firstName = ?, middleName = ?, extension = ?, nickname = ?, height = ?, weight = ?,
+      lrnNumber = ?, gender = ?, pwdType = ?, pwdId = ?, birthOfDate = ?, age = ?, birthPlace = ?,
+      languageDialectSpoken = ?, citizenship = ?, religion = ?, civilStatus = ?, tribeEthnicGroup = ?,
+      otherEthnicGroup = ?, cellphoneNumber = ?, emailAddress = ?, telephoneNumber = ?, facebookAccount = ?,
+      presentStreet = ?, presentBarangay = ?, presentZipCode = ?, presentRegion = ?,
+      presentProvince = ?, presentMunicipality = ?, presentDswdHouseholdNumber = ?,
+      permanentStreet = ?, permanentBarangay = ?, permanentZipCode = ?, permanentRegion = ?,
+      permanentProvince = ?, permanentMunicipality = ?, permanentDswdHouseholdNumber = ?,
+      solo_parent = ?, father_deceased = ?, father_family_name = ?, father_given_name = ?,
+      father_middle_name = ?, father_ext = ?, father_nickname = ?, father_education_level = ?,
+      father_last_school = ?, father_course = ?, father_year_graduated = ?, father_school_address = ?,
+      father_contact = ?, father_occupation = ?, father_employer = ?, father_income = ?, father_email = ?,
+      mother_deceased = ?, mother_family_name = ?, mother_given_name = ?, mother_middle_name = ?,
+      mother_nickname = ?, mother_education_level = ?, mother_last_school = ?, mother_course = ?,
+      mother_year_graduated = ?, mother_school_address = ?, mother_contact = ?, mother_occupation = ?,
+      mother_employer = ?, mother_income = ?, mother_email = ?, guardian = ?,
+      guardian_family_name = ?, guardian_given_name = ?, guardian_middle_name = ?, guardian_ext = ?,
+      guardian_nickname = ?, guardian_address = ?, guardian_contact = ?, guardian_email = ?,
+      annual_income = ?, schoolLevel = ?, schoolLastAttended = ?, schoolAddress = ?, courseProgram = ?,
+      honor = ?, generalAverage = ?, yearGraduated = ?, strand = ?, cough = ?, colds = ?, fever = ?,
+      asthma = ?, faintingSpells = ?, heartDisease = ?, tuberculosis = ?, frequentHeadaches = ?,
+      hernia = ?, chronicCough = ?, headNeckInjury = ?, hiv = ?, highBloodPressure = ?,
+      diabetesMellitus = ?, allergies = ?, cancer = ?, smokingCigarette = ?, alcoholDrinking = ?, hospitalized = ?,
+      hospitalizationDetails = ?, medications = ?, hadCovid = ?, covidDate = ?, vaccine1Brand = ?,
+      vaccine1Date = ?, vaccine2Brand = ?, vaccine2Date = ?, booster1Brand = ?, booster1Date = ?,
+      booster2Brand = ?, booster2Date = ?, chestXray = ?, cbc = ?, urinalysis = ?, otherworkups = ?,
+      symptomsToday = ?, remarks = ?, termsOfAgreement = ?
+    WHERE person_id = ?
   `;
 
-  try {
-    const [result] = await db.query(query, [
-      schoolLevel,
-      schoolLastAttended,
-      schoolAddress,
-      courseProgram,
-      honor,
-      generalAverage,
-      yearGraduated,
-      strand,
-    ]);
+  const values = [
+    profile_picture, campus, academicProgram, classifiedAs, program, program2, program3, yearLevel,
+    lastName, firstName, middleName, extension, nickname, height, weight,
+    lrnNumber, gender, pwdType, pwdId, birthOfDate, age, birthPlace,
+    languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup,
+    otherEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount,
+    presentStreet, presentBarangay, presentZipCode, presentRegion,
+    presentProvince, presentMunicipality, presentDswdHouseholdNumber,
+    permanentStreet, permanentBarangay, permanentZipCode, permanentRegion,
+    permanentProvince, permanentMunicipality, permanentDswdHouseholdNumber,
+    solo_parent, father_deceased, father_family_name, father_given_name,
+    father_middle_name, father_ext, father_nickname, father_education_level,
+    father_last_school, father_course, father_year_graduated, father_school_address,
+    father_contact, father_occupation, father_employer, father_income, father_email,
+    mother_deceased, mother_family_name, mother_given_name, mother_middle_name,
+    mother_nickname, mother_education_level, mother_last_school, mother_course,
+    mother_year_graduated, mother_school_address, mother_contact, mother_occupation,
+    mother_employer, mother_income, mother_email, guardian,
+    guardian_family_name, guardian_given_name, guardian_middle_name, guardian_ext,
+    guardian_nickname, guardian_address, guardian_contact, guardian_email,
+    annual_income, schoolLevel, schoolLastAttended, schoolAddress, courseProgram,
+    honor, generalAverage, yearGraduated, strand, cough, colds, fever, asthma, faintingSpells, heartDisease, tuberculosis, frequentHeadaches,
+    hernia, chronicCough, headNeckInjury, hiv, highBloodPressure, diabetesMellitus, allergies, cancer,
+    smokingCigarette, alcoholDrinking, hospitalized, hospitalizationDetails, medications, hadCovid, covidDate,
+    vaccine1Brand, vaccine1Date, vaccine2Brand, vaccine2Date, booster1Brand, booster1Date, booster2Brand,
+    booster2Date, chestXray, cbc, urinalysis, otherworkups, symptomsToday, remarks, termsOfAgreement,
+    person_id
+  ];
 
-    res.status(201).send({ message: "Item created", id: result.insertId });
-  } catch (err) {
-    console.error("Insert error:", err);
-    res.status(500).send({ error: "Failed to create educational attainment entry" });
+  db.query(updateQuery, values, (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    // After update, fetch the updated record
+    db.query("SELECT * FROM person_table WHERE person_id = ?", [person_id], (err2, results) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      res.json(results[0]); // Return the updated student object
+    });
+  });
+});
+
+// -------------------------------------------- DELETE APPLICANT FORM ------------------------------------------------//
+app.delete("/person_table/:person_id", async (req, res) => {
+  const { person_id } = req.params;
+
+  try {
+    await db.query("DELETE FROM person_table WHERE person_id = ?", [person_id]);
+    res.status(200).send({ message: "Personal information deleted" });
+  } catch (error) {
+    res.status(500).send({ message: "Error deleting personal information", error });
   }
 });
 
-// UPDATE STUDENT'S EDUCATIONAL ATTAINMENT (UPDATED!)
-app.put("/educational_attainment/:id", async (req, res) => {
-  const {
-    schoolLevel,
-    schoolLastAttended,
-    schoolAddress,
-    courseProgram,
-    honor,
-    generalAverage,
-    yearGraduated,
-    strand,
-  } = req.body;
 
-  const { id } = req.params;
-
-  const query = `
-    UPDATE educational_attainment_table 
-    SET schoolLevel = ?, schoolLastAttended = ?, schoolAddress = ?, courseProgram = ?, honor = ?, generalAverage = ?, yearGraduated = ?, strand = ?
-    WHERE id = ?
-  `;
-
-  try {
-    const [result] = await db.query(query, [
-      schoolLevel,
-      schoolLastAttended,
-      schoolAddress,
-      courseProgram,
-      honor,
-      generalAverage,
-      yearGraduated,
-      strand,
-      id,
-    ]);
-
-    res.status(200).send({ message: "Item updated" });
-  } catch (err) {
-    console.error("Update error:", err);
-    res.status(500).send({ error: "Failed to update educational attainment" });
-  }
-});
-
-// DELETE STUDENT'S EDUCATIONAL ATTAINMENT (UPDATED!)
-app.delete("/educational_attainment/:id", async (req, res) => {
-  const { id } = req.params;
-  const query = "DELETE FROM educational_attainment_table WHERE id = ?";
-
-  try {
-    const [result] = await db.query(query, [id]);
-    res.status(200).send({ message: "Item deleted" });
-  } catch (err) {
-    console.error("Delete error:", err);
-    res.status(500).send({ error: "Failed to delete educational attainment" });
-  }
-});
-
-// GET STUDENT FAMILY BACKGROUND (UPDATED!)
-app.get("/family_background", async (req, res) => {
-  const query = "SELECT * FROM family_background_table";
-
-  try {
-    const [result] = await db.query(query);
-    res.status(200).send(result);
-  } catch (err) {
-    console.error("Fetch error:", err);
-    res.status(500).send({ error: "Failed to retrieve family background data" });
-  }
-});
-
-// FAMILY BACKGROUND PANEL FORM (UPDATED!)
-app.post("/family_background", async (req, res) => {
-  const {
-    solo_parent,
-    father_deceased,
-    father_family_name,
-    father_given_name,
-    father_middle_name,
-    father_ext,
-    father_nickname,
-    father_education_level,
-    father_last_school,
-    father_course,
-    father_year_graduated,
-    father_contact,
-    father_occupation,
-    father_employer,
-    father_income,
-    father_email,
-    mother_deceased,
-    mother_family_name,
-    mother_given_name,
-    mother_middle_name,
-    mother_nickname,
-    mother_education_level,
-    mother_school_address,
-    mother_course,
-    mother_year_graduated,
-    mother_contact,
-    mother_occupation,
-    mother_employer,
-    mother_income,
-    mother_email
-  } = req.body;
-
-  const query = `
-    INSERT INTO family_background_table (
-      solo_parent, father_deceased, father_family_name, father_given_name, father_middle_name, father_ext, father_nickname,
-      father_education_level, father_last_school, father_course, father_year_graduated, father_contact, father_occupation,
-      father_employer, father_income, father_email, mother_deceased, mother_family_name, mother_given_name,
-      mother_middle_name, mother_nickname, mother_education_level, mother_school_address, mother_course,
-      mother_year_graduated, mother_contact, mother_occupation, mother_employer, mother_income, mother_email
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
-  try {
-    const [result] = await db.query(query, [
-      solo_parent,
-      father_deceased,
-      father_family_name,
-      father_given_name,
-      father_middle_name,
-      father_ext,
-      father_nickname,
-      father_education_level,
-      father_last_school,
-      father_course,
-      father_year_graduated,
-      father_contact,
-      father_occupation,
-      father_employer,
-      father_income,
-      father_email,
-      mother_deceased,
-      mother_family_name,
-      mother_given_name,
-      mother_middle_name,
-      mother_nickname,
-      mother_education_level,
-      mother_school_address,
-      mother_course,
-      mother_year_graduated,
-      mother_contact,
-      mother_occupation,
-      mother_employer,
-      mother_income,
-      mother_email
-    ]);
-
-    res.status(201).send({ message: "Item created", id: result.insertId });
-  } catch (err) {
-    console.error("Insert error:", err);
-    res.status(500).send({ error: "Failed to create family background record" });
-  }
-});
-
-// UPDATE STUDENT FAMILY BACKGROUND (UPDATED!)
-app.put("/family_background/:id", async (req, res) => {
-  const {
-    solo_parent,
-    father_deceased,
-    father_family_name,
-    father_given_name,
-    father_middle_name,
-    father_ext,
-    father_nickname,
-    father_education_level,
-    father_last_school,
-    father_course,
-    father_year_graduated,
-    father_contact,
-    father_occupation,
-    father_employer,
-    father_income,
-    father_email,
-    mother_deceased,
-    mother_family_name,
-    mother_given_name,
-    mother_middle_name,
-    mother_nickname,
-    mother_education_level,
-    mother_school_address,
-    mother_course,
-    mother_year_graduated,
-    mother_contact,
-    mother_occupation,
-    mother_employer,
-    mother_income,
-    mother_email
-  } = req.body;
-
-  const { id } = req.params;
-
-  const query = `
-    UPDATE family_background_table SET 
-      solo_parent = ?, father_deceased = ?, father_family_name = ?, father_given_name = ?, father_middle_name = ?, 
-      father_ext = ?, father_nickname = ?, father_education_level = ?, father_last_school = ?, father_course = ?, 
-      father_year_graduated = ?, father_contact = ?, father_occupation = ?, father_employer = ?, father_income = ?, 
-      father_email = ?, mother_deceased = ?, mother_family_name = ?, mother_given_name = ?, mother_middle_name = ?, 
-      mother_nickname = ?, mother_education_level = ?, mother_school_address = ?, mother_course = ?, mother_year_graduated = ?, 
-      mother_contact = ?, mother_occupation = ?, mother_employer = ?, mother_income = ?, mother_email = ? 
-    WHERE id = ?
-  `;
-
-  try {
-    const [result] = await db.query(query, [
-      solo_parent,
-      father_deceased,
-      father_family_name,
-      father_given_name,
-      father_middle_name,
-      father_ext,
-      father_nickname,
-      father_education_level,
-      father_last_school,
-      father_course,
-      father_year_graduated,
-      father_contact,
-      father_occupation,
-      father_employer,
-      father_income,
-      father_email,
-      mother_deceased,
-      mother_family_name,
-      mother_given_name,
-      mother_middle_name,
-      mother_nickname,
-      mother_education_level,
-      mother_school_address,
-      mother_course,
-      mother_year_graduated,
-      mother_contact,
-      mother_occupation,
-      mother_employer,
-      mother_income,
-      mother_email,
-      id
-    ]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).send({ error: "Family background not found" });
-    }
-
-    res.status(200).send({ message: "Item updated" });
-  } catch (err) {
-    console.error("Update error:", err);
-    res.status(500).send({ error: "Failed to update family background record" });
-  }
-});
-
-// DELETE STUDENT FAMILY BACKGROUND (UPDATED!)
-app.delete("/family_background/:id", async (req, res) => {
-  const { id } = req.params;
-
-  if(isNaN(id)) {
-    return res.status(400).send({ message: "Invalid applicant ID" });
-  }
-
-  try {
-    const query = "DELETE FROM family_background_table WHERE id = ?";
-    const [result] = await db.query(query, [id]);
-    if(result.affectedRows === 0) {
-      return res.status(404).send({message: 'Applicant Not found!'});
-    }
-
-    res.status(200).send({message: 'Item succeessfully deleted', result});
-  } catch (error) { 
-    res.status(500).send(error);
-  }
-});
-
-// GET STUDENT PROFILE INFORMATION (UPDATED!)
-app.get('/student_profile_table', async (req, res) => {
-  const query = 'SELECT * FROM student_profile_table';
-  
-  try {
-      const [result] = await db.query(query);
-      res.status(200).send(result);
-  } catch (err) {
-      console.error("Error fetching student profiles:", err);
-      res.status(500).send({ message: 'Internal Server Error' });
-  }
-});
-
-// STUDENT PROFILE INFORMATION PANEL (UPDATED!)
-app.post('/student_profile_table', async (req, res) => {
-  const {
-      branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
-      mobile_number, residential_address, residential_region, residential_province, residential_municipality,
-      residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
-      permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
-      gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
-      previous_school, transfer_date, school_year, term, transfer_reason, department, program,
-      year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
-      admission_status, enrollment_status, academic_status
-  } = req.body;
-
-  const query = `INSERT INTO student_profile_table (
-      branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
-      mobile_number, residential_address, residential_region, residential_province, residential_municipality,
-      residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
-      permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
-      gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
-      previous_school, transfer_date, school_year, term, transfer_reason, department, program,
-      year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
-      admission_status, enrollment_status, academic_status
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
-  try {
-      const [result] = await db.query(query, [
-          branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
-          mobile_number, residential_address, residential_region, residential_province, residential_municipality,
-          residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
-          permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
-          gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
-          previous_school, transfer_date, school_year, term, transfer_reason, department, program,
-          year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
-          admission_status, enrollment_status, academic_status
-      ]);
-
-      res.status(201).send({ message: 'Student profile created', id: result.insertId });
-  } catch (err) {
-      console.error("Error creating student profile:", err);
-      res.status(500).send({ message: 'Internal Server Error' });
-  }
-});
-
-// UPDATE STUDENT PROFILE INFORMATION (UPDATED!)
-app.put('/student_profile_table/:id', async (req, res) => {
-  const {
-      branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
-      mobile_number, residential_address, residential_region, residential_province, residential_municipality,
-      residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
-      permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
-      gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
-      previous_school, transfer_date, school_year, term, transfer_reason, department, program,
-      year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
-      admission_status, enrollment_status, academic_status
-  } = req.body;
-
-  const { id } = req.params;
-  const query = `
-      UPDATE student_profile_table SET
-          branch = ?, student_number = ?, LRN = ?, last_name = ?, first_name = ?, middle_name = ?, middle_initial = ?, extension = ?,
-          mobile_number = ?, residential_address = ?, residential_region = ?, residential_province = ?, residential_municipality = ?,
-          residential_telephone = ?, permanent_address = ?, permanent_region = ?, permanent_province = ?, permanent_municipality = ?,
-          permanent_telephone = ?, monthly_income = ?, ethnic_group = ?, pwd_type = ?, date_of_birth = ?, place_of_birth = ?,
-          gender = ?, religion = ?, citizenship = ?, civil_status = ?, blood_type = ?, nstp_serial_number = ?, transfer_status = ?,
-          previous_school = ?, transfer_date = ?, school_year = ?, term = ?, transfer_reason = ?, department = ?, program = ?,
-          year_level = ?, section = ?, curriculum_type = ?, curriculum_year = ?, admission_year = ?, assessment_type = ?,
-          admission_status = ?, enrollment_status = ?, academic_status = ?
-      WHERE id = ?
-  `;
-
-  try {
-      const [result] = await db.query(query, [
-          branch, student_number, LRN, last_name, first_name, middle_name, middle_initial, extension,
-          mobile_number, residential_address, residential_region, residential_province, residential_municipality,
-          residential_telephone, permanent_address, permanent_region, permanent_province, permanent_municipality,
-          permanent_telephone, monthly_income, ethnic_group, pwd_type, date_of_birth, place_of_birth,
-          gender, religion, citizenship, civil_status, blood_type, nstp_serial_number, transfer_status,
-          previous_school, transfer_date, school_year, term, transfer_reason, department, program,
-          year_level, section, curriculum_type, curriculum_year, admission_year, assessment_type,
-          admission_status, enrollment_status, academic_status, id
-      ]);
-
-      if (result.affectedRows > 0) {
-          res.status(200).send({ message: 'Student profile updated' });
-      } else {
-          res.status(404).send({ message: 'Student profile not found' });
-      }
-  } catch (err) {
-      console.error("Error updating student profile:", err);
-      res.status(500).send({ message: 'Internal Server Error' });
-  }
-});
-
-// DELETE STUDENT PROFILE INFORMATION (UPDATED!)
-app.delete('/student_profile_table/:id', async (req, res) => {
-  const { id } = req.params;
-  const query = 'DELETE FROM student_profile_table WHERE id = ?';
-
-  try {
-      const [result] = await db.query(query, [id]);
-      if (result.affectedRows > 0) {
-          res.status(200).send({ message: 'Student profile deleted' });
-      } else {
-          res.status(404).send({ message: 'Student profile not found' });
-      }
-  } catch (err) {
-      console.error("Error deleting student profile:", err);
-      res.status(500).send({ message: 'Internal Server Error' });
-  }
-});
 
 /*---------------------------  ENROLLMENT -----------------------*/ 
 

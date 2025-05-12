@@ -11,7 +11,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
-const ApplicantPersonalInfoForm = () => {
+const PersonalInfoForm = () => {
   // State for applicants
   const [applicants, setApplicants] = useState([]);
   const [personId, setPersonId] = useState(null);
@@ -1708,4 +1708,4 @@ const ApplicantPersonalInfoForm = () => {
   );
 };
 
-export default ApplicantPersonalInfoForm;
+export default PersonalInfoForm;
