@@ -1351,9 +1351,9 @@ useEffect(() => {
                         required
                         sx={{ width: "85%" }}
                         size="small"
-                        value={student.lastName || ""}
+                        value={student.last_name || ""}
                         onChange={(e) => {
-                          const updatedStudent = { ...student, lastName: e.target.value };
+                          const updatedStudent = { ...student, last_name: e.target.value };
                           setStudents((prev) =>
                             prev.map((s) =>
                               s.person_id === student.person_id ? updatedStudent : s
@@ -1372,9 +1372,9 @@ useEffect(() => {
                         required
                         sx={{ width: "85%" }}
                         size="small"
-                        value={student.firstName || ""}
+                        value={student.first_name || ""}
                         onChange={(e) => {
-                          const updatedStudent = { ...student, firstName: e.target.value };
+                          const updatedStudent = { ...student, first_name: e.target.value };
                           setStudents((prev) =>
                             prev.map((s) =>
                               s.person_id === student.person_id ? updatedStudent : s
@@ -1393,9 +1393,9 @@ useEffect(() => {
                         required
                         sx={{ width: "85%" }}
                         size="small"
-                        value={student.middleName || ""}
+                        value={student.middle_name || ""}
                         onChange={(e) => {
-                          const updatedStudent = { ...student, middleName: e.target.value };
+                          const updatedStudent = { ...student, middle_name: e.target.value };
                           setStudents((prev) =>
                             prev.map((s) =>
                               s.person_id === student.person_id ? updatedStudent : s

@@ -253,7 +253,7 @@ app.get("/person_table", async (req, res) => {
 app.post("/person_table", async (req, res) => {
   const { 
     profile_picture, campus, academicProgram, classifiedAs, program, program2, program3, yearLevel,
-    lastName, firstName, middleName, extension, nickname, height, weight,
+    last_name, first_name, middle_name, extension, nickname, height, weight,
     lrnNumber, gender, pwdType, pwdId, birthOfDate, age, birthPlace,
     languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup,
     cellphoneNumber, emailAddress, telephoneNumber, facebookAccount,
@@ -282,7 +282,7 @@ app.post("/person_table", async (req, res) => {
   const query = `
     INSERT INTO person_table (
       profile_picture, campus, academicProgram, classifiedAs, program, program2, program3, yearLevel,
-      lastName, firstName, middleName, extension, nickname, height, weight,
+      last_name, first_name, middle_name, extension, nickname, height, weight,
       lrnNumber, gender, pwdType, pwdId, birthOfDate, age, birthPlace,
       languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup,
       cellphoneNumber, emailAddress, telephoneNumber, facebookAccount,
@@ -312,7 +312,7 @@ app.post("/person_table", async (req, res) => {
   try {
     const [result] = await db.query(query, [
       profile_picture, campus, academicProgram, classifiedAs, program, program2, program3, yearLevel,
-      lastName, firstName, middleName, extension, nickname, height, weight,
+      last_name, first_name, middle_name, extension, nickname, height, weight,
       lrnNumber, gender, pwdType, pwdId, birthOfDate, age, birthPlace,
       languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup,
       cellphoneNumber, emailAddress, telephoneNumber, facebookAccount,
@@ -351,7 +351,7 @@ app.put("/person_table/:person_id", (req, res) => {
 
   const {
     profile_picture, campus, academicProgram, classifiedAs, program, program2, program3, yearLevel,
-    lastName, firstName, middleName, extension, nickname, height, weight,
+    last_name, first_name, middle_name, extension, nickname, height, weight,
     lrnNumber, gender, pwdType, pwdId, birthOfDate, age, birthPlace,
     languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup,
     otherEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount,
@@ -380,7 +380,7 @@ app.put("/person_table/:person_id", (req, res) => {
   const updateQuery = `
     UPDATE person_table SET
       profile_picture = ?, campus = ?, academicProgram = ?, classifiedAs = ?, program = ?, program2 = ?, program3 = ?, yearLevel = ?,
-      lastName = ?, firstName = ?, middleName = ?, extension = ?, nickname = ?, height = ?, weight = ?,
+      last_name = ?, first_name = ?, middle_name = ?, extension = ?, nickname = ?, height = ?, weight = ?,
       lrnNumber = ?, gender = ?, pwdType = ?, pwdId = ?, birthOfDate = ?, age = ?, birthPlace = ?,
       languageDialectSpoken = ?, citizenship = ?, religion = ?, civilStatus = ?, tribeEthnicGroup = ?,
       otherEthnicGroup = ?, cellphoneNumber = ?, emailAddress = ?, telephoneNumber = ?, facebookAccount = ?,
@@ -412,7 +412,7 @@ app.put("/person_table/:person_id", (req, res) => {
 
   const values = [
     profile_picture, campus, academicProgram, classifiedAs, program, program2, program3, yearLevel,
-    lastName, firstName, middleName, extension, nickname, height, weight,
+    last_name, first_name, middle_name, extension, nickname, height, weight,
     lrnNumber, gender, pwdType, pwdId, birthOfDate, age, birthPlace,
     languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup,
     otherEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount,
