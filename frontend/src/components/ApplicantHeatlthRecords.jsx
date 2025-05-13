@@ -1245,7 +1245,7 @@ const ApplicantHealthMedicalRecords = () => {
           <Button
             variant="contained"
             component={Link}
-            to="/educ_attainment"
+            to="/applicant_educational_attainment"
             startIcon={
               <ArrowBackIcon
                 sx={{
@@ -1273,7 +1273,7 @@ const ApplicantHealthMedicalRecords = () => {
           <Button
             variant="contained"
             component={Link}
-            to="/other_information"
+            to="/applicant_other_information"
             endIcon={
               <ArrowForwardIcon
                 sx={{

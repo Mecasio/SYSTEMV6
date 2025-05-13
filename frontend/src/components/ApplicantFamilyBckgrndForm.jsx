@@ -1359,7 +1359,7 @@ const ApplicantFamilyBackground = () => {
               <Button
                 variant="contained"
                 component={Link}
-                to="/applicant"
+                to="/applicant_personal_information"
                 startIcon={
                   <ArrowBackIcon
                     sx={{
@@ -1387,7 +1387,7 @@ const ApplicantFamilyBackground = () => {
               <Button
                 variant="contained"
                 component={Link}
-                to="/educ_attainment"
+                to="/applicant_educational_attainment"
                 endIcon={
                   <ArrowForwardIcon
                     sx={{
