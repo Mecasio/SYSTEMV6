@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import {Button, TextField, Container, Typography, Box, Checkbox, FormControlLabel, MenuItem, FormControl, InputLabel, Select} from "@mui/material";
+import { Button, TextField, Container, Typography, Box, Checkbox, FormControlLabel, MenuItem, FormControl, InputLabel, Select } from "@mui/material";
 import { Link } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom";
@@ -60,18 +60,28 @@ const ApplicantFamilyBackground = () => {
 
 
   const updateItem = (student) => {
-    axios
-      .put(`http://localhost:5000/person_table/${student.person_id}`, student)
-      .then((res) => {
-        setStudents((prevStudents) =>
-          prevStudents.map((s) =>
-            s.person_id === student.person_id ? res.data : s
-          )
-        );
+    axios.put(`http://localhost:5000/person_table/${student.person_id}`, student)
+      .then(response => {
+        console.log("Saved:", response.data);
       })
-      .catch((err) => console.error("Update error:", err));
+      .catch(error => {
+        console.error("Auto-save error:", error);
+      });
   };
 
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      students.forEach((student) => {
+        updateItem(student); // ✅ Save latest changes before reload
+      });
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [students]);
 
 
   const [step, setStep] = useState(2); // Initialize step at 1
@@ -300,6 +310,9 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = { ...student, father_family_name: e.target.value };
                           updateItem(updatedStudent);
                         }}
                         sx={{ flex: 1 }}
@@ -317,6 +330,9 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = { ...student, father_given_name: e.target.value };
                           updateItem(updatedStudent);
                         }}
                         sx={{ flex: 1 }}
@@ -334,6 +350,9 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = { ...student, father_middle_name: e.target.value };
                           updateItem(updatedStudent);
                         }}
                         sx={{ flex: 1 }}
@@ -351,7 +370,9 @@ const ApplicantFamilyBackground = () => {
                             setStudents((prev) =>
                               prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                             );
-                            updateItem(updatedStudent);
+                          }}
+                          onClose={() => {
+                            updateItem(student); // Save changes when dropdown is closed
                           }}
                         >
                           <MenuItem value="">None</MenuItem>
@@ -376,6 +397,9 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = { ...student, father_nickname: e.target.value };
                           updateItem(updatedStudent);
                         }}
                         sx={{ flex: 1 }}
@@ -383,7 +407,6 @@ const ApplicantFamilyBackground = () => {
                     </Box>
                   </Box>
                 ))}
-
 
 
 
@@ -444,6 +467,7 @@ const ApplicantFamilyBackground = () => {
                           },
                         }}
                       >
+                        {/* Father's Education Level */}
                         <TextField
                           label="Father's Education Level"
                           size="small"
@@ -456,10 +480,17 @@ const ApplicantFamilyBackground = () => {
                             setStudents((prev) =>
                               prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                             );
+                          }}
+                          onBlur={(e) => {
+                            const updatedStudent = {
+                              ...student,
+                              father_education_level: e.target.value,
+                            };
                             updateItem(updatedStudent);
                           }}
                         />
 
+                        {/* Father's Last School Attended */}
                         <TextField
                           label="Father's Last School Attended"
                           size="small"
@@ -472,10 +503,17 @@ const ApplicantFamilyBackground = () => {
                             setStudents((prev) =>
                               prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                             );
+                          }}
+                          onBlur={(e) => {
+                            const updatedStudent = {
+                              ...student,
+                              father_last_school: e.target.value,
+                            };
                             updateItem(updatedStudent);
                           }}
                         />
 
+                        {/* Father's Course/Program */}
                         <TextField
                           label="Father's Course/Program"
                           size="small"
@@ -488,10 +526,17 @@ const ApplicantFamilyBackground = () => {
                             setStudents((prev) =>
                               prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                             );
+                          }}
+                          onBlur={(e) => {
+                            const updatedStudent = {
+                              ...student,
+                              father_course: e.target.value,
+                            };
                             updateItem(updatedStudent);
                           }}
                         />
 
+                        {/* Father's Year Graduated */}
                         <TextField
                           label="Father's Year Graduated"
                           size="small"
@@ -504,10 +549,17 @@ const ApplicantFamilyBackground = () => {
                             setStudents((prev) =>
                               prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                             );
+                          }}
+                          onBlur={(e) => {
+                            const updatedStudent = {
+                              ...student,
+                              father_year_graduated: e.target.value,
+                            };
                             updateItem(updatedStudent);
                           }}
                         />
 
+                        {/* Father's School Address */}
                         <TextField
                           label="Father's School Address"
                           size="small"
@@ -520,6 +572,12 @@ const ApplicantFamilyBackground = () => {
                             setStudents((prev) =>
                               prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                             );
+                          }}
+                          onBlur={(e) => {
+                            const updatedStudent = {
+                              ...student,
+                              father_school_address: e.target.value,
+                            };
                             updateItem(updatedStudent);
                           }}
                         />
@@ -541,8 +599,11 @@ const ApplicantFamilyBackground = () => {
                 {/* Contact Info Fields Row */}
                 {students.map((student) => (
                   <Box key={student.person_id} display="flex" gap={2} mt={2}>
+                    {/* Contact Number */}
                     <Box sx={{ width: "25%" }}>
-                      <div style={{ fontSize: "12px", marginBottom: "6px", fontFamily: "Arial" }}>Contact Number:</div>
+                      <div style={{ fontSize: "12px", marginBottom: "6px", fontFamily: "Arial" }}>
+                        Contact Number:
+                      </div>
                       <TextField
                         label="Enter Contact Number"
                         required
@@ -550,20 +611,23 @@ const ApplicantFamilyBackground = () => {
                         size="small"
                         value={student.father_contact || ""}
                         onChange={(e) => {
-                          const updatedStudent = {
-                            ...student,
-                            father_contact: e.target.value,
-                          };
+                          const updatedStudent = { ...student, father_contact: e.target.value };
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = { ...student, father_contact: e.target.value };
                           updateItem(updatedStudent);
                         }}
                       />
                     </Box>
 
+                    {/* Occupation */}
                     <Box sx={{ width: "25%" }}>
-                      <div style={{ fontSize: "12px", marginBottom: "6px", fontFamily: "Arial" }}>Occupation:</div>
+                      <div style={{ fontSize: "12px", marginBottom: "6px", fontFamily: "Arial" }}>
+                        Occupation:
+                      </div>
                       <TextField
                         label="Enter Occupation"
                         required
@@ -571,53 +635,59 @@ const ApplicantFamilyBackground = () => {
                         size="small"
                         value={student.father_occupation || ""}
                         onChange={(e) => {
-                          const updatedStudent = {
-                            ...student,
-                            father_occupation: e.target.value,
-                          };
+                          const updatedStudent = { ...student, father_occupation: e.target.value };
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = { ...student, father_occupation: e.target.value };
                           updateItem(updatedStudent);
                         }}
                       />
                     </Box>
 
+                    {/* Employer / Company */}
                     <Box sx={{ width: "25%" }}>
-                      <div style={{ fontSize: "12px", marginBottom: "6px", fontFamily: "Arial" }}>Employer/Name of Company:</div>
+                      <div style={{ fontSize: "12px", marginBottom: "6px", fontFamily: "Arial" }}>
+                        Employer/Name of Company:
+                      </div>
                       <TextField
                         label="Enter Employer/Company"
                         fullWidth
                         size="small"
                         value={student.father_employer || ""}
                         onChange={(e) => {
-                          const updatedStudent = {
-                            ...student,
-                            father_employer: e.target.value,
-                          };
+                          const updatedStudent = { ...student, father_employer: e.target.value };
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = { ...student, father_employer: e.target.value };
                           updateItem(updatedStudent);
                         }}
                       />
                     </Box>
 
+                    {/* Monthly Income */}
                     <Box sx={{ width: "25%" }}>
-                      <div style={{ fontSize: "12px", marginBottom: "6px", fontFamily: "Arial" }}>Monthly Income:</div>
+                      <div style={{ fontSize: "12px", marginBottom: "6px", fontFamily: "Arial" }}>
+                        Monthly Income:
+                      </div>
                       <TextField
                         label="Enter Monthly Income"
                         fullWidth
                         size="small"
                         value={student.father_income || ""}
                         onChange={(e) => {
-                          const updatedStudent = {
-                            ...student,
-                            father_income: e.target.value,
-                          };
+                          const updatedStudent = { ...student, father_income: e.target.value };
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = { ...student, father_income: e.target.value };
                           updateItem(updatedStudent);
                         }}
                       />
@@ -625,34 +695,33 @@ const ApplicantFamilyBackground = () => {
                   </Box>
                 ))}
 
-
                 {/* Email Field Full Width */}
                 {students.map((student) => (
-                  <Box key={student.person_id} width="100%" mt={2}>
+                  <Box key={student.person_id} mt={2}>
                     <div>Email Address:</div>
                     <TextField
                       label="Enter Email"
-                      fullWidth
+                      style={{ width: "49.5%" }}
                       size="small"
                       value={student.father_email || ""}
                       onChange={(e) => {
-                        const updatedStudent = {
-                          ...student,
-                          father_email: e.target.value,
-                        };
+                        const updatedStudent = { ...student, father_email: e.target.value };
                         setStudents((prev) =>
-                          prev.map((s) =>
-                            s.person_id === student.person_id ? updatedStudent : s
-                          )
+                          prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                         );
+                      }}
+                      onBlur={(e) => {
+                        const updatedStudent = { ...student, father_email: e.target.value };
                         updateItem(updatedStudent);
                       }}
                     />
                   </Box>
                 ))}
 
+
               </Box>
             )}
+
 
 
 
@@ -682,90 +751,97 @@ const ApplicantFamilyBackground = () => {
             {!isMotherDeceased && (
               <Box mt={2}>
                 {/* Full Name Row */}
+                {/* Full Name Row */}
                 {students.map((student) => (
                   <Box key={student.person_id} mt={2}>
                     {/* Full Name Row */}
                     <Box display="flex" gap={2} marginTop="10px">
-                      <div style={{ marginRight: "-40px" }}><strong>Mother's <span> <br />Maiden Name:</span></strong></div>
+                      <div style={{ marginRight: "-40px" }}>
+                        <strong>Mother's <br />Maiden Name:</strong>
+                      </div>
 
+                      {/* Family Name */}
                       <Box width="25%">
                         <div>Family Name: <span style={{ color: "red" }}>*</span></div>
                         <TextField
                           label="Enter Family Name"
                           required
-                          style={{ width: "100%" }}
+                          fullWidth
                           size="small"
                           value={student.mother_family_name || ""}
                           onChange={(e) => {
-                            const updatedStudent = {
-                              ...student,
-                              mother_family_name: e.target.value,
-                            };
+                            const updatedStudent = { ...student, mother_family_name: e.target.value };
                             setStudents((prev) =>
                               prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                             );
+                          }}
+                          onBlur={(e) => {
+                            const updatedStudent = { ...student, mother_family_name: e.target.value };
                             updateItem(updatedStudent);
                           }}
                         />
                       </Box>
 
+                      {/* Given Name */}
                       <Box width="25%">
                         <div>Given Name: <span style={{ color: "red" }}>*</span></div>
                         <TextField
                           label="Enter Given Name"
                           required
-                          style={{ width: "100%" }}
+                          fullWidth
                           size="small"
                           value={student.mother_given_name || ""}
                           onChange={(e) => {
-                            const updatedStudent = {
-                              ...student,
-                              mother_given_name: e.target.value,
-                            };
+                            const updatedStudent = { ...student, mother_given_name: e.target.value };
                             setStudents((prev) =>
                               prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                             );
+                          }}
+                          onBlur={(e) => {
+                            const updatedStudent = { ...student, mother_given_name: e.target.value };
                             updateItem(updatedStudent);
                           }}
                         />
                       </Box>
 
+                      {/* Middle Name */}
                       <Box width="25%">
                         <div>Middle Name: <span style={{ color: "red" }}>*</span></div>
                         <TextField
                           label="Enter Middle Name"
                           required
-                          style={{ width: "100%" }}
+                          fullWidth
                           size="small"
                           value={student.mother_middle_name || ""}
                           onChange={(e) => {
-                            const updatedStudent = {
-                              ...student,
-                              mother_middle_name: e.target.value,
-                            };
+                            const updatedStudent = { ...student, mother_middle_name: e.target.value };
                             setStudents((prev) =>
                               prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                             );
+                          }}
+                          onBlur={(e) => {
+                            const updatedStudent = { ...student, mother_middle_name: e.target.value };
                             updateItem(updatedStudent);
                           }}
                         />
                       </Box>
 
+                      {/* Nick Name */}
                       <Box width="25%">
                         <div>Nick Name:</div>
                         <TextField
                           label="Enter Nickname"
-                          style={{ width: "100%" }}
+                          fullWidth
                           size="small"
                           value={student.mother_nickname || ""}
                           onChange={(e) => {
-                            const updatedStudent = {
-                              ...student,
-                              mother_nickname: e.target.value,
-                            };
+                            const updatedStudent = { ...student, mother_nickname: e.target.value };
                             setStudents((prev) =>
                               prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                             );
+                          }}
+                          onBlur={(e) => {
+                            const updatedStudent = { ...student, mother_nickname: e.target.value };
                             updateItem(updatedStudent);
                           }}
                         />
@@ -773,6 +849,7 @@ const ApplicantFamilyBackground = () => {
                     </Box>
                   </Box>
                 ))}
+
 
                 < br />
                 <hr style={{ border: "1px solid #ccc", width: "100%" }} />
@@ -812,19 +889,19 @@ const ApplicantFamilyBackground = () => {
                   label="Mother's education not applicable"
                 />
 
+
                 {/* Mother Educational Details */}
                 {!motherEduNotApplicable && students.map((student) => (
                   <Box key={student.person_id} sx={{ p: 2 }}>
-                    {/* Mother Educational Details */}
                     <Box
                       display="flex"
                       gap={2}
                       mt={2}
-                      flexWrap="nowrap" // Prevent wrapping of items
+                      flexWrap="nowrap"
                       sx={{
                         '& > *': {
                           flex: 1,
-                          minWidth: 150, // Adjust width of each TextField as needed
+                          minWidth: 150,
                         },
                       }}
                     >
@@ -840,6 +917,12 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            mother_education_level: e.target.value,
+                          };
                           updateItem(updatedStudent);
                         }}
                         sx={{ flex: 1 }}
@@ -856,6 +939,12 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            mother_last_school: e.target.value,
+                          };
                           updateItem(updatedStudent);
                         }}
                         sx={{ flex: 1 }}
@@ -872,6 +961,12 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            mother_course: e.target.value,
+                          };
                           updateItem(updatedStudent);
                         }}
                         sx={{ flex: 1 }}
@@ -888,6 +983,12 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            mother_year_graduated: e.target.value,
+                          };
                           updateItem(updatedStudent);
                         }}
                         sx={{ flex: 1 }}
@@ -904,6 +1005,12 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            mother_school_address: e.target.value,
+                          };
                           updateItem(updatedStudent);
                         }}
                         sx={{ flex: 1 }}
@@ -912,11 +1019,13 @@ const ApplicantFamilyBackground = () => {
                   </Box>
                 ))}
 
+
                 <Typography
                   style={{ fontSize: "20px", color: "#6D2323", fontWeight: "bold", marginTop: "20px" }}
                 >
                   Contact Information:
                 </Typography>
+
 
 
                 {/* Contact Information Row */}
@@ -938,6 +1047,12 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            mother_contact: e.target.value,
+                          };
                           updateItem(updatedStudent);
                         }}
                       />
@@ -959,6 +1074,12 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            mother_occupation: e.target.value,
+                          };
                           updateItem(updatedStudent);
                         }}
                       />
@@ -979,6 +1100,12 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            mother_employer: e.target.value,
+                          };
                           updateItem(updatedStudent);
                         }}
                       />
@@ -999,6 +1126,12 @@ const ApplicantFamilyBackground = () => {
                           setStudents((prev) =>
                             prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                           );
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            mother_income: e.target.value,
+                          };
                           updateItem(updatedStudent);
                         }}
                       />
@@ -1006,14 +1139,13 @@ const ApplicantFamilyBackground = () => {
                   </Box>
                 ))}
 
-
                 {/* Email Field */}
                 {students.map((student) => (
                   <Box key={student.person_id} width="100%" marginTop="10px">
                     <div>Email Address:</div>
                     <TextField
                       label="Enter Email"
-                      style={{ width: "49.5%" }}
+                      style={{ width: "49.5%" }}  // This makes the TextField 100% of the parent width
                       size="small"
                       value={student.mother_email || ""}
                       onChange={(e) => {
@@ -1024,11 +1156,18 @@ const ApplicantFamilyBackground = () => {
                         setStudents((prev) =>
                           prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                         );
+                      }}
+                      onBlur={(e) => {
+                        const updatedStudent = {
+                          ...student,
+                          mother_email: e.target.value,
+                        };
                         updateItem(updatedStudent);
                       }}
                     />
                   </Box>
                 ))}
+
 
               </Box>
             )}
@@ -1105,7 +1244,7 @@ const ApplicantFamilyBackground = () => {
                       <TextField
                         label="Enter Family Name"
                         required
-                        style={{ width: "100%" }}
+                        fullWidth  // Ensures the input takes 100% width of its container
                         size="small"
                         value={student.guardian_family_name || ""}
                         onChange={(e) =>
@@ -1117,6 +1256,13 @@ const ApplicantFamilyBackground = () => {
                             )
                           )
                         }
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            guardian_family_name: e.target.value,
+                          };
+                          updateItem(updatedStudent); // Update the backend
+                        }}
                       />
                     </Box>
 
@@ -1126,7 +1272,7 @@ const ApplicantFamilyBackground = () => {
                       <TextField
                         label="Enter Given Name"
                         required
-                        style={{ width: "100%" }}
+                        fullWidth  // Ensures the input takes 100% width of its container
                         size="small"
                         value={student.guardian_given_name || ""}
                         onChange={(e) =>
@@ -1138,6 +1284,13 @@ const ApplicantFamilyBackground = () => {
                             )
                           )
                         }
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            guardian_given_name: e.target.value,
+                          };
+                          updateItem(updatedStudent); // Update the backend
+                        }}
                       />
                     </Box>
 
@@ -1147,7 +1300,7 @@ const ApplicantFamilyBackground = () => {
                       <TextField
                         label="Enter Middle Name"
                         required
-                        style={{ width: "100%" }}
+                        fullWidth  // Ensures the input takes 100% width of its container
                         size="small"
                         value={student.guardian_middle_name || ""}
                         onChange={(e) =>
@@ -1159,56 +1312,61 @@ const ApplicantFamilyBackground = () => {
                             )
                           )
                         }
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            guardian_middle_name: e.target.value,
+                          };
+                          updateItem(updatedStudent); // Update the backend
+                        }}
                       />
                     </Box>
 
                     {/* EXT */}
-                    {students.map((student) => (
-                      <Box key={student.person_id} width="20%">
-                        <div>
-                          EXT: <span style={{ color: "red" }}>*</span>
-                        </div>
-                        <FormControl sx={{ width: "100%" }} size="small">
-                          <InputLabel id={`extension-label-${student.person_id}`}>EXT.</InputLabel>
-                          <Select
-                            labelId={`extension-label-${student.person_id}`}
-                            id={`extension-select-${student.person_id}`}
-                            value={student.guardian_ext || ""}
-                            label="EXT."
-                            onChange={(e) => {
-                              const updatedExt = e.target.value;
-                              const updatedStudent = { ...student, guardian_ext: updatedExt };
+                    <Box width="20%">
+                      <div>
+                        EXT: <span style={{ color: "red" }}>*</span>
+                      </div>
+                      <FormControl sx={{ width: "100%" }} size="small">
+                        <InputLabel id={`extension-label-${student.person_id}`}>EXT.</InputLabel>
+                        <Select
+                          labelId={`extension-label-${student.person_id}`}
+                          id={`extension-select-${student.person_id}`}
+                          value={student.guardian_ext || ""}
+                          label="EXT."
+                          onChange={(e) => {
+                            const updatedExt = e.target.value;
+                            const updatedStudent = { ...student, guardian_ext: updatedExt };
 
-                              // Update local state
-                              setStudents((prevStudents) =>
-                                prevStudents.map((s) =>
-                                  s.person_id === student.person_id ? updatedStudent : s
-                                )
-                              );
+                            // Update local state
+                            setStudents((prevStudents) =>
+                              prevStudents.map((s) =>
+                                s.person_id === student.person_id ? updatedStudent : s
+                              )
+                            );
 
-                              // Immediately update backend
-                              updateItem(updatedStudent);
-                            }}
-                          >
-                            <MenuItem value="">None</MenuItem>
-                            <MenuItem value="Jr.">Jr.</MenuItem>
-                            <MenuItem value="Sr.">Sr.</MenuItem>
-                            <MenuItem value="I">I</MenuItem>
-                            <MenuItem value="II">II</MenuItem>
-                            <MenuItem value="III">III</MenuItem>
-                            <MenuItem value="IV">IV</MenuItem>
-                            <MenuItem value="V">V</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Box>
-                    ))}
+                            // Immediately update backend
+                            updateItem(updatedStudent);
+                          }}
+                        >
+                          <MenuItem value="">None</MenuItem>
+                          <MenuItem value="Jr.">Jr.</MenuItem>
+                          <MenuItem value="Sr.">Sr.</MenuItem>
+                          <MenuItem value="I">I</MenuItem>
+                          <MenuItem value="II">II</MenuItem>
+                          <MenuItem value="III">III</MenuItem>
+                          <MenuItem value="IV">IV</MenuItem>
+                          <MenuItem value="V">V</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Box>
 
                     {/* Nickname */}
                     <Box width="20%">
                       <div>Nick Name:</div>
                       <TextField
                         label="Enter Nickname"
-                        style={{ width: "100%" }}
+                        fullWidth  // Ensures the input takes 100% width of its container
                         size="small"
                         value={student.guardian_nickname || ""}
                         onChange={(e) =>
@@ -1220,12 +1378,20 @@ const ApplicantFamilyBackground = () => {
                             )
                           )
                         }
+                        onBlur={(e) => {
+                          const updatedStudent = {
+                            ...student,
+                            guardian_nickname: e.target.value,
+                          };
+                          updateItem(updatedStudent); // Update the backend
+                        }}
                       />
                     </Box>
                   </Box>
                 ))}
-
               </Box>
+
+
 
               {/* Contact Info Header */}
               <Typography
@@ -1257,7 +1423,13 @@ const ApplicantFamilyBackground = () => {
                       setStudents((prev) =>
                         prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
                       );
-                      updateItem(updatedStudent); // if needed, call updateItem to update global state or make API call
+                    }}
+                    onBlur={(e) => {
+                      const updatedStudent = {
+                        ...student,
+                        guardian_address: e.target.value,
+                      };
+                      updateItem(updatedStudent); // Update the backend when the user finishes editing
                     }}
                   />
                 </Box>
@@ -1309,7 +1481,6 @@ const ApplicantFamilyBackground = () => {
                   </Box>
                 </Box>
               ))}
-
             </Box>
             < br />
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />

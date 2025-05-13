@@ -61,18 +61,29 @@ const ApplicantHealthMedicalRecords = () => {
 
 
 
-  const updateItem = (student) => {
-    axios
-      .put(`http://localhost:5000/person_table/${student.person_id}`, student)
-      .then((res) => {
-        setStudents((prevStudents) =>
-          prevStudents.map((s) =>
-            s.person_id === student.person_id ? res.data : s
-          )
-        );
+   const updateItem = (student) => {
+    axios.put(`http://localhost:5000/person_table/${student.person_id}`, student)
+      .then(response => {
+        console.log("Saved:", response.data);
       })
-      .catch((err) => console.error("Update error:", err));
+      .catch(error => {
+        console.error("Auto-save error:", error);
+      });
   };
+
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      students.forEach((student) => {
+        updateItem(student); // ✅ Save latest changes before reload
+      });
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [students]);
 
   useEffect(() => {
     fetch("http://localhost:5000/person_table")
@@ -490,80 +501,90 @@ const ApplicantHealthMedicalRecords = () => {
 
 
 
-            {/* Input Field for Specific Condition if Yes */}
-            {students.map((student) => (
-              <div key={student.person_id} style={{ marginTop: "8px", display: "flex", alignItems: "center" }}>
-                <label style={{ marginRight: "8px" }}>IF YES, PLEASE SPECIFY:</label>
-                <input
-                  type="text"
-                  style={{
-                    width: "50%",
-                    padding: "8px",
-                    fontSize: "1rem",
-                    border: "1px solid #ccc",
-                    borderRadius: "8px",
-                    backgroundColor: "white",
-                    color: "black",
-                    outline: "none",
-                    boxSizing: "border-box",
-                  }}
-                  placeholder=""
-                  value={student.hospitalizationDetails || ""}
-                  onChange={(e) => {
-                    const updatedStudent = {
-                      ...student,
-                      hospitalizationDetails: e.target.value,
-                    };
-                    setStudents((prev) =>
-                      prev.map((s) =>
-                        s.person_id === student.person_id ? updatedStudent : s
-                      )
-                    );
-                    updateItem(updatedStudent);
-                  }}
-                  name="specificCondition" // This will map to the database column 'hospitalizationDetails'
-                />
-              </div>
-            ))}
+      {/* Input Field for Specific Condition if Yes */}
+{students.map((student) => (
+  <div key={student.person_id} style={{ marginTop: "8px", display: "flex", alignItems: "center" }}>
+    <label style={{ marginRight: "8px" }}>IF YES, PLEASE SPECIFY:</label>
+    <input
+      type="text"
+      style={{
+        width: "50%",
+        padding: "8px",
+        fontSize: "1rem",
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+        backgroundColor: "white",
+        color: "black",
+        outline: "none",
+        boxSizing: "border-box",
+      }}
+      placeholder=""
+      value={student.hospitalizationDetails || ""}
+      onChange={(e) => {
+        const updatedStudent = {
+          ...student,
+          hospitalizationDetails: e.target.value,
+        };
+        setStudents((prev) =>
+          prev.map((s) =>
+            s.person_id === student.person_id ? updatedStudent : s
+          )
+        );
+      }}
+      onBlur={(e) => {
+        const updatedStudent = {
+          ...student,
+          hospitalizationDetails: e.target.value,
+        };
+        updateItem(updatedStudent); // Update the backend when the user finishes editing
+      }}
+      name="specificCondition" // This will map to the database column 'hospitalizationDetails'
+    />
+  </div>
+))}
 
-            {/* Medications Input */}
-            {students.map((student) => (
-              <div key={student.person_id} style={{ marginTop: "16px" }}>
-                <p>III. MEDICATIONS:</p>
-                <textarea
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    fontSize: "1rem",
-                    border: "1px solid #ccc",
-                    borderRadius: "8px",
-                    backgroundColor: "white",
-                    color: "black",
-                    outline: "none",
-                    resize: "vertical",
-                    boxSizing: "border-box",
-                  }}
-                  value={student.medications || ""}  // Bind value to the student's medications
-                  rows="2"
-                  placeholder=""
-                  name="medications"  // This will map to the database column 'medications'
-                  onChange={(e) => {
-                    const updatedStudent = {
-                      ...student,
-                      medications: e.target.value,  // Update the medications for this student
-                    };
-                    setStudents((prev) =>
-                      prev.map((s) =>
-                        s.person_id === student.person_id ? updatedStudent : s
-                      )
-                    );
-                    updateItem(updatedStudent);  // Optionally call this function to persist changes
-                  }}
-                />
-              </div>
-            ))}
-
-
+{/* Medications Input */}
+{students.map((student) => (
+  <div key={student.person_id} style={{ marginTop: "16px" }}>
+    <p>III. MEDICATIONS:</p>
+    <textarea
+      style={{
+        width: "100%",
+        padding: "8px",
+        fontSize: "1rem",
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+        backgroundColor: "white",
+        color: "black",
+        outline: "none",
+        resize: "vertical",
+        boxSizing: "border-box",
+      }}
+      value={student.medications || ""}  // Bind value to the student's medications
+      rows="2"
+      placeholder=""
+      name="medications"  // This will map to the database column 'medications'
+      onChange={(e) => {
+        const updatedStudent = {
+          ...student,
+          medications: e.target.value,  // Update the medications for this student
+        };
+        setStudents((prev) =>
+          prev.map((s) =>
+            s.person_id === student.person_id ? updatedStudent : s
+          )
+        );
+      }}
+      onBlur={(e) => {
+        const updatedStudent = {
+          ...student,
+          medications: e.target.value,
+        };
+        updateItem(updatedStudent);  // Optionally call this function to persist changes
+      }}
+    />
+  </div>
+))}
 
 
 
@@ -698,93 +719,99 @@ const ApplicantHealthMedicalRecords = () => {
                             <th style={{ textAlign: "center" }}>Booster 2</th>
                           </tr>
                         </thead>
+                     
                         <tbody>
-                          {students.map((student) => (
-                            <React.Fragment key={student.person_id}>
-                              {/* Vaccine Brand Row */}
-                              <tr>
-                                <td style={{ padding: "4px 0" }}>Brand</td>
-                                <td style={{ padding: "4px" }}>
-                                  <input
-                                    type="text"
-                                    name="vaccine1Brand"
-                                    value={student.vaccine1Brand || ""}
-                                    onChange={(e) => {
-                                      const updatedStudent = {
-                                        ...student,
-                                        vaccine1Brand: e.target.value,  // Update vaccine1Brand
-                                      };
-                                      setStudents((prev) =>
-                                        prev.map((s) =>
-                                          s.person_id === student.person_id ? updatedStudent : s
-                                        )
-                                      );
-                                      updateItem(updatedStudent);  // Optionally persist changes
-                                    }}
-                                    style={inputStyle}
-                                  />
-                                </td>
-                                <td style={{ padding: "4px" }}>
-                                  <input
-                                    type="text"
-                                    name="vaccine2Brand"
-                                    value={student.vaccine2Brand || ""}
-                                    onChange={(e) => {
-                                      const updatedStudent = {
-                                        ...student,
-                                        vaccine2Brand: e.target.value,  // Update vaccine2Brand
-                                      };
-                                      setStudents((prev) =>
-                                        prev.map((s) =>
-                                          s.person_id === student.person_id ? updatedStudent : s
-                                        )
-                                      );
-                                      updateItem(updatedStudent);  // Optionally persist changes
-                                    }}
-                                    style={inputStyle}
-                                  />
-                                </td>
-                                <td style={{ padding: "4px" }}>
-                                  <input
-                                    type="text"
-                                    name="booster1Brand"
-                                    value={student.booster1Brand || ""}
-                                    onChange={(e) => {
-                                      const updatedStudent = {
-                                        ...student,
-                                        booster1Brand: e.target.value,  // Update booster1Brand
-                                      };
-                                      setStudents((prev) =>
-                                        prev.map((s) =>
-                                          s.person_id === student.person_id ? updatedStudent : s
-                                        )
-                                      );
-                                      updateItem(updatedStudent);  // Optionally persist changes
-                                    }}
-                                    style={inputStyle}
-                                  />
-                                </td>
-                                <td style={{ padding: "4px" }}>
-                                  <input
-                                    type="text"
-                                    name="booster2Brand"
-                                    value={student.booster2Brand || ""}
-                                    onChange={(e) => {
-                                      const updatedStudent = {
-                                        ...student,
-                                        booster2Brand: e.target.value,  // Update booster2Brand
-                                      };
-                                      setStudents((prev) =>
-                                        prev.map((s) =>
-                                          s.person_id === student.person_id ? updatedStudent : s
-                                        )
-                                      );
-                                      updateItem(updatedStudent);  // Optionally persist changes
-                                    }}
-                                    style={inputStyle}
-                                  />
-                                </td>
-                              </tr>
+  {students.map((student) => (
+    <React.Fragment key={student.person_id}>
+      {/* Vaccine Brand Row */}
+      <tr>
+        <td style={{ padding: "4px 0" }}>Brand</td>
+
+        <td style={{ padding: "4px" }}>
+          <input
+            type="text"
+            name="vaccine1Brand"
+            value={student.vaccine1Brand || ""}
+            onChange={(e) => {
+              const updatedStudent = {
+                ...student,
+                vaccine1Brand: e.target.value,
+              };
+              setStudents((prev) =>
+                prev.map((s) =>
+                  s.person_id === student.person_id ? updatedStudent : s
+                )
+              );
+              updateItem(updatedStudent);
+            }}
+            style={inputStyle}
+          />
+        </td>
+
+        <td style={{ padding: "4px" }}>
+          <input
+            type="text"
+            name="vaccine2Brand"
+            value={student.vaccine2Brand || ""}
+            onChange={(e) => {
+              const updatedStudent = {
+                ...student,
+                vaccine2Brand: e.target.value,
+              };
+              setStudents((prev) =>
+                prev.map((s) =>
+                  s.person_id === student.person_id ? updatedStudent : s
+                )
+              );
+              updateItem(updatedStudent);
+            }}
+            style={inputStyle}
+          />
+        </td>
+
+        <td style={{ padding: "4px" }}>
+          <input
+            type="text"
+            name="booster1Brand"
+            value={student.booster1Brand || ""}
+            onChange={(e) => {
+              const updatedStudent = {
+                ...student,
+                booster1Brand: e.target.value,
+              };
+              setStudents((prev) =>
+                prev.map((s) =>
+                  s.person_id === student.person_id ? updatedStudent : s
+                )
+              );
+              updateItem(updatedStudent);
+            }}
+            style={inputStyle}
+          />
+        </td>
+
+        <td style={{ padding: "4px" }}>
+          <input
+            type="text"
+            name="booster2Brand"
+            value={student.booster2Brand || ""}
+            onChange={(e) => {
+              const updatedStudent = {
+                ...student,
+                booster2Brand: e.target.value,
+              };
+              setStudents((prev) =>
+                prev.map((s) =>
+                  s.person_id === student.person_id ? updatedStudent : s
+                )
+              );
+              updateItem(updatedStudent);
+            }}
+            style={inputStyle}
+          />
+        </td>
+      </tr>
+  
 
                               {/* Vaccine Date Row */}
                               <tr>
@@ -885,214 +912,238 @@ const ApplicantHealthMedicalRecords = () => {
             </div>
 
 
-            {/* V. Test Results */}
-            <div>
-              <p style={{ fontWeight: "600" }}>V. Please Indicate Result of the Following:</p>
-              <table
-                style={{
-                  border: "1px solid black",
-                  borderCollapse: "collapse",
-                  fontFamily: "Arial, Helvetica, sans-serif",
-                  width: "100%",
-                  tableLayout: "fixed",
+       {/* V. Test Results */}
+<div>
+  <p style={{ fontWeight: "600" }}>V. Please Indicate Result of the Following:</p>
+  <table
+    style={{
+      border: "1px solid black",
+      borderCollapse: "collapse",
+      fontFamily: "Arial, Helvetica, sans-serif",
+      width: "100%",
+      tableLayout: "fixed",
+    }}
+  >
+    <tbody>
+      {students.map((student) => (
+        <React.Fragment key={student.person_id}>
+          {/* Chest X-ray Row */}
+          <tr>
+            <td
+              style={{
+                border: "1px solid black",
+                padding: "8px",
+                width: "30%",
+                fontSize: "100%",
+              }}
+            >
+              Chest X-ray:
+            </td>
+            <td
+              style={{
+                border: "1px solid black",
+                padding: "8px",
+                width: "70%",
+              }}
+            >
+              <input
+                type="text"
+                value={student.chestXray || ""}
+                onChange={(e) => {
+                  const updatedStudent = {
+                    ...student,
+                    chestXray: e.target.value, // Update chestXray value
+                  };
+                  setStudents((prev) =>
+                    prev.map((s) =>
+                      s.person_id === student.person_id ? updatedStudent : s
+                    )
+                  );
                 }}
-              >
-                <tbody>
-                  {students.map((student) => (
-                    <React.Fragment key={student.person_id}>
-                      {/* Chest X-ray Row */}
-                      <tr>
-                        <td
-                          style={{
-                            border: "1px solid black",
-                            padding: "8px",
-                            width: "30%",
-                            fontSize: "100%",
-                          }}
-                        >
-                          Chest X-ray:
-                        </td>
-                        <td
-                          style={{
-                            border: "1px solid black",
-                            padding: "8px",
-                            width: "70%",
-                          }}
-                        >
-                          <input
-                            type="text"
-                            value={student.chestXray || ""}
-                            onChange={(e) => {
-                              const updatedStudent = {
-                                ...student,
-                                chestXray: e.target.value, // Update chestXray value
-                              };
-                              setStudents((prev) =>
-                                prev.map((s) =>
-                                  s.person_id === student.person_id ? updatedStudent : s
-                                )
-                              );
-                              updateItem(updatedStudent); // Optionally persist changes
-                            }}
-                            style={{
-                              width: "100%",
-                              border: "1px solid #ccc",
-                              borderRadius: "8px",
-                              padding: "6px",
-                              boxSizing: "border-box",
-                              backgroundColor: "white",
-                              color: "black",
-                            }}
-                          />
-                        </td>
-                      </tr>
+                onBlur={(e) => {
+                  const updatedStudent = {
+                    ...student,
+                    chestXray: e.target.value,
+                  };
+                  updateItem(updatedStudent); // Persist changes on blur
+                }}
+                style={{
+                  width: "100%",
+                  border: "1px solid #ccc",
+                  borderRadius: "8px",
+                  padding: "6px",
+                  boxSizing: "border-box",
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              />
+            </td>
+          </tr>
 
-                      {/* CBC Row */}
-                      <tr>
-                        <td
-                          style={{
-                            border: "1px solid black",
-                            padding: "8px",
-                            width: "30%",
-                            fontSize: "100%",
-                          }}
-                        >
-                          Complete Blood Count (CBC):
-                        </td>
-                        <td
-                          style={{
-                            border: "1px solid black",
-                            padding: "8px",
-                            width: "70%",
-                          }}
-                        >
-                          <input
-                            type="text"
-                            value={student.cbc || ""}
-                            onChange={(e) => {
-                              const updatedStudent = {
-                                ...student,
-                                cbc: e.target.value, // Update CBC value
-                              };
-                              setStudents((prev) =>
-                                prev.map((s) =>
-                                  s.person_id === student.person_id ? updatedStudent : s
-                                )
-                              );
-                              updateItem(updatedStudent); // Optionally persist changes
-                            }}
-                            style={{
-                              width: "100%",
-                              border: "1px solid #ccc",
-                              borderRadius: "8px",
-                              padding: "6px",
-                              boxSizing: "border-box",
-                              backgroundColor: "white",
-                              color: "black",
-                            }}
-                          />
-                        </td>
-                      </tr>
+          {/* CBC Row */}
+          <tr>
+            <td
+              style={{
+                border: "1px solid black",
+                padding: "8px",
+                width: "30%",
+                fontSize: "100%",
+              }}
+            >
+              Complete Blood Count (CBC):
+            </td>
+            <td
+              style={{
+                border: "1px solid black",
+                padding: "8px",
+                width: "70%",
+              }}
+            >
+              <input
+                type="text"
+                value={student.cbc || ""}
+                onChange={(e) => {
+                  const updatedStudent = {
+                    ...student,
+                    cbc: e.target.value, // Update CBC value
+                  };
+                  setStudents((prev) =>
+                    prev.map((s) =>
+                      s.person_id === student.person_id ? updatedStudent : s
+                    )
+                  );
+                }}
+                onBlur={(e) => {
+                  const updatedStudent = {
+                    ...student,
+                    cbc: e.target.value,
+                  };
+                  updateItem(updatedStudent); // Persist changes on blur
+                }}
+                style={{
+                  width: "100%",
+                  border: "1px solid #ccc",
+                  borderRadius: "8px",
+                  padding: "6px",
+                  boxSizing: "border-box",
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              />
+            </td>
+          </tr>
 
-                      {/* Urinalysis Row */}
-                      <tr>
-                        <td
-                          style={{
-                            border: "1px solid black",
-                            padding: "8px",
-                            width: "30%",
-                            fontSize: "100%",
-                          }}
-                        >
-                          Urinalysis:
-                        </td>
-                        <td
-                          style={{
-                            border: "1px solid black",
-                            padding: "8px",
-                            width: "70%",
-                          }}
-                        >
-                          <input
-                            type="text"
-                            value={student.urinalysis || ""}
-                            onChange={(e) => {
-                              const updatedStudent = {
-                                ...student,
-                                urinalysis: e.target.value, // Update urinalysis value
-                              };
-                              setStudents((prev) =>
-                                prev.map((s) =>
-                                  s.person_id === student.person_id ? updatedStudent : s
-                                )
-                              );
-                              updateItem(updatedStudent); // Optionally persist changes
-                            }}
-                            style={{
-                              width: "100%",
-                              border: "1px solid #ccc",
-                              borderRadius: "8px",
-                              padding: "6px",
-                              boxSizing: "border-box",
-                              backgroundColor: "white",
-                              color: "black",
-                            }}
-                          />
-                        </td>
-                      </tr>
+          {/* Urinalysis Row */}
+          <tr>
+            <td
+              style={{
+                border: "1px solid black",
+                padding: "8px",
+                width: "30%",
+                fontSize: "100%",
+              }}
+            >
+              Urinalysis:
+            </td>
+            <td
+              style={{
+                border: "1px solid black",
+                padding: "8px",
+                width: "70%",
+              }}
+            >
+              <input
+                type="text"
+                value={student.urinalysis || ""}
+                onChange={(e) => {
+                  const updatedStudent = {
+                    ...student,
+                    urinalysis: e.target.value, // Update urinalysis value
+                  };
+                  setStudents((prev) =>
+                    prev.map((s) =>
+                      s.person_id === student.person_id ? updatedStudent : s
+                    )
+                  );
+                }}
+                onBlur={(e) => {
+                  const updatedStudent = {
+                    ...student,
+                    urinalysis: e.target.value,
+                  };
+                  updateItem(updatedStudent); // Persist changes on blur
+                }}
+                style={{
+                  width: "100%",
+                  border: "1px solid #ccc",
+                  borderRadius: "8px",
+                  padding: "6px",
+                  boxSizing: "border-box",
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              />
+            </td>
+          </tr>
 
-                      {/* Other Work-ups Row */}
-                      <tr>
-                        <td
-                          style={{
-                            border: "1px solid black",
-                            padding: "8px",
-                            width: "30%",
-                            fontSize: "100%",
-                          }}
-                        >
-                          Others (Please specify work-ups and results):
-                        </td>
-                        <td
-                          style={{
-                            border: "1px solid black",
-                            padding: "8px",
-                            width: "70%",
-                          }}
-                        >
-                          <input
-                            type="text"
-                            value={student.otherworkups || ""}
-                            onChange={(e) => {
-                              const updatedStudent = {
-                                ...student,
-                                otherworkups: e.target.value, // Update other work-ups value
-                              };
-                              setStudents((prev) =>
-                                prev.map((s) =>
-                                  s.person_id === student.person_id ? updatedStudent : s
-                                )
-                              );
-                              updateItem(updatedStudent); // Optionally persist changes
-                            }}
-                            style={{
-                              width: "100%",
-                              border: "1px solid #ccc",
-                              borderRadius: "8px",
-                              padding: "6px",
-                              boxSizing: "border-box",
-                              backgroundColor: "white",
-                              color: "black",
-                            }}
-                          />
-                        </td>
-                      </tr>
-                    </React.Fragment>
-                  ))}
+          {/* Other Work-ups Row */}
+          <tr>
+            <td
+              style={{
+                border: "1px solid black",
+                padding: "8px",
+                width: "30%",
+                fontSize: "100%",
+              }}
+            >
+              Others (Please specify work-ups and results):
+            </td>
+            <td
+              style={{
+                border: "1px solid black",
+                padding: "8px",
+                width: "70%",
+              }}
+            >
+              <input
+                type="text"
+                value={student.otherworkups || ""}
+                onChange={(e) => {
+                  const updatedStudent = {
+                    ...student,
+                    otherworkups: e.target.value, // Update other work-ups value
+                  };
+                  setStudents((prev) =>
+                    prev.map((s) =>
+                      s.person_id === student.person_id ? updatedStudent : s
+                    )
+                  );
+                }}
+                onBlur={(e) => {
+                  const updatedStudent = {
+                    ...student,
+                    otherworkups: e.target.value,
+                  };
+                  updateItem(updatedStudent); // Persist changes on blur
+                }}
+                style={{
+                  width: "100%",
+                  border: "1px solid #ccc",
+                  borderRadius: "8px",
+                  padding: "6px",
+                  boxSizing: "border-box",
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              />
+            </td>
+          </tr>
+        </React.Fragment>
+      ))}
+    </tbody>
+  </table>
+</div>
 
-                </tbody>
-              </table>
-            </div>
 
 
 
@@ -1179,63 +1230,68 @@ const ApplicantHealthMedicalRecords = () => {
             </div>
 
 
-
-            {/* VII. Remarks */}
-            <div style={{ marginTop: "16px" }}>
-              <p style={{ fontWeight: "600" }}>VII. Remarks:</p>
-              <table
+{/* VII. Remarks */}
+<div style={{ marginTop: "16px" }}>
+  <p style={{ fontWeight: "600" }}>VII. Remarks:</p>
+  <table
+    style={{
+      border: "1px solid black",
+      borderCollapse: "collapse",
+      fontFamily: "Arial, Helvetica, sans-serif",
+      width: "100%",
+      tableLayout: "fixed",
+    }}
+  >
+    <tbody>
+      {students.map((student) => (
+        <React.Fragment key={student.person_id}>
+          <tr>
+            <td
+              style={{
+                border: "1px solid black",
+                padding: "8px",
+              }}
+            >
+              <textarea
+                rows="2"
                 style={{
-                  border: "1px solid black",
-                  borderCollapse: "collapse",
-                  fontFamily: "Arial, Helvetica, sans-serif",
                   width: "100%",
-                  tableLayout: "fixed",
+                  border: "1px solid #ccc",
+                  borderRadius: "8px",
+                  padding: "8px",
+                  boxSizing: "border-box",
+                  backgroundColor: "white",
+                  color: "black",
+                  resize: "none",
                 }}
-              >
-                <tbody>
-                  {students.map((student) => (
-                    <React.Fragment key={student.person_id}>
-                      <tr>
-                        <td
-                          style={{
-                            border: "1px solid black",
-                            padding: "8px",
-                          }}
-                        >
-                          <textarea
-                            rows="2"
-                            style={{
-                              width: "100%",
-                              border: "1px solid #ccc",
-                              borderRadius: "8px",
-                              padding: "8px",
-                              boxSizing: "border-box",
-                              backgroundColor: "white",
-                              color: "black",
-                              resize: "none",
-                            }}
-                            value={student.remarks || ""}  // Dynamically set value per student
-                            onChange={(e) => {
-                              const updatedStudent = {
-                                ...student,
-                                remarks: e.target.value,  // Update the remarks field
-                              };
-                              setStudents((prev) =>
-                                prev.map((s) =>
-                                  s.person_id === student.person_id ? updatedStudent : s
-                                )
-                              );
-                              updateItem(updatedStudent); // Optionally persist changes
-                            }}
-                          />
-                        </td>
-                      </tr>
-                    </React.Fragment>
-                  ))}
+                value={student.remarks || ""}  // Dynamically set value per student
+                onChange={(e) => {
+                  const updatedStudent = {
+                    ...student,
+                    remarks: e.target.value,  // Update the remarks field
+                  };
+                  setStudents((prev) =>
+                    prev.map((s) =>
+                      s.person_id === student.person_id ? updatedStudent : s
+                    )
+                  );
+                }}
+                onBlur={(e) => {
+                  const updatedStudent = {
+                    ...student,
+                    remarks: e.target.value,
+                  };
+                  updateItem(updatedStudent); // Persist changes when user finishes editing
+                }}
+              />
+            </td>
+          </tr>
+        </React.Fragment>
+      ))}
+    </tbody>
+  </table>
+</div>
 
-                </tbody>
-              </table>
-            </div>
 
           </form>
         </div>

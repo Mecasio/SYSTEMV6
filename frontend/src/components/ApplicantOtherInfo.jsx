@@ -58,18 +58,28 @@ const ApplicantOtherInformation = () => {
     }, []);
 
     const updateItem = (student) => {
-        axios
-            .put(`http://localhost:5000/person_table/${student.person_id}`, student)
-            .then((res) => {
-                setStudents((prevStudents) =>
-                    prevStudents.map((s) =>
-                        s.person_id === student.person_id ? res.data : s
-                    )
-                );
-            })
-            .catch((err) => console.error("Update error:", err));
-    };
-
+       axios.put(`http://localhost:5000/person_table/${student.person_id}`, student)
+         .then(response => {
+           console.log("Saved:", response.data);
+         })
+         .catch(error => {
+           console.error("Auto-save error:", error);
+         });
+     };
+   
+   
+     useEffect(() => {
+       const handleBeforeUnload = (e) => {
+         students.forEach((student) => {
+           updateItem(student); // ✅ Save latest changes before reload
+         });
+       };
+   
+       window.addEventListener("beforeunload", handleBeforeUnload);
+       return () => {
+         window.removeEventListener("beforeunload", handleBeforeUnload);
+       };
+     }, [students]);
 
     useEffect(() => {
         fetchOtherInformationData();
@@ -253,7 +263,7 @@ const ApplicantOtherInformation = () => {
                             <Button
                                 variant="contained"
                                 component={Link}
-                                to="/educ_attainment"
+                                to="/applicant_educational_attainment"
                                 startIcon={
                                     <ArrowBackIcon
                                         sx={{
@@ -281,7 +291,7 @@ const ApplicantOtherInformation = () => {
                             <Button
                                 variant="contained"
                                 component={Link}
-                                to="/health_medical_records"
+                                to="/applicant_personal_information"
                                 endIcon={
                                     <FolderIcon
                                         sx={{

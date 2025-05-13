@@ -79,17 +79,28 @@ const ApplicantPersonalInfoForm = () => {
   }, []);
 
   const updateItem = (student) => {
-    axios
-      .put(`http://localhost:5000/person_table/${student.person_id}`, student)
-      .then((res) => {
-        setStudents((prevStudents) =>
-          prevStudents.map((s) =>
-            s.person_id === student.person_id ? res.data : s
-          )
-        );
+    axios.put(`http://localhost:5000/person_table/${student.person_id}`, student)
+      .then(response => {
+        console.log("Saved:", response.data);
       })
-      .catch((err) => console.error("Update error:", err));
+      .catch(error => {
+        console.error("Auto-save error:", error);
+      });
   };
+
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      students.forEach((student) => {
+        updateItem(student); // ✅ Save latest changes before reload
+      });
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [students]);
 
 
   const [profilePicture, setProfilePicture] = useState(null);
@@ -218,27 +229,27 @@ const ApplicantPersonalInfoForm = () => {
 
   const [sameAsPresent, setSameAsPresent] = useState({});
 
- useEffect(() => {
-  students.forEach((student) => {
-    const isChecked = sameAsPresent[student.person_id];
-    if (isChecked) {
-      const updatedStudent = {
-        ...student,
-        permanentRegion: student.presentRegion || "",
-        permanentProvince: student.presentProvince || "",
-        permanentMunicipality: student.presentMunicipality || "",
-        permanentBarangay: student.presentBarangay || "",
-        permanentZipCode: student.presentZipCode || "",
-      };
-      setStudents((prev) =>
-        prev.map((s) =>
-          s.person_id === student.person_id ? updatedStudent : s
-        )
-      );
-      updateItem(updatedStudent);
-    }
-  });
-}, [sameAsPresent, students]);
+  useEffect(() => {
+    students.forEach((student) => {
+      const isChecked = sameAsPresent[student.person_id];
+      if (isChecked) {
+        const updatedStudent = {
+          ...student,
+          permanentRegion: student.presentRegion || "",
+          permanentProvince: student.presentProvince || "",
+          permanentMunicipality: student.presentMunicipality || "",
+          permanentBarangay: student.presentBarangay || "",
+          permanentZipCode: student.presentZipCode || "",
+        };
+        setStudents((prev) =>
+          prev.map((s) =>
+            s.person_id === student.person_id ? updatedStudent : s
+          )
+        );
+        updateItem(updatedStudent);
+      }
+    });
+  }, [sameAsPresent, students]);
 
 
   const [regionList, setRegionList] = useState([]);
@@ -258,180 +269,180 @@ const ApplicantPersonalInfoForm = () => {
   }, []);
 
 
-// 1. Load regions once
-useEffect(() => {
-  setLoading(true);
-  regions().then((data) => {
-    setRegionList(data);
-    setLoading(false);
-  });
-}, []);
+  // 1. Load regions once
+  useEffect(() => {
+    setLoading(true);
+    regions().then((data) => {
+      setRegionList(data);
+      setLoading(false);
+    });
+  }, []);
 
-useEffect(() => {
-  students.forEach((student) => {
-    const regionMap = regionList.reduce((map, r) => {
-      map[r.region_name] = r.region_code;
-      return map;
-    }, {});
+  useEffect(() => {
+    students.forEach((student) => {
+      const regionMap = regionList.reduce((map, r) => {
+        map[r.region_name] = r.region_code;
+        return map;
+      }, {});
 
-    // Present Address
+      // Present Address
 
-    if (student.presentRegion && !student.presentProvinceList?.length) {
-      const regionCode = regionMap[student.presentRegion];
-      if (regionCode) {
-        provinces(regionCode).then((provList) => {
-          setStudents((prev) =>
-            prev.map((s) =>
-              s.person_id === student.person_id
-                ? { ...s, presentProvinceList: provList }
-                : s
-            )
-          );
-        });
+      if (student.presentRegion && !student.presentProvinceList?.length) {
+        const regionCode = regionMap[student.presentRegion];
+        if (regionCode) {
+          provinces(regionCode).then((provList) => {
+            setStudents((prev) =>
+              prev.map((s) =>
+                s.person_id === student.person_id
+                  ? { ...s, presentProvinceList: provList }
+                  : s
+              )
+            );
+          });
+        }
       }
-    }
 
-    if (student.presentProvince && !student.presentCityList?.length) {
-      const regionCode = regionMap[student.presentRegion];
-      if (regionCode) {
-        provinces(regionCode).then((provList) => {
-          const province = provList.find((p) => p.province_name === student.presentProvince);
-          if (province) {
-            cities(province.province_code).then((cityList) => {
-              setStudents((prev) =>
-                prev.map((s) =>
-                  s.person_id === student.person_id
-                    ? { ...s, presentCityList: cityList }
-                    : s
-                )
-              );
-            });
-          }
-        });
+      if (student.presentProvince && !student.presentCityList?.length) {
+        const regionCode = regionMap[student.presentRegion];
+        if (regionCode) {
+          provinces(regionCode).then((provList) => {
+            const province = provList.find((p) => p.province_name === student.presentProvince);
+            if (province) {
+              cities(province.province_code).then((cityList) => {
+                setStudents((prev) =>
+                  prev.map((s) =>
+                    s.person_id === student.person_id
+                      ? { ...s, presentCityList: cityList }
+                      : s
+                  )
+                );
+              });
+            }
+          });
+        }
       }
-    }
 
-    if (student.presentMunicipality && !student.presentBarangayList?.length) {
-      const regionCode = regionMap[student.presentRegion];
-      if (regionCode) {
-        provinces(regionCode).then((provList) => {
-          const province = provList.find((p) => p.province_name === student.presentProvince);
-          if (province) {
-            cities(province.province_code).then((cityList) => {
-              const city = cityList.find((c) => c.city_name === student.presentMunicipality);
-              if (city) {
-                barangays(city.city_code).then((brgyList) => {
-                  setStudents((prev) =>
-                    prev.map((s) =>
-                      s.person_id === student.person_id
-                        ? { ...s, presentBarangayList: brgyList }
-                        : s
-                    )
-                  );
-                });
-              }
-            });
-          }
-        });
+      if (student.presentMunicipality && !student.presentBarangayList?.length) {
+        const regionCode = regionMap[student.presentRegion];
+        if (regionCode) {
+          provinces(regionCode).then((provList) => {
+            const province = provList.find((p) => p.province_name === student.presentProvince);
+            if (province) {
+              cities(province.province_code).then((cityList) => {
+                const city = cityList.find((c) => c.city_name === student.presentMunicipality);
+                if (city) {
+                  barangays(city.city_code).then((brgyList) => {
+                    setStudents((prev) =>
+                      prev.map((s) =>
+                        s.person_id === student.person_id
+                          ? { ...s, presentBarangayList: brgyList }
+                          : s
+                      )
+                    );
+                  });
+                }
+              });
+            }
+          });
+        }
       }
-    }
 
-    // Permanent Address
+      // Permanent Address
 
-    if (student.permanentRegion && !student.permanentProvinceList?.length) {
-      const regionCode = regionMap[student.permanentRegion];
-      if (regionCode) {
-        provinces(regionCode).then((provList) => {
-          setStudents((prev) =>
-            prev.map((s) =>
-              s.person_id === student.person_id
-                ? { ...s, permanentProvinceList: provList }
-                : s
-            )
-          );
-        });
+      if (student.permanentRegion && !student.permanentProvinceList?.length) {
+        const regionCode = regionMap[student.permanentRegion];
+        if (regionCode) {
+          provinces(regionCode).then((provList) => {
+            setStudents((prev) =>
+              prev.map((s) =>
+                s.person_id === student.person_id
+                  ? { ...s, permanentProvinceList: provList }
+                  : s
+              )
+            );
+          });
+        }
       }
-    }
 
-    if (student.permanentProvince && !student.permanentCityList?.length) {
-      const regionCode = regionMap[student.permanentRegion];
-      if (regionCode) {
-        provinces(regionCode).then((provList) => {
-          const province = provList.find((p) => p.province_name === student.permanentProvince);
-          if (province) {
-            cities(province.province_code).then((cityList) => {
-              setStudents((prev) =>
-                prev.map((s) =>
-                  s.person_id === student.person_id
-                    ? { ...s, permanentCityList: cityList }
-                    : s
-                )
-              );
-            });
-          }
-        });
+      if (student.permanentProvince && !student.permanentCityList?.length) {
+        const regionCode = regionMap[student.permanentRegion];
+        if (regionCode) {
+          provinces(regionCode).then((provList) => {
+            const province = provList.find((p) => p.province_name === student.permanentProvince);
+            if (province) {
+              cities(province.province_code).then((cityList) => {
+                setStudents((prev) =>
+                  prev.map((s) =>
+                    s.person_id === student.person_id
+                      ? { ...s, permanentCityList: cityList }
+                      : s
+                  )
+                );
+              });
+            }
+          });
+        }
       }
-    }
 
-    if (student.permanentMunicipality && !student.permanentBarangayList?.length) {
-      const regionCode = regionMap[student.permanentRegion];
-      if (regionCode) {
-        provinces(regionCode).then((provList) => {
-          const province = provList.find((p) => p.province_name === student.permanentProvince);
-          if (province) {
-            cities(province.province_code).then((cityList) => {
-              const city = cityList.find((c) => c.city_name === student.permanentMunicipality);
-              if (city) {
-                barangays(city.city_code).then((brgyList) => {
-                  setStudents((prev) =>
-                    prev.map((s) =>
-                      s.person_id === student.person_id
-                        ? { ...s, permanentBarangayList: brgyList }
-                        : s
-                    )
-                  );
-                });
-              }
-            });
-          }
-        });
+      if (student.permanentMunicipality && !student.permanentBarangayList?.length) {
+        const regionCode = regionMap[student.permanentRegion];
+        if (regionCode) {
+          provinces(regionCode).then((provList) => {
+            const province = provList.find((p) => p.province_name === student.permanentProvince);
+            if (province) {
+              cities(province.province_code).then((cityList) => {
+                const city = cityList.find((c) => c.city_name === student.permanentMunicipality);
+                if (city) {
+                  barangays(city.city_code).then((brgyList) => {
+                    setStudents((prev) =>
+                      prev.map((s) =>
+                        s.person_id === student.person_id
+                          ? { ...s, permanentBarangayList: brgyList }
+                          : s
+                      )
+                    );
+                  });
+                }
+              });
+            }
+          });
+        }
       }
-    }
-  });
-}, [students, regionList]);
+    });
+  }, [students, regionList]);
 
 
 
-useEffect(() => {
-  const fetchWithAreaNames = async () => {
-    const updatedStudents = await Promise.all(students.map(async (student) => {
-      const regionData = await regions().then(data =>
-        data.find(r => r.region_code === student.region)
-      );
-      const provinceData = await provinces(student.region).then(data =>
-        data.find(p => p.province_code === student.province)
-      );
-      const cityData = await cities(student.province).then(data =>
-        data.find(c => c.city_code === student.city)
-      );
-      const barangayData = await barangays(student.city).then(data =>
-        data.find(b => b.brgy_code === student.barangay)
-      );
+  useEffect(() => {
+    const fetchWithAreaNames = async () => {
+      const updatedStudents = await Promise.all(students.map(async (student) => {
+        const regionData = await regions().then(data =>
+          data.find(r => r.region_code === student.region)
+        );
+        const provinceData = await provinces(student.region).then(data =>
+          data.find(p => p.province_code === student.province)
+        );
+        const cityData = await cities(student.province).then(data =>
+          data.find(c => c.city_code === student.city)
+        );
+        const barangayData = await barangays(student.city).then(data =>
+          data.find(b => b.brgy_code === student.barangay)
+        );
 
-      return {
-        ...student,
-        regionName: regionData?.region_name || '',
-        provinceName: provinceData?.province_name || '',
-        cityName: cityData?.city_name || '',
-        barangayName: barangayData?.brgy_name || '',
-      };
-    }));
+        return {
+          ...student,
+          regionName: regionData?.region_name || '',
+          provinceName: provinceData?.province_name || '',
+          cityName: cityData?.city_name || '',
+          barangayName: barangayData?.brgy_name || '',
+        };
+      }));
 
-    setStudents(updatedStudents);
-  };
+      setStudents(updatedStudents);
+    };
 
-  fetchWithAreaNames();
-}, [students.length]);
+    fetchWithAreaNames();
+  }, [students.length]);
 
 
 
@@ -1359,11 +1370,15 @@ useEffect(() => {
                               s.person_id === student.person_id ? updatedStudent : s
                             )
                           );
-                          updateItem(updatedStudent);
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = { ...student, last_name: e.target.value };
+                          updateItem(updatedStudent); // ✅ Triggers on click, tab, or blur
                         }}
                       />
                       <Typography variant="caption">FAMILY NAME</Typography>
                     </Box>
+
 
                     {/* First Name */}
                     <Box width="20%">
@@ -1380,12 +1395,16 @@ useEffect(() => {
                               s.person_id === student.person_id ? updatedStudent : s
                             )
                           );
-                          updateItem(updatedStudent);
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = { ...student, first_name: e.target.value };
+                          updateItem(updatedStudent); // ✅ Triggers on click, tab, or blur
                         }}
                       />
                       <Typography variant="caption">GIVEN NAME</Typography>
                     </Box>
 
+                    {/* Middle Name */}
                     {/* Middle Name */}
                     <Box width="20%">
                       <TextField
@@ -1401,7 +1420,10 @@ useEffect(() => {
                               s.person_id === student.person_id ? updatedStudent : s
                             )
                           );
-                          updateItem(updatedStudent);
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = { ...student, middle_name: e.target.value };
+                          updateItem(updatedStudent); // ✅ Triggers on click, tab, or blur
                         }}
                       />
                       <Typography variant="caption">MIDDLE NAME</Typography>
@@ -1423,7 +1445,10 @@ useEffect(() => {
                                 s.person_id === student.person_id ? updatedStudent : s
                               )
                             );
-                            updateItem(updatedStudent);
+                          }}
+                          onBlur={(e) => {
+                            const updatedStudent = { ...student, extension: e.target.value };
+                            updateItem(updatedStudent); // ✅ Triggers on click, tab, or blur
                           }}
                         >
                           <MenuItem value="">None</MenuItem>
@@ -1453,7 +1478,10 @@ useEffect(() => {
                               s.person_id === student.person_id ? updatedStudent : s
                             )
                           );
-                          updateItem(updatedStudent);
+                        }}
+                        onBlur={(e) => {
+                          const updatedStudent = { ...student, nickname: e.target.value };
+                          updateItem(updatedStudent); // ✅ Triggers on click, tab, or blur
                         }}
                       />
                       <Typography variant="caption">NICKNAME</Typography>
@@ -1462,7 +1490,6 @@ useEffect(() => {
                 ))}
               </Box>
             </Box>
-
             {students.map((student) => (
               <Box key={student.person_id} display="flex" alignItems="center" mb={2}>
                 <Typography style={{ fontSize: "12px", marginRight: "20px" }}>
@@ -1478,7 +1505,10 @@ useEffect(() => {
                         s.person_id === student.person_id ? updatedStudent : s
                       )
                     );
-                    updateItem(updatedStudent);
+                  }}
+                  onBlur={(e) => {
+                    const updatedStudent = { ...student, height: e.target.value };
+                    updateItem(updatedStudent); // ✅ Triggers on click, tab, or blur
                   }}
                   sx={{ width: "10%", marginRight: "10px" }}
                   size="small"
@@ -1499,7 +1529,10 @@ useEffect(() => {
                         s.person_id === student.person_id ? updatedStudent : s
                       )
                     );
-                    updateItem(updatedStudent);
+                  }}
+                  onBlur={(e) => {
+                    const updatedStudent = { ...student, weight: e.target.value };
+                    updateItem(updatedStudent); // ✅ Triggers on click, tab, or blur
                   }}
                   sx={{ width: "10%", marginRight: "10px" }}
                   size="small"
@@ -1510,80 +1543,86 @@ useEffect(() => {
 
 
 
-
-
-
-
-            <Box display="flex" alignItems="center" gap={2} mb={2}>
-              <Typography style={{ fontSize: "13px", marginRight: "10px" }}>
-                Learning Reference Number:
-              </Typography>
-
-              <TextField
-                label="Enter your LRN"
-                required
-                value={data[0]?.lrnNumber || ""}
-                onChange={(e) =>
-                  setNewApplicant({ ...newApplicant, lrnNumber: e.target.value })
-                }
-                sx={{ width: "15%" }}  // Adjusted width to fit on one line
-                size="small"
-                disabled={isLrnNA} // Disable when checkbox is checked
-              />
-
-              <FormControlLabel
-                control={<Checkbox checked={isLrnNA} onChange={handleLrnCheck} />}
-                label="N/A"
-              />
-
-              {/* Gender */}
-              <Typography style={{ fontSize: "13px", marginRight: "10px" }}>
-                Gender: <span style={{ color: "red" }}>*</span>
-              </Typography>
-
-              {students.map((student) => (
-                <FormControl sx={{ width: "15%" }} size="small" key={student.person_id}>
-                  <InputLabel id={`gender-label-${student.person_id}`}>Select Gender</InputLabel>
-                  <Select
-                    labelId={`gender-label-${student.person_id}`}
-                    id={`gender-select-${student.person_id}`}
-                    value={student.gender ?? ""}
-                    label="Select Gender"
+            {students.map((student) => (
+              <Box key={student.person_id} display="flex" flexDirection="row" alignItems="center" >
+                {/* Learning Reference Number */}
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Typography style={{ fontSize: "13px", marginRight: "10px" }}>
+                    Learning Reference Number:
+                  </Typography>
+                  <TextField
+                    label="Enter your LRN"
+                    required
+                    value={student.lrnNumber || ""}
                     onChange={(e) => {
-                      const updatedGender = e.target.value;
-                      const updatedStudent = { ...student, gender: updatedGender };
-
-                      // Update local state
-                      setStudents((prevStudents) =>
-                        prevStudents.map((s) =>
+                      const updatedStudent = { ...student, lrnNumber: e.target.value };
+                      setStudents((prev) =>
+                        prev.map((s) =>
                           s.person_id === student.person_id ? updatedStudent : s
                         )
                       );
-
-                      // Immediately update backend
-                      updateItem(updatedStudent);
                     }}
-                  >
-                    <MenuItem value={0}>MALE</MenuItem>
-                    <MenuItem value={1}>FEMALE</MenuItem>
-                  </Select>
-                </FormControl>
-              ))}
+                    onBlur={(e) => {
+                      const updatedStudent = { ...student, lrnNumber: e.target.value };
+                      updateItem(updatedStudent); // ✅ Triggers on click, tab, or blur
+                    }}
+                    sx={{ width: "50%" }} // Adjusted width to fit on one line
+                    size="small"
+                    disabled={isLrnNA} // Disable when checkbox is checked
+                  />
+                </Box>
 
+                {/* N/A Checkbox */}
+                <FormControlLabel
+                  control={<Checkbox checked={isLrnNA} onChange={handleLrnCheck} />}
+                  label="N/A"
+                />
 
+                {/* Gender */}
+                <Box display="flex" alignItems="center">
+                  <Typography style={{ fontSize: "13px", marginRight: "10px", marginLeft: "10px" }}>
+                    Gender: <span style={{ color: "red" }}>*</span>
+                  </Typography>
+                  <FormControl sx={{ width: "90%" }} size="small">
+                    <InputLabel id={`gender-label-${student.person_id}`}>Select Gender</InputLabel>
+                    <Select
+                      labelId={`gender-label-${student.person_id}`}
+                      id={`gender-select-${student.person_id}`}
+                      value={student.gender ?? ""}
+                      style={{ marginRight: "20px" }}
+                      label="Select Gender"
+                      onChange={(e) => {
+                        const updatedGender = e.target.value;
+                        const updatedStudent = { ...student, gender: updatedGender };
 
-              {/* PWD */}
-              <FormControlLabel
-                control={<Checkbox checked={isChecked} onChange={handleCheckboxChange} />}
-                label="PWD"
-              />
+                        // Update local state
+                        setStudents((prevStudents) =>
+                          prevStudents.map((s) =>
+                            s.person_id === student.person_id ? updatedStudent : s
+                          )
+                        );
 
-              {isChecked && (
-                <Box display="flex" gap={2}>
-                  {/* Dropdown for PWD Type */}
-                  {students.map((student) => (
+                        // Immediately update backend
+                        updateItem(updatedStudent);
+                      }}
+                    >
+                      <MenuItem value={0}>MALE</MenuItem>
+                      <MenuItem value={1}>FEMALE</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+
+                {/* PWD Checkbox */}
+                <FormControlLabel
+                  control={<Checkbox checked={isChecked} onChange={handleCheckboxChange} />}
+                  label="PWD"
+                />
+
+                {/* PWD Type and ID */}
+                {isChecked && (
+                  <Box display="flex" alignItems="center" gap={2}>
+                    {/* Dropdown for PWD Type */}
                     <FormControl
-                      key={student.person_id}
                       variant="outlined"
                       sx={{ width: "50%", marginBottom: "16px" }}
                       size="small"
@@ -1591,6 +1630,7 @@ useEffect(() => {
                       <InputLabel>Choose PWD Type</InputLabel>
                       <Select
                         value={student.pwdType || ""}
+                        style={{ marginBottom: "-15px" }}
                         onChange={(e) => {
                           const updatedStudent = { ...student, pwdType: e.target.value };
                           setStudents((prev) =>
@@ -1623,27 +1663,36 @@ useEffect(() => {
                         <MenuItem value="Multiple Disabilities including">Multiple Disabilities including</MenuItem>
                       </Select>
                     </FormControl>
-                  ))}
 
-
-
-                  {/* ID Textfield */}
-                  <TextField
-                    label="PWD ID"
-                    variant="outlined"
-                    size="small"
-                    value={data[0]?.pwdId || ""}
-                    onChange={handleIdChange}
-                    sx={{ width: "50%" }}
-                  />
-                </Box>
-              )}
-            </Box>
+                    {/* PWD ID Textfield */}
+                    <TextField
+                      label="PWD ID"
+                      variant="outlined"
+                      size="small"
+                      value={student.pwdId || ""}
+                      onChange={(e) => {
+                        const updatedStudent = { ...student, pwdId: e.target.value };
+                        setStudents((prev) =>
+                          prev.map((s) =>
+                            s.person_id === student.person_id ? updatedStudent : s
+                          )
+                        );
+                      }}
+                      onBlur={(e) => {
+                        const updatedStudent = { ...student, pwdId: e.target.value };
+                        updateItem(updatedStudent); // ✅ Triggers on click, tab, or blur
+                      }}
+                      sx={{ width: "50%" }}
+                    />
+                  </Box>
+                )}
+              </Box>
+            ))}
 
             {students.map((student) => (
               <Box key={student.person_id} display="flex" gap={2} mb={2}>
                 {/* Birthdate Field */}
-                <Box display="flex" flexDirection="column" style={{ width: "50%" }}>
+                <Box width="50%">
                   <Typography style={{ fontSize: "12px", marginBottom: "5px" }}>
                     Birth of Date:
                   </Typography>
@@ -1653,7 +1702,7 @@ useEffect(() => {
                     size="small"
                     InputLabelProps={{ shrink: true }}
                     required
-                    style={{ width: "100%" }}
+                    fullWidth
                     value={student.birthOfDate || ""}
                     onChange={(e) => {
                       const updatedStudent = { ...student, birthOfDate: e.target.value };
@@ -1662,21 +1711,25 @@ useEffect(() => {
                           s.person_id === student.person_id ? updatedStudent : s
                         )
                       );
-                      updateItem(updatedStudent); // Optional: if you're syncing with backend
+                    }}
+                    onBlur={(e) => {
+                      const updatedStudent = { ...student, birthOfDate: e.target.value };
+                      updateItem(updatedStudent);
                     }}
                   />
+
                 </Box>
 
                 {/* Age Field */}
-                <Box display="flex" flexDirection="column" style={{ width: "50%" }}>
-                  <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
+                <Box width="50%">
+                  <Typography style={{ fontSize: "12px", marginBottom: "5px" }}>
                     Age:
                   </Typography>
                   <TextField
                     label="Enter your Age"
                     required
-                    style={{ width: "100%" }}
                     size="small"
+                    fullWidth
                     value={student.age || ""}
                     onChange={(e) => {
                       const updatedStudent = { ...student, age: e.target.value };
@@ -1685,59 +1738,73 @@ useEffect(() => {
                           s.person_id === student.person_id ? updatedStudent : s
                         )
                       );
-                      updateItem(updatedStudent); // Optional: if you're syncing with backend
+                    }}
+                    onBlur={(e) => {
+                      const updatedStudent = { ...student, age: e.target.value };
+                      updateItem(updatedStudent);
                     }}
                   />
+
                 </Box>
               </Box>
             ))}
 
             {students.map((student) => (
-              <Box key={student.person_id} display="flex" alignItems="center" gap={2} mb={2}>
-                {/* Birth Place Field */}
-                <Box display="flex" flexDirection="column" style={{ width: "50%" }}>
-                  <Typography style={{ fontSize: "12px", marginBottom: "5px" }}>
-                    Birth Place:
-                  </Typography>
-                  <TextField
-                    label="Enter your Birth Place"
-                    required
-                    value={student.birthPlace || ""}
-                    onChange={(e) => {
-                      const updatedStudent = { ...student, birthPlace: e.target.value };
-                      setStudents((prev) =>
-                        prev.map((s) =>
-                          s.person_id === student.person_id ? updatedStudent : s
-                        )
-                      );
-                      updateItem(updatedStudent); // Optional: if you're syncing with backend
-                    }}
-                    sx={{ width: "100%" }}
-                    size="small"
-                  />
-                </Box>
+              <Box key={student.person_id} display="flex" flexDirection="column" gap={2} mb={2}>
 
-                {/* Language Dialect Spoken Field */}
-                <Box display="flex" flexDirection="column" style={{ width: "50%" }}>
-                  <Typography style={{ fontSize: "12px", marginBottom: "5px" }}>
-                    Language Dialect Spoken:
-                  </Typography>
-                  <TextField
-                    label="Enter your Language Dialect Spoken"
-                    required
-                    value={student.languageDialectSpoken || ""}
-                    onChange={(e) => {
-                      const updatedStudent = { ...student, languageDialectSpoken: e.target.value };
-                      setStudents((prev) =>
-                        prev.map((s) =>
-                          s.person_id === student.person_id ? updatedStudent : s
-                        )
-                      );
-                      updateItem(updatedStudent); // Optional: if you're syncing with backend
-                    }}
-                    sx={{ width: "100%" }}
-                    size="small"
-                  />
+                {/* Row 1: Birth Place & Language Dialect Spoken */}
+                <Box display="flex" alignItems="center" gap={2}>
+                  {/* Birth Place Field */}
+                  <Box width="50%">
+                    <Typography style={{ fontSize: "12px", marginBottom: "5px" }}>
+                      Birth Place:
+                    </Typography>
+                    <TextField
+                      label="Enter your Birth Place"
+                      required
+                      size="small"
+                      fullWidth
+                      value={student.birthPlace || ""}
+                      onChange={(e) => {
+                        const updatedStudent = { ...student, birthPlace: e.target.value };
+                        setStudents((prev) =>
+                          prev.map((s) =>
+                            s.person_id === student.person_id ? updatedStudent : s
+                          )
+                        );
+                      }}
+                      onBlur={(e) => {
+                        const updatedStudent = { ...student, birthPlace: e.target.value };
+                        updateItem(updatedStudent);
+                      }}
+                    />
+                  </Box>
+
+                  {/* Language Dialect Spoken Field */}
+                  <Box width="50%">
+                    <Typography style={{ fontSize: "12px", marginBottom: "5px" }}>
+                      Language Dialect Spoken:
+                    </Typography>
+                    <TextField
+                      label="Enter your Language Dialect Spoken"
+                      required
+                      size="small"
+                      fullWidth
+                      value={student.languageDialectSpoken || ""}
+                      onChange={(e) => {
+                        const updatedStudent = { ...student, languageDialectSpoken: e.target.value };
+                        setStudents((prev) =>
+                          prev.map((s) =>
+                            s.person_id === student.person_id ? updatedStudent : s
+                          )
+                        );
+                      }}
+                      onBlur={(e) => {
+                        const updatedStudent = { ...student, languageDialectSpoken: e.target.value };
+                        updateItem(updatedStudent);
+                      }}
+                    />
+                  </Box>
                 </Box>
               </Box>
             ))}
@@ -1924,7 +1991,6 @@ useEffect(() => {
               ))}
 
               {students.map((student) => (
-
                 <TextField
                   key={`other-ethnic-${student.person_id}`}
                   label="Other Ethnic Group"
@@ -1932,21 +1998,20 @@ useEffect(() => {
                   style={{ width: "33%" }}
                   size="small"
                   onChange={(e) => {
-                    const updatedOtherEthnicGroup = e.target.value;
-                    const updatedStudents = [...students];
-                    const studentIndex = updatedStudents.findIndex((s) => s.person_id === student.person_id);
-                    if (studentIndex !== -1) {
-                      updatedStudents[studentIndex] = {
-                        ...updatedStudents[studentIndex],
-                        otherEthnicGroup: updatedOtherEthnicGroup,
-                      };
-                    }
-
-                    setStudents(updatedStudents);
-                    updateItem(updatedStudents[studentIndex]);
+                    const updatedStudent = { ...student, otherEthnicGroup: e.target.value };
+                    setStudents((prev) =>
+                      prev.map((s) =>
+                        s.person_id === student.person_id ? updatedStudent : s
+                      )
+                    );
+                  }}
+                  onBlur={(e) => {
+                    const updatedStudent = { ...student, otherEthnicGroup: e.target.value };
+                    updateItem(updatedStudent);
                   }}
                 />
               ))}
+
 
             </Box>
 
@@ -1958,7 +2023,6 @@ useEffect(() => {
               <Box key={student.person_id} display="flex" gap={2} mb={2}>
                 {/* Cellphone Number Field */}
                 <Box width="50%">
-
                   <Typography
                     style={{
                       fontSize: "13px",
@@ -1966,7 +2030,7 @@ useEffect(() => {
                       minWidth: "150px",
                     }}
                   >
-                    Cellphone Number:  <span style={{ color: "red" }}>*</span>
+                    Cellphone Number: <span style={{ color: "red" }}>*</span>
                   </Typography>
                   <TextField
                     label="Enter Cellphone Number"
@@ -1977,8 +2041,13 @@ useEffect(() => {
                     onChange={(e) => {
                       const updatedStudent = { ...student, cellphoneNumber: e.target.value };
                       setStudents((prev) =>
-                        prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                        prev.map((s) =>
+                          s.person_id === student.person_id ? updatedStudent : s
+                        )
                       );
+                    }}
+                    onBlur={(e) => {
+                      const updatedStudent = { ...student, cellphoneNumber: e.target.value };
                       updateItem(updatedStudent);
                     }}
                   />
@@ -1993,9 +2062,8 @@ useEffect(() => {
                       minWidth: "150px",
                     }}
                   >
-                    Email Address:  <span style={{ color: "red" }}>*</span>
+                    Email Address: <span style={{ color: "red" }}>*</span>
                   </Typography>
-
                   <TextField
                     label="Enter Email Address"
                     required
@@ -2005,8 +2073,13 @@ useEffect(() => {
                     onChange={(e) => {
                       const updatedStudent = { ...student, emailAddress: e.target.value };
                       setStudents((prev) =>
-                        prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                        prev.map((s) =>
+                          s.person_id === student.person_id ? updatedStudent : s
+                        )
                       );
+                    }}
+                    onBlur={(e) => {
+                      const updatedStudent = { ...student, emailAddress: e.target.value };
                       updateItem(updatedStudent);
                     }}
                   />
@@ -2027,7 +2100,7 @@ useEffect(() => {
                       minWidth: "150px",
                     }}
                   >
-                    Telephone Number:  <span style={{ color: "red" }}>*</span>
+                    Telephone Number: <span style={{ color: "red" }}>*</span>
                   </Typography>
                   <TextField
                     label="Enter Telephone Number"
@@ -2038,8 +2111,13 @@ useEffect(() => {
                     onChange={(e) => {
                       const updatedStudent = { ...student, telephoneNumber: e.target.value };
                       setStudents((prev) =>
-                        prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                        prev.map((s) =>
+                          s.person_id === student.person_id ? updatedStudent : s
+                        )
                       );
+                    }}
+                    onBlur={(e) => {
+                      const updatedStudent = { ...student, telephoneNumber: e.target.value };
                       updateItem(updatedStudent);
                     }}
                   />
@@ -2054,7 +2132,7 @@ useEffect(() => {
                       minWidth: "150px",
                     }}
                   >
-                    Facebook Account:  <span style={{ color: "red" }}>*</span>
+                    Facebook Account: <span style={{ color: "red" }}>*</span>
                   </Typography>
                   <TextField
                     label="Enter Facebook Account"
@@ -2065,8 +2143,13 @@ useEffect(() => {
                     onChange={(e) => {
                       const updatedStudent = { ...student, facebookAccount: e.target.value };
                       setStudents((prev) =>
-                        prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                        prev.map((s) =>
+                          s.person_id === student.person_id ? updatedStudent : s
+                        )
                       );
+                    }}
+                    onBlur={(e) => {
+                      const updatedStudent = { ...student, facebookAccount: e.target.value };
                       updateItem(updatedStudent);
                     }}
                   />
@@ -2093,7 +2176,7 @@ useEffect(() => {
                       minWidth: "150px",
                     }}
                   >
-                    Present Address:  <span style={{ color: "red" }}>*</span>
+                    Present Address: <span style={{ color: "red" }}>*</span>
                   </Typography>
                   <TextField
                     label="Enter Street"
@@ -2104,15 +2187,17 @@ useEffect(() => {
                     onChange={(e) => {
                       const updatedStudent = { ...student, presentStreet: e.target.value };
                       setStudents((prev) =>
-                        prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                        prev.map((s) =>
+                          s.person_id === student.person_id ? updatedStudent : s
+                        )
                       );
+                    }}
+                    onBlur={(e) => {
+                      const updatedStudent = { ...student, presentStreet: e.target.value };
                       updateItem(updatedStudent);
                     }}
                   />
                 </Box>
-
-                {/* Barangay */}
-
 
                 {/* ZIP Code */}
                 <Box width="50%">
@@ -2123,7 +2208,7 @@ useEffect(() => {
                       minWidth: "150px",
                     }}
                   >
-                    Zip Code:  <span style={{ color: "red" }}>*</span>
+                    Zip Code: <span style={{ color: "red" }}>*</span>
                   </Typography>
                   <TextField
                     label="Enter ZIP Code"
@@ -2134,8 +2219,13 @@ useEffect(() => {
                     onChange={(e) => {
                       const updatedStudent = { ...student, presentZipCode: e.target.value };
                       setStudents((prev) =>
-                        prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                        prev.map((s) =>
+                          s.person_id === student.person_id ? updatedStudent : s
+                        )
                       );
+                    }}
+                    onBlur={(e) => {
+                      const updatedStudent = { ...student, presentZipCode: e.target.value };
                       updateItem(updatedStudent);
                     }}
                   />
@@ -2143,177 +2233,178 @@ useEffect(() => {
               </Box>
             ))}
 
-{students.map((student) => (
-  <React.Fragment key={student.person_id}>
-    {/* Present Region & Province in one row */}
-    <Box width="100%" mt={1} display="flex" gap={2}>
-      {/* Present Region */}
-      <Box width="50%">
-        <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
-          Region: <span style={{ color: "red" }}>*</span>
-        </Typography>
-        <FormControl sx={{ width: "100%" }} size="small">
-          <InputLabel>Select Region</InputLabel>
-          <Select
-            id={`region-select-${student.person_id}`}
-            value={student.presentRegion || ""}
-            label="Select Region"
-            onChange={(e) => {
-              const regionName = e.target.value;
-              const selectedRegion = regionList.find((r) => r.region_name === regionName);
 
-              setLoading(true);
-              provinces(selectedRegion.region_code).then((prov) => {
-                const updatedStudent = {
-                  ...student,
-                  presentRegion: regionName,
-                  presentProvince: "",
-                  presentMunicipality: "",
-                  presentBarangay: "",
-                  presentProvinceList: prov,
-                  presentCityList: [],
-                  presentBarangayList: [],
-                };
-                setStudents((prev) =>
-                  prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
-                );
-                setLoading(false);
-                updateItem(updatedStudent); // ✅ Saving presentRegion
-              });
-            }}
-          >
-            {regionList.map((region) => (
-              <MenuItem key={region.region_code} value={region.region_name}>
-                {region.region_name}
-              </MenuItem>
+            {students.map((student) => (
+              <React.Fragment key={student.person_id}>
+                {/* Present Region & Province in one row */}
+                <Box width="100%" mt={1} display="flex" gap={2}>
+                  {/* Present Region */}
+                  <Box width="50%">
+                    <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
+                      Region: <span style={{ color: "red" }}>*</span>
+                    </Typography>
+                    <FormControl sx={{ width: "100%" }} size="small">
+                      <InputLabel>Select Region</InputLabel>
+                      <Select
+                        id={`region-select-${student.person_id}`}
+                        value={student.presentRegion || ""}
+                        label="Select Region"
+                        onChange={(e) => {
+                          const regionName = e.target.value;
+                          const selectedRegion = regionList.find((r) => r.region_name === regionName);
+
+                          setLoading(true);
+                          provinces(selectedRegion.region_code).then((prov) => {
+                            const updatedStudent = {
+                              ...student,
+                              presentRegion: regionName,
+                              presentProvince: "",
+                              presentMunicipality: "",
+                              presentBarangay: "",
+                              presentProvinceList: prov,
+                              presentCityList: [],
+                              presentBarangayList: [],
+                            };
+                            setStudents((prev) =>
+                              prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                            );
+                            setLoading(false);
+                            updateItem(updatedStudent); // ✅ Saving presentRegion
+                          });
+                        }}
+                      >
+                        {regionList.map((region) => (
+                          <MenuItem key={region.region_code} value={region.region_name}>
+                            {region.region_name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+
+                  {/* Present Province */}
+                  <Box width="50%">
+                    <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
+                      Province: <span style={{ color: "red" }}>*</span>
+                    </Typography>
+                    <FormControl sx={{ width: "100%" }} size="small" disabled={!student.presentProvinceList?.length}>
+                      <InputLabel>Select Province</InputLabel>
+                      <Select
+                        id={`province-select-${student.person_id}`}
+                        value={student.presentProvince || ""}
+                        label="Select Province"
+                        onChange={(e) => {
+                          const provinceName = e.target.value;
+                          const selectedProvince = student.presentProvinceList.find(
+                            (p) => p.province_name === provinceName
+                          );
+
+                          setLoading(true);
+                          cities(selectedProvince.province_code).then((cityList) => {
+                            const updatedStudent = {
+                              ...student,
+                              presentProvince: provinceName,
+                              presentMunicipality: "",
+                              presentBarangay: "",
+                              presentCityList: cityList,
+                              presentBarangayList: [],
+                            };
+                            setStudents((prev) =>
+                              prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                            );
+                            setLoading(false);
+                            updateItem(updatedStudent); // ✅ Saving presentProvince
+                          });
+                        }}
+                      >
+                        {student.presentProvinceList?.map((province) => (
+                          <MenuItem key={province.province_code} value={province.province_name}>
+                            {province.province_name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Box>
+
+                {/* Municipality and Barangay */}
+                <Box width="100%" mt={1} display="flex" gap={2}>
+                  {/* Municipality/City */}
+                  <Box width="50%">
+                    <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
+                      Municipality/City: <span style={{ color: "red" }}>*</span>
+                    </Typography>
+                    <FormControl sx={{ width: "100%" }} size="small" disabled={!student.presentCityList?.length}>
+                      <InputLabel>Select Municipality</InputLabel>
+                      <Select
+                        id={`municipality-select-${student.person_id}`}
+                        value={student.presentMunicipality || ""}
+                        label="Select Municipality"
+                        onChange={(e) => {
+                          const cityName = e.target.value;
+                          const selectedCity = student.presentCityList.find(
+                            (c) => c.city_name === cityName
+                          );
+
+                          setLoading(true);
+                          barangays(selectedCity.city_code).then((brgyList) => {
+                            const updatedStudent = {
+                              ...student,
+                              presentMunicipality: cityName,
+                              presentBarangay: "",
+                              presentBarangayList: brgyList,
+                            };
+                            setStudents((prev) =>
+                              prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                            );
+                            setLoading(false);
+                            updateItem(updatedStudent); // ✅ Saving presentMunicipality
+                          });
+                        }}
+                      >
+                        {student.presentCityList?.map((city) => (
+                          <MenuItem key={city.city_code} value={city.city_name}>
+                            {city.city_name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+
+                  {/* Barangay */}
+                  <Box width="50%">
+                    <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
+                      Barangay: <span style={{ color: "red" }}>*</span>
+                    </Typography>
+                    <FormControl sx={{ width: "100%" }} size="small" disabled={!student.presentBarangayList?.length}>
+                      <InputLabel>Select Barangay</InputLabel>
+                      <Select
+                        id={`barangay-select-${student.person_id}`}
+                        value={student.presentBarangay || ""}
+                        label="Select Barangay"
+                        onChange={(e) => {
+                          const barangayName = e.target.value;
+                          const updatedStudent = {
+                            ...student,
+                            presentBarangay: barangayName,
+                          };
+                          setStudents((prev) =>
+                            prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                          );
+                          updateItem(updatedStudent); // ✅ Saving presentBarangay
+                        }}
+                      >
+                        {student.presentBarangayList?.map((brgy) => (
+                          <MenuItem key={brgy.brgy_code} value={brgy.brgy_name}>
+                            {brgy.brgy_name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Box>
+              </React.Fragment>
             ))}
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Present Province */}
-      <Box width="50%">
-        <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
-          Province: <span style={{ color: "red" }}>*</span>
-        </Typography>
-        <FormControl sx={{ width: "100%" }} size="small" disabled={!student.presentProvinceList?.length}>
-          <InputLabel>Select Province</InputLabel>
-          <Select
-            id={`province-select-${student.person_id}`}
-            value={student.presentProvince || ""}
-            label="Select Province"
-            onChange={(e) => {
-              const provinceName = e.target.value;
-              const selectedProvince = student.presentProvinceList.find(
-                (p) => p.province_name === provinceName
-              );
-
-              setLoading(true);
-              cities(selectedProvince.province_code).then((cityList) => {
-                const updatedStudent = {
-                  ...student,
-                  presentProvince: provinceName,
-                  presentMunicipality: "",
-                  presentBarangay: "",
-                  presentCityList: cityList,
-                  presentBarangayList: [],
-                };
-                setStudents((prev) =>
-                  prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
-                );
-                setLoading(false);
-                updateItem(updatedStudent); // ✅ Saving presentProvince
-              });
-            }}
-          >
-            {student.presentProvinceList?.map((province) => (
-              <MenuItem key={province.province_code} value={province.province_name}>
-                {province.province_name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-    </Box>
-
-    {/* Municipality and Barangay */}
-    <Box width="100%" mt={1} display="flex" gap={2}>
-      {/* Municipality/City */}
-      <Box width="50%">
-        <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
-          Municipality/City: <span style={{ color: "red" }}>*</span>
-        </Typography>
-        <FormControl sx={{ width: "100%" }} size="small" disabled={!student.presentCityList?.length}>
-          <InputLabel>Select Municipality</InputLabel>
-          <Select
-            id={`municipality-select-${student.person_id}`}
-            value={student.presentMunicipality || ""}
-            label="Select Municipality"
-            onChange={(e) => {
-              const cityName = e.target.value;
-              const selectedCity = student.presentCityList.find(
-                (c) => c.city_name === cityName
-              );
-
-              setLoading(true);
-              barangays(selectedCity.city_code).then((brgyList) => {
-                const updatedStudent = {
-                  ...student,
-                  presentMunicipality: cityName,
-                  presentBarangay: "",
-                  presentBarangayList: brgyList,
-                };
-                setStudents((prev) =>
-                  prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
-                );
-                setLoading(false);
-                updateItem(updatedStudent); // ✅ Saving presentMunicipality
-              });
-            }}
-          >
-            {student.presentCityList?.map((city) => (
-              <MenuItem key={city.city_code} value={city.city_name}>
-                {city.city_name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Barangay */}
-      <Box width="50%">
-        <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
-          Barangay: <span style={{ color: "red" }}>*</span>
-        </Typography>
-        <FormControl sx={{ width: "100%" }} size="small" disabled={!student.presentBarangayList?.length}>
-          <InputLabel>Select Barangay</InputLabel>
-          <Select
-            id={`barangay-select-${student.person_id}`}
-            value={student.presentBarangay || ""}
-            label="Select Barangay"
-            onChange={(e) => {
-              const barangayName = e.target.value;
-              const updatedStudent = {
-                ...student,
-                presentBarangay: barangayName,
-              };
-              setStudents((prev) =>
-                prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
-              );
-              updateItem(updatedStudent); // ✅ Saving presentBarangay
-            }}
-          >
-            {student.presentBarangayList?.map((brgy) => (
-              <MenuItem key={brgy.brgy_code} value={brgy.brgy_name}>
-                {brgy.brgy_name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-    </Box>
-  </React.Fragment>
-))}
 
 
 
@@ -2327,7 +2418,7 @@ useEffect(() => {
                     minWidth: "150px",
                   }}
                 >
-                  DSWD Household:  <span style={{ color: "red" }}>*</span>
+                  DSWD Household: <span style={{ color: "red" }}>*</span>
                 </Typography>
                 <TextField
                   label="Enter Household Number"
@@ -2345,6 +2436,12 @@ useEffect(() => {
                         s.person_id === student.person_id ? updatedStudent : s
                       )
                     );
+                  }}
+                  onBlur={(e) => {
+                    const updatedStudent = {
+                      ...student,
+                      presentDswdHouseholdNumber: e.target.value,
+                    };
                     updateItem(updatedStudent);
                   }}
                 />
@@ -2353,51 +2450,50 @@ useEffect(() => {
 
 
 
+            {students.map((student) => (
+              <React.Fragment key={student.person_id}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={sameAsPresent[student.person_id] || false}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
 
-           {students.map((student) => (
-  <React.Fragment key={student.person_id}>
-    <FormControlLabel
-      control={
-        <Checkbox
-          checked={sameAsPresent[student.person_id] || false}
-          onChange={(e) => {
-            const isChecked = e.target.checked;
+                        // First update the sameAsPresent state
+                        setSameAsPresent((prev) => ({
+                          ...prev,
+                          [student.person_id]: isChecked,
+                        }));
 
-            // First update the sameAsPresent state
-            setSameAsPresent((prev) => ({
-              ...prev,
-              [student.person_id]: isChecked,
-            }));
+                        // Then update student fields if checked
+                        if (isChecked) {
+                          const updatedStudent = {
+                            ...student,
+                            permanentStreet: student.presentStreet || "",
+                            permanentRegion: student.presentRegion || "",
+                            permanentProvince: student.presentProvince || "",
+                            permanentMunicipality: student.presentMunicipality || "",
+                            permanentBarangay: student.presentBarangay || "",
+                            permanentZipCode: student.presentZipCode || "",
+                          };
 
-            // Then update student fields if checked
-            if (isChecked) {
-              const updatedStudent = {
-                ...student,
-                permanentStreet: student.presentStreet || "",
-                permanentRegion: student.presentRegion || "",
-                permanentProvince: student.presentProvince || "",
-                permanentMunicipality: student.presentMunicipality || "",
-                permanentBarangay: student.presentBarangay || "",
-                permanentZipCode: student.presentZipCode || "",
-              };
+                          setStudents((prev) =>
+                            prev.map((s) =>
+                              s.person_id === student.person_id ? updatedStudent : s
+                            )
+                          );
 
-              setStudents((prev) =>
-                prev.map((s) =>
-                  s.person_id === student.person_id ? updatedStudent : s
-                )
-              );
+                          updateItem(updatedStudent);
+                        }
+                      }}
+                    />
+                  }
+                  label="Same as Present Address"
+                />
 
-              updateItem(updatedStudent);
-            }
-          }}
-        />
-      }
-      label="Same as Present Address"
-    />
-
-    {/* Other permanent address fields */}
-  </React.Fragment>
-))}
+                {/* Other permanent address fields */}
+              </React.Fragment>
+            ))}
 
 
             {/* Permanent Address Title */}
@@ -2418,7 +2514,7 @@ useEffect(() => {
                       minWidth: "150px",
                     }}
                   >
-                    Permanent Address Street:  <span style={{ color: "red" }}>*</span>
+                    Permanent Address Street: <span style={{ color: "red" }}>*</span>
                   </Typography>
                   <TextField
                     label="Enter Street"
@@ -2427,15 +2523,25 @@ useEffect(() => {
                     size="small"
                     value={student.permanentStreet || ""}
                     onChange={(e) => {
-                      const updatedStudent = { ...student, permanentStreet: e.target.value };
+                      const updatedStudent = {
+                        ...student,
+                        permanentStreet: e.target.value,
+                      };
                       setStudents((prev) =>
-                        prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                        prev.map((s) =>
+                          s.person_id === student.person_id ? updatedStudent : s
+                        )
                       );
+                    }}
+                    onBlur={(e) => {
+                      const updatedStudent = {
+                        ...student,
+                        permanentStreet: e.target.value,
+                      };
                       updateItem(updatedStudent);
                     }}
                   />
                 </Box>
-
 
                 <Box width="50%">
                   <Typography
@@ -2445,7 +2551,7 @@ useEffect(() => {
                       minWidth: "150px",
                     }}
                   >
-                    Zip Code:  <span style={{ color: "red" }}>*</span>
+                    Zip Code: <span style={{ color: "red" }}>*</span>
                   </Typography>
                   <TextField
                     label="Enter ZIP Code"
@@ -2454,203 +2560,215 @@ useEffect(() => {
                     size="small"
                     value={student.permanentZipCode || ""}
                     onChange={(e) => {
-                      const updatedStudent = { ...student, permanentZipCode: e.target.value };
+                      const updatedStudent = {
+                        ...student,
+                        permanentZipCode: e.target.value,
+                      };
                       setStudents((prev) =>
-                        prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                        prev.map((s) =>
+                          s.person_id === student.person_id ? updatedStudent : s
+                        )
                       );
+                    }}
+                    onBlur={(e) => {
+                      const updatedStudent = {
+                        ...student,
+                        permanentZipCode: e.target.value,
+                      };
                       updateItem(updatedStudent);
                     }}
                   />
                 </Box>
               </Box>
             ))}
-{students.map((student) => (
-  <React.Fragment key={student.person_id}>
-    {/* Permanent Region and Province */}
-    <Box display="flex" gap={2} width="100%" mt={1}>
-      {/* Permanent Region */}
-      <Box width="50%">
-        <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
-          Permanent Region: <span style={{ color: "red" }}>*</span>
-        </Typography>
-        <FormControl sx={{ width: "100%" }} size="small">
-          <InputLabel>Select Region</InputLabel>
-          <Select
-            id={`permanent-region-select-${student.person_id}`}
-            value={student.permanentRegion || ""}
-            label="Select Region"
-            onChange={(e) => {
-              const regionName = e.target.value;
-              const selectedRegion = regionList.find(r => r.region_name === regionName);
 
-              setLoading(true);
-              provinces(selectedRegion.region_code).then((prov) => {
-                const updatedStudent = {
-                  ...student,
-                  permanentRegion: regionName,
-                  permanentProvince: "",
-                  permanentMunicipality: "",
-                  permanentBarangay: "",
-                  permanentProvinceList: prov,
-                  permanentCityList: [],
-                  permanentBarangayList: [],
-                };
-                setStudents((prev) =>
-                  prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
-                );
-                setLoading(false);
-                updateItem(updatedStudent);
-              });
-            }}
-          >
-            {regionList.map((region) => (
-              <MenuItem key={region.region_code} value={region.region_name}>
-                {region.region_name}
-              </MenuItem>
+            {students.map((student) => (
+              <React.Fragment key={student.person_id}>
+                {/* Permanent Region and Province */}
+                <Box display="flex" gap={2} width="100%" mt={1}>
+                  {/* Permanent Region */}
+                  <Box width="50%">
+                    <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
+                      Permanent Region: <span style={{ color: "red" }}>*</span>
+                    </Typography>
+                    <FormControl sx={{ width: "100%" }} size="small">
+                      <InputLabel>Select Region</InputLabel>
+                      <Select
+                        id={`permanent-region-select-${student.person_id}`}
+                        value={student.permanentRegion || ""}
+                        label="Select Region"
+                        onChange={(e) => {
+                          const regionName = e.target.value;
+                          const selectedRegion = regionList.find(r => r.region_name === regionName);
+
+                          setLoading(true);
+                          provinces(selectedRegion.region_code).then((prov) => {
+                            const updatedStudent = {
+                              ...student,
+                              permanentRegion: regionName,
+                              permanentProvince: "",
+                              permanentMunicipality: "",
+                              permanentBarangay: "",
+                              permanentProvinceList: prov,
+                              permanentCityList: [],
+                              permanentBarangayList: [],
+                            };
+                            setStudents((prev) =>
+                              prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                            );
+                            setLoading(false);
+                            updateItem(updatedStudent);
+                          });
+                        }}
+                      >
+                        {regionList.map((region) => (
+                          <MenuItem key={region.region_code} value={region.region_name}>
+                            {region.region_name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+
+                  {/* Permanent Province */}
+                  <Box width="50%">
+                    <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
+                      Permanent Province: <span style={{ color: "red" }}>*</span>
+                    </Typography>
+                    <FormControl
+                      sx={{ width: "100%" }}
+                      size="small"
+                      disabled={!student.permanentProvinceList?.length}
+                    >
+                      <InputLabel>Select Province</InputLabel>
+                      <Select
+                        id={`permanent-province-select-${student.person_id}`}
+                        value={student.permanentProvince || ""}
+                        label="Select Province"
+                        onChange={(e) => {
+                          const provinceName = e.target.value;
+                          const selectedProvince = student.permanentProvinceList.find(
+                            (p) => p.province_name === provinceName
+                          );
+
+                          setLoading(true);
+                          cities(selectedProvince.province_code).then((cityList) => {
+                            const updatedStudent = {
+                              ...student,
+                              permanentProvince: provinceName,
+                              permanentMunicipality: "",
+                              permanentBarangay: "",
+                              permanentCityList: cityList,
+                              permanentBarangayList: [],
+                            };
+                            setStudents((prev) =>
+                              prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                            );
+                            setLoading(false);
+                            updateItem(updatedStudent);
+                          });
+                        }}
+                      >
+                        {student.permanentProvinceList?.map((province) => (
+                          <MenuItem key={province.province_code} value={province.province_name}>
+                            {province.province_name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Box>
+
+                {/* Permanent Municipality and Barangay */}
+                <Box display="flex" gap={2} width="100%" mt={1}>
+                  {/* Permanent Municipality */}
+                  <Box width="50%">
+                    <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
+                      Permanent Municipality: <span style={{ color: "red" }}>*</span>
+                    </Typography>
+                    <FormControl
+                      sx={{ width: "100%" }}
+                      size="small"
+                      disabled={!student.permanentCityList?.length}
+                    >
+                      <InputLabel>Select Municipality</InputLabel>
+                      <Select
+                        id={`permanent-municipality-select-${student.person_id}`}
+                        value={student.permanentMunicipality || ""}
+                        label="Select Municipality"
+                        onChange={(e) => {
+                          const municipalityName = e.target.value;
+                          const selectedCity = student.permanentCityList.find(
+                            (c) => c.city_name === municipalityName
+                          );
+
+                          setLoading(true);
+                          barangays(selectedCity.city_code).then((brgyList) => {
+                            const updatedStudent = {
+                              ...student,
+                              permanentMunicipality: municipalityName,
+                              permanentBarangay: "",
+                              permanentBarangayList: brgyList,
+                            };
+                            setStudents((prev) =>
+                              prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                            );
+                            setLoading(false);
+                            updateItem(updatedStudent);
+                          });
+                        }}
+                      >
+                        {student.permanentCityList?.map((city) => (
+                          <MenuItem key={city.city_code} value={city.city_name}>
+                            {city.city_name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+
+                  {/* Permanent Barangay */}
+                  <Box width="50%">
+                    <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
+                      Permanent Barangay: <span style={{ color: "red" }}>*</span>
+                    </Typography>
+                    <FormControl
+                      sx={{ width: "100%" }}
+                      size="small"
+                      disabled={!student.permanentBarangayList?.length}
+                    >
+                      <InputLabel>Select Barangay</InputLabel>
+                      <Select
+                        id={`permanent-barangay-select-${student.person_id}`}
+                        value={student.permanentBarangay || ""}
+                        label="Select Barangay"
+                        onChange={(e) => {
+                          const barangayName = e.target.value;
+                          const selectedBrgy = student.permanentBarangayList.find(
+                            (b) => b.brgy_name === barangayName
+                          );
+
+                          const updatedStudent = {
+                            ...student,
+                            permanentBarangay: barangayName,
+                          };
+                          setStudents((prev) =>
+                            prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+                          );
+                          updateItem(updatedStudent);
+                        }}
+                      >
+                        {student.permanentBarangayList?.map((brgy) => (
+                          <MenuItem key={brgy.brgy_code} value={brgy.brgy_name}>
+                            {brgy.brgy_name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Box>
+              </React.Fragment>
             ))}
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Permanent Province */}
-      <Box width="50%">
-        <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
-          Permanent Province: <span style={{ color: "red" }}>*</span>
-        </Typography>
-        <FormControl
-          sx={{ width: "100%" }}
-          size="small"
-          disabled={!student.permanentProvinceList?.length}
-        >
-          <InputLabel>Select Province</InputLabel>
-          <Select
-            id={`permanent-province-select-${student.person_id}`}
-            value={student.permanentProvince || ""}
-            label="Select Province"
-            onChange={(e) => {
-              const provinceName = e.target.value;
-              const selectedProvince = student.permanentProvinceList.find(
-                (p) => p.province_name === provinceName
-              );
-
-              setLoading(true);
-              cities(selectedProvince.province_code).then((cityList) => {
-                const updatedStudent = {
-                  ...student,
-                  permanentProvince: provinceName,
-                  permanentMunicipality: "",
-                  permanentBarangay: "",
-                  permanentCityList: cityList,
-                  permanentBarangayList: [],
-                };
-                setStudents((prev) =>
-                  prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
-                );
-                setLoading(false);
-                updateItem(updatedStudent);
-              });
-            }}
-          >
-            {student.permanentProvinceList?.map((province) => (
-              <MenuItem key={province.province_code} value={province.province_name}>
-                {province.province_name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-    </Box>
-
-    {/* Permanent Municipality and Barangay */}
-    <Box display="flex" gap={2} width="100%" mt={1}>
-      {/* Permanent Municipality */}
-      <Box width="50%">
-        <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
-          Permanent Municipality: <span style={{ color: "red" }}>*</span>
-        </Typography>
-        <FormControl
-          sx={{ width: "100%" }}
-          size="small"
-          disabled={!student.permanentCityList?.length}
-        >
-          <InputLabel>Select Municipality</InputLabel>
-          <Select
-            id={`permanent-municipality-select-${student.person_id}`}
-            value={student.permanentMunicipality || ""}
-            label="Select Municipality"
-            onChange={(e) => {
-              const municipalityName = e.target.value;
-              const selectedCity = student.permanentCityList.find(
-                (c) => c.city_name === municipalityName
-              );
-
-              setLoading(true);
-              barangays(selectedCity.city_code).then((brgyList) => {
-                const updatedStudent = {
-                  ...student,
-                  permanentMunicipality: municipalityName,
-                  permanentBarangay: "",
-                  permanentBarangayList: brgyList,
-                };
-                setStudents((prev) =>
-                  prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
-                );
-                setLoading(false);
-                updateItem(updatedStudent);
-              });
-            }}
-          >
-            {student.permanentCityList?.map((city) => (
-              <MenuItem key={city.city_code} value={city.city_name}>
-                {city.city_name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Permanent Barangay */}
-      <Box width="50%">
-        <Typography style={{ fontSize: "13px", marginBottom: "5px" }}>
-          Permanent Barangay: <span style={{ color: "red" }}>*</span>
-        </Typography>
-        <FormControl
-          sx={{ width: "100%" }}
-          size="small"
-          disabled={!student.permanentBarangayList?.length}
-        >
-          <InputLabel>Select Barangay</InputLabel>
-          <Select
-            id={`permanent-barangay-select-${student.person_id}`}
-            value={student.permanentBarangay || ""}
-            label="Select Barangay"
-            onChange={(e) => {
-              const barangayName = e.target.value;
-              const selectedBrgy = student.permanentBarangayList.find(
-                (b) => b.brgy_name === barangayName
-              );
-
-              const updatedStudent = {
-                ...student,
-                permanentBarangay: barangayName,
-              };
-              setStudents((prev) =>
-                prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
-              );
-              updateItem(updatedStudent);
-            }}
-          >
-            {student.permanentBarangayList?.map((brgy) => (
-              <MenuItem key={brgy.brgy_code} value={brgy.brgy_name}>
-                {brgy.brgy_name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-    </Box>
-  </React.Fragment>
-))}
 
 
             {students.map((student) => (
@@ -2662,7 +2780,7 @@ useEffect(() => {
                     minWidth: "150px",
                   }}
                 >
-                  DSWD Household:  <span style={{ color: "red" }}>*</span>
+                  DSWD Household: <span style={{ color: "red" }}>*</span>
                 </Typography>
                 <TextField
                   label="Enter Household Number"
@@ -2680,6 +2798,12 @@ useEffect(() => {
                         s.person_id === student.person_id ? updatedStudent : s
                       )
                     );
+                  }}
+                  onBlur={(e) => {
+                    const updatedStudent = {
+                      ...student,
+                      permanentDswdHouseholdNumber: e.target.value,
+                    };
                     updateItem(updatedStudent);
                   }}
                 />

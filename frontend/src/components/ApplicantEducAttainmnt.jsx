@@ -64,17 +64,28 @@ const ApplicantEducationalAttainment = () => {
   }, []);
 
   const updateItem = (student) => {
-    axios
-      .put(`http://localhost:5000/person_table/${student.person_id}`, student)
-      .then((res) => {
-        setStudents((prevStudents) =>
-          prevStudents.map((s) =>
-            s.person_id === student.person_id ? res.data : s
-          )
-        );
-      })
-      .catch((err) => console.error("Update error:", err));
-  };
+     axios.put(`http://localhost:5000/person_table/${student.person_id}`, student)
+       .then(response => {
+         console.log("Saved:", response.data);
+       })
+       .catch(error => {
+         console.error("Auto-save error:", error);
+       });
+   };
+ 
+ 
+   useEffect(() => {
+     const handleBeforeUnload = (e) => {
+       students.forEach((student) => {
+         updateItem(student); // ✅ Save latest changes before reload
+       });
+     };
+ 
+     window.addEventListener("beforeunload", handleBeforeUnload);
+     return () => {
+       window.removeEventListener("beforeunload", handleBeforeUnload);
+     };
+   }, [students]);
 
   const steps = [
     { label: 'Personal Information', icon: <PersonIcon />, path: '/applicant_personal_information' },
@@ -236,139 +247,157 @@ const ApplicantEducationalAttainment = () => {
                 </FormControl>
               </Box>
 
-              {/* School Last Attended */}
-              <Box flex={1}>
-                <div>
-                  School Last Attended: <span style={{ color: "red" }}>*</span>
-                </div>
-                <TextField
-                  label="Enter School Last Attended"
-                  required
-                  fullWidth
-                  size="small"
-                  sx={{ mt: 1 }}
-                  value={student.schoolLastAttended || ""}
-                  onChange={(e) => {
-                    const updatedStudent = { ...student, schoolLastAttended: e.target.value };
-                    setStudents((prev) =>
-                      prev.map((s) =>
-                        s.person_id === student.person_id ? updatedStudent : s
-                      )
-                    );
-                    updateItem(updatedStudent);
-                  }}
-                />
-              </Box>
+            {/* School Last Attended */}
+<Box flex={1}>
+  <div>
+    School Last Attended: <span style={{ color: "red" }}>*</span>
+  </div>
+  <TextField
+    label="Enter School Last Attended"
+    required
+    fullWidth
+    size="small"
+    sx={{ mt: 1 }}
+    value={student.schoolLastAttended || ""}
+    onChange={(e) => {
+      const updatedStudent = { ...student, schoolLastAttended: e.target.value };
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.person_id === student.person_id ? updatedStudent : s
+        )
+      );
+    }}
+    onBlur={(e) => {
+      const updatedStudent = { ...student, schoolLastAttended: e.target.value };
+      updateItem(updatedStudent); // Update the backend when the user finishes editing
+    }}
+  />
+</Box>
 
-              {/* School Address */}
-              <Box flex={1}>
-                <div>
-                  School Address: <span style={{ color: "red" }}>*</span>
-                </div>
-                <TextField
-                  label="Enter School Address"
-                  required
-                  fullWidth
-                  size="small"
-                  sx={{ mt: 1 }}
-                  value={student.schoolAddress || ""}
-                  onChange={(e) => {
-                    const updatedStudent = { ...student, schoolAddress: e.target.value };
-                    setStudents((prev) =>
-                      prev.map((s) =>
-                        s.person_id === student.person_id ? updatedStudent : s
-                      )
-                    );
-                    updateItem(updatedStudent);
-                  }}
-                />
-              </Box>
+{/* School Address */}
+<Box flex={1}>
+  <div>
+    School Address: <span style={{ color: "red" }}>*</span>
+  </div>
+  <TextField
+    label="Enter School Address"
+    required
+    fullWidth
+    size="small"
+    sx={{ mt: 1 }}
+    value={student.schoolAddress || ""}
+    onChange={(e) => {
+      const updatedStudent = { ...student, schoolAddress: e.target.value };
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.person_id === student.person_id ? updatedStudent : s
+        )
+      );
+    }}
+    onBlur={(e) => {
+      const updatedStudent = { ...student, schoolAddress: e.target.value };
+      updateItem(updatedStudent); // Update the backend when the user finishes editing
+    }}
+  />
+</Box>
 
-              {/* Course/Program */}
-              <Box flex={1}>
-                <div>Course/Program:</div>
-                <TextField
-                  label="Enter Course/Program"
-                  fullWidth
-                  size="small"
-                  sx={{ mt: 1 }}
-                  value={student.courseProgram || ""}
-                  onChange={(e) => {
-                    const updatedStudent = { ...student, courseProgram: e.target.value };
-                    setStudents((prev) =>
-                      prev.map((s) =>
-                        s.person_id === student.person_id ? updatedStudent : s
-                      )
-                    );
-                    updateItem(updatedStudent);
-                  }}
-                />
-              </Box>
-            </Box>
+{/* Course/Program */}
+<Box flex={1}>
+  <div>Course/Program:</div>
+  <TextField
+    label="Enter Course/Program"
+    fullWidth
+    size="small"
+    sx={{ mt: 1 }}
+    value={student.courseProgram || ""}
+    onChange={(e) => {
+      const updatedStudent = { ...student, courseProgram: e.target.value };
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.person_id === student.person_id ? updatedStudent : s
+        )
+      );
+    }}
+    onBlur={(e) => {
+      const updatedStudent = { ...student, courseProgram: e.target.value };
+      updateItem(updatedStudent); // Update the backend when the user finishes editing
+    }}
+  />
+</Box>
+</Box>
           ))}
 
-          {students.map((student) => (
-            <Box key={student.person_id} display="flex" gap={3} width="100%" mt={2} flexWrap="wrap">
-              {/* Honor */}
-              <Box flex={1} minWidth={200}>
-                <div>Honor:</div>
-                <TextField
-                  label="Enter Honor"
-                  fullWidth
-                  size="small"
-                  sx={{ mt: 1 }}
-                  value={student.honor || ""}
-                  onChange={(e) => {
-                    const updatedStudent = { ...student, honor: e.target.value };
-                    setStudents((prev) =>
-                      prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
-                    );
-                    updateItem(updatedStudent);
-                  }}
-                />
-              </Box>
+        {students.map((student) => (
+  <Box key={student.person_id} display="flex" gap={3} width="100%" mt={2} flexWrap="wrap">
+    {/* Honor */}
+    <Box flex={1} minWidth={200}>
+      <div>Honor:</div>
+      <TextField
+        label="Enter Honor"
+        fullWidth
+        size="small"
+        sx={{ mt: 1 }}
+        value={student.honor || ""}
+        onChange={(e) => {
+          const updatedStudent = { ...student, honor: e.target.value };
+          setStudents((prev) =>
+            prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+          );
+        }}
+        onBlur={(e) => {
+          const updatedStudent = { ...student, honor: e.target.value };
+          updateItem(updatedStudent); // Update the backend when the user finishes editing
+        }}
+      />
+    </Box>
 
-              {/* General Average */}
-              <Box flex={1} minWidth={200}>
-                <div>Gen Ave. <span style={{ color: "red" }}>*</span></div>
-                <TextField
-                  label="Enter General Average"
-                  required
-                  fullWidth
-                  size="small"
-                  sx={{ mt: 1 }}
-                  value={student.generalAverage || ""}
-                  onChange={(e) => {
-                    const updatedStudent = { ...student, generalAverage: e.target.value };
-                    setStudents((prev) =>
-                      prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
-                    );
-                    updateItem(updatedStudent);
-                  }}
-                />
-              </Box>
+    {/* General Average */}
+    <Box flex={1} minWidth={200}>
+      <div>Gen Ave. <span style={{ color: "red" }}>*</span></div>
+      <TextField
+        label="Enter General Average"
+        required
+        fullWidth
+        size="small"
+        sx={{ mt: 1 }}
+        value={student.generalAverage || ""}
+        onChange={(e) => {
+          const updatedStudent = { ...student, generalAverage: e.target.value };
+          setStudents((prev) =>
+            prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+          );
+        }}
+        onBlur={(e) => {
+          const updatedStudent = { ...student, generalAverage: e.target.value };
+          updateItem(updatedStudent); // Update the backend when the user finishes editing
+        }}
+      />
+    </Box>
 
-              {/* Year Graduated */}
-              <Box flex={1} minWidth={200}>
-                <div>Year Graduated: <span style={{ color: "red" }}>*</span></div>
-                <TextField
-                  label="Enter Year Graduated"
-                  required
-                  fullWidth
-                  size="small"
-                  sx={{ mt: 1 }}
-                  value={student.yearGraduated || ""}
-                  onChange={(e) => {
-                    const updatedStudent = { ...student, yearGraduated: e.target.value };
-                    setStudents((prev) =>
-                      prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
-                    );
-                    updateItem(updatedStudent);
-                  }}
-                />
-              </Box>
-            </Box>
-          ))}
+    {/* Year Graduated */}
+    <Box flex={1} minWidth={200}>
+      <div>Year Graduated: <span style={{ color: "red" }}>*</span></div>
+      <TextField
+        label="Enter Year Graduated"
+        required
+        fullWidth
+        size="small"
+        sx={{ mt: 1 }}
+        value={student.yearGraduated || ""}
+        onChange={(e) => {
+          const updatedStudent = { ...student, yearGraduated: e.target.value };
+          setStudents((prev) =>
+            prev.map((s) => (s.person_id === student.person_id ? updatedStudent : s))
+          );
+        }}
+        onBlur={(e) => {
+          const updatedStudent = { ...student, yearGraduated: e.target.value };
+          updateItem(updatedStudent); // Update the backend when the user finishes editing
+        }}
+      />
+    </Box>
+  </Box>
+))}
 
 
 
