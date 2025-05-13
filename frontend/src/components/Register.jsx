@@ -27,7 +27,7 @@ const Register = () => {
 
             localStorage.setItem('person_id', response.data.person_id);
 
-            navigate('/personal_information')
+            navigate('/')
         } catch (error) {
             console.error("Registration failed:", error);
         }
@@ -35,7 +35,7 @@ const Register = () => {
 
     return (
         <>
-            <Container style={{display: "flex", alignItems: "center", justifyContent: 'center', height: '100%'}}>  
+            <Container style={{display: "flex", alignItems: "center", marginTop: '1.5%', justifyContent: 'center', height: '100%'}}>  
             <div className="Container">
                     <div className="Header">
                         <div className="HeaderTitle">

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import '../styles/TempStyles.css';
-import SortingIcon from "./SortingIcon";
+import SortingIcon from "../components/SortingIcon";
 import { Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
 
-const FacultyDashboard = () => {
+const GradingSheet = () => {
     const [profData, setProfData] = useState({
         prof_id: '',
         fname: '',
@@ -249,4 +249,4 @@ const FacultyDashboard = () => {
   );
 };
 
-export default FacultyDashboard;
+export default GradingSheet;

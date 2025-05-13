@@ -3,8 +3,6 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import Register from './components/Register';
 import Login from './components/Login';
-import EnrolledDashboard from './pages/Erlm_Dashboard';
-import StudentPage from './pages/Erlm_Student_Page';
 import { createTheme, ThemeProvider, CssBaseline } from '@mui/material'; 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -22,7 +20,6 @@ import DepartmentSection from './components/DepartmentSection';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginProf from './components/LoginProf';
 import RegisterProf from './components/RegisterProf';
-import FacultyDashboard from './components/FacultyDashboard';
 import StudentProfileForm from './components/StudentProfile';
 import YearLevelPanel from './components/YearLevelPanel';
 import YearPanel from './components/YearPanel';
@@ -35,7 +32,6 @@ import FamilyBackgroundForm from './components/FamilyBackground';
 import EducationalAttainmentForm from './components/EducationalAttainment';
 import ApplicantRequirement from './components/applicant_requirement';
 import RequirementsForm from './components/RequirementsForm';
-import Dashboard from './pages/Dashboard';
 import AdmissionDashboardPanel from './pages/AdmissionDashboard';
 import SystemDashboardPanel from './pages/SystemDashboard';
 import DepartmentManagement from './pages/DepartmentDashboard';
@@ -49,11 +45,19 @@ import ScheduleChecker from './components/ScheduleChecker';
 import SearchStudentCOR from './components/SearchCertificateOfGrades';
 import RoomRegistration from './components/RoomRegistration';
 import ScheduleFilterer from './pages/SchedulePlottingFilter';
+
 import ApplicantPersonalInfoForm from './components/ApplicantPersonalInfo';
 import ApplicantFamilyBackground from './components/ApplicantFamilyBckgrndForm';
 import ApplicantEducationalAttainment from './components/ApplicantEducAttainmnt';
 import ApplicantHealthMedicalRecords from './components/ApplicantHeatlthRecords';
 import ApplicantOtherInformation from './components/ApplicantOtherInfo';
+
+import FacultyDashboard from './pages/FacultyDashboard'; //For Professors & Faculty Members
+import EnrolledDashboard from './pages/Erlm_Dashboard'; // For Enrolled Students
+import Dashboard from './pages/Dashboard'; // For SuperAdmin & Admin
+
+
+import Unauthorized from './components/Unauthorized';
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -98,8 +102,11 @@ import ApplicantOtherInformation from './components/ApplicantOtherInfo';
                 <Route path="/" element={<Login setIsAuthenticated={setIsAuthenticated}/>}/>
                 <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated}/>}/>
                 <Route path="/login_prof" element={<LoginProf setIsAuthenticated={setIsAuthenticated}/>}/>
-                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
-                <Route path="/faculty_dashboard" element={<FacultyDashboard />}/>
+                
+                <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><Dashboard /></ProtectedRoute>}/>
+                <Route path="/faculty_dashboard" element={<ProtectedRoute allowedRoles={['faculty']}><FacultyDashboard /></ProtectedRoute>}/>
+                <Route path="/enrollment_dashboard" element={<ProtectedRoute><EnrolledDashboard /></ProtectedRoute>} />
+
                 <Route path="/personal_information" element={<PersonalInfoForm />} />
                 <Route path="/room_registration" element={<ProtectedRoute><RoomRegistration/></ProtectedRoute>}/> 
                 <Route path="/course_management" element={<ProtectedRoute><CourseManagement/></ProtectedRoute>}/>
@@ -111,7 +118,6 @@ import ApplicantOtherInformation from './components/ApplicantOtherInfo';
                 <Route path="/department_registration" element={<ProtectedRoute><DepartmentRegistration/></ProtectedRoute>}/>
                 <Route path="/section_panel" element={<ProtectedRoute><SectionPanel/></ProtectedRoute>}/>
                 <Route path="/professor_registration" element={<ProtectedRoute><DepartmentProf/></ProtectedRoute>}/>
-                <Route path="/enrollment_dashboard" element={<ProtectedRoute><EnrolledDashboard /></ProtectedRoute>} />
                 <Route path="/student_profile_form" element={<ProtectedRoute><StudentProfileForm /></ProtectedRoute>} />
                 <Route path="/year_level_panel" element={<ProtectedRoute><YearLevelPanel /></ProtectedRoute>} />
                 <Route path="/year_panel" element={<ProtectedRoute><YearPanel /></ProtectedRoute>} />
@@ -119,7 +125,6 @@ import ApplicantOtherInformation from './components/ApplicantOtherInfo';
                 <Route path="/semester_panel" element={<ProtectedRoute><SemesterPanel /></ProtectedRoute>} />
                 <Route path="/school_year_panel" element={<ProtectedRoute><SchoolYearPanel /></ProtectedRoute>} />
                 <Route path="/school_year_activator_panel" element={<ProtectedRoute><SchoolYearActivatorPanel /></ProtectedRoute>} />
-                <Route path="/student_page" element={<ProtectedRoute><StudentPage /></ProtectedRoute>} />
                 <Route path="/adm_form" element={<ProtectedRoute><AdmForm /></ProtectedRoute>} />
                 <Route path="/family_background" element={<ProtectedRoute><FamilyBackgroundForm /></ProtectedRoute>} />
                 <Route path="/educational_attainment_form" element={<ProtectedRoute><EducationalAttainmentForm /></ProtectedRoute>} />
@@ -137,11 +142,17 @@ import ApplicantOtherInformation from './components/ApplicantOtherInfo';
                 <Route path="/department_room" element={<ProtectedRoute><DepartmentRoom /></ProtectedRoute>} />
                 <Route path="/search_cor" element={<ProtectedRoute><SearchStudentCOR /></ProtectedRoute>} />
                 <Route path="/select_college" element={<ProtectedRoute><ScheduleFilterer /></ProtectedRoute>} />
-                <Route path="/applicant_personal_information" element={<ProtectedRoute><ApplicantPersonalInfoForm /></ProtectedRoute>} />
-                <Route path="/applicant_family_background" element={<ProtectedRoute><ApplicantFamilyBackground/></ProtectedRoute>} />
-                <Route path="/applicant_educational_attainment" element={<ProtectedRoute><ApplicantEducationalAttainment /></ProtectedRoute>} />
-                <Route path="/applicant_health_medical_records" element={<ProtectedRoute><ApplicantHealthMedicalRecords/></ProtectedRoute>} />
-                <Route path="/applicant_other_information" element={<ProtectedRoute><ApplicantOtherInformation/></ProtectedRoute>} />
+
+                <Route path="/applicant_personal_information" element={<ProtectedRoute allowedRoles={['applicant']}><ApplicantPersonalInfoForm /></ProtectedRoute>} />
+                <Route path="/applicant_family_background" element={<ProtectedRoute allowedRoles={['applicant']}><ApplicantFamilyBackground/></ProtectedRoute>} />
+                <Route path="/applicant_educational_attainment" element={<ProtectedRoute allowedRoles={['applicant']}><ApplicantEducationalAttainment /></ProtectedRoute>} />
+                <Route path="/applicant_health_medical_records" element={<ProtectedRoute allowedRoles={['applicant']}><ApplicantHealthMedicalRecords/></ProtectedRoute>} />
+                <Route path="/applicant_other_information" element={<ProtectedRoute allowedRoles={['applicant']}><ApplicantOtherInformation/></ProtectedRoute>} />
+
+
+
+
+                <Route path="/unauthorized" element={<Unauthorized />} />
               </Routes>
             </main>
           </div>

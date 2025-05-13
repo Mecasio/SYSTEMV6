@@ -91,8 +91,8 @@ app.post("/register", async (req, res) => {
     const [result1] = await db.query(query1);
     const person_id = result1.insertId;
 
-    // Second insert into users_account
-    const query2 = 'INSERT INTO users_account (person_id, email, password) VALUES (?, ?, ?)';
+    // Second insert into user_accounts
+    const query2 = 'INSERT INTO user_accounts (person_id, email, password) VALUES (?, ?, ?)';
     const [result2] = await db.query(query2, [person_id, email, hashedPassword]);
 
     res.status(201).send({ message: "Registered Successfully", person_id });
@@ -109,7 +109,7 @@ app.post("/register", async (req, res) => {
 //GET ADMITTED USERS (UPDATED!)
 app.get('/admitted_users', async (req, res) => {
     try{
-      const query = 'SELECT * FROM users_account';
+      const query = 'SELECT * FROM user_accounts';
       const [result] = await db.query(query);
 
       res.status(200).send(result);
@@ -124,7 +124,7 @@ app.post('/transfer', async (req, res) => {
   const { person_id } = req.body;
 
   try {
-    const fetchQuery = 'SELECT * FROM users_account WHERE person_id = ?';
+    const fetchQuery = 'SELECT * FROM user_accounts WHERE person_id = ?';
     const [result1] = await db.query(fetchQuery, [person_id]);
 
     if (result1.length === 0) {
@@ -471,7 +471,7 @@ app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const [rows] = await db2.query('SELECT * FROM user_accounts WHERE email = ?', [email]);
+    const [rows] = await db.query('SELECT * FROM user_accounts WHERE email = ?', [email]);
 
     if (rows.length === 0) {
       return res.status(400).send({ message: 'User not found...' });
@@ -489,6 +489,7 @@ app.post("/login", async (req, res) => {
         id: user.id,
         person_id: user.person_id,
         email: user.email,
+        role: user.role,
       },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
@@ -498,7 +499,8 @@ app.post("/login", async (req, res) => {
       token,
       user: {
         person_id: user.person_id,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
 

@@ -46,11 +46,20 @@ const Login = ({ setIsAuthenticated }) => {
                     const decoded = JSON.parse(atob(data.token.split('.')[1]));
                     console.log('Decoded JWT:', decoded);
 
-                    setIsAuthenticated(true); 
-                    navigate('/dashboard');
+                    if (decoded.role === 'superadmin' || decoded.role === 'administrator') {
+                        setIsAuthenticated(true);
+                        navigate('/dashboard');
+                    } else if (decoded.role === 'applicant') {
+                        setIsAuthenticated(true);
+                        navigate('/applicant_personal_information');
+                    } else if (decoded.role === 'faculty') {
+                        setIsAuthenticated(true);
+                        navigate('/faculty_dashboard');
+                    } else {
+                        setErrorMessage('Unauthorized role');
+                    }
                 } else {
                     setErrorMessage('No token received from the server.');
-                    console.error('No token received');
                 }
             } else {
                 const data = await response.json();
@@ -65,7 +74,7 @@ const Login = ({ setIsAuthenticated }) => {
 
     return (
         <>  
-            <Container style={{display: "flex", alignItems: "center", justifyContent: 'center', height: '100%'}}>
+            <Container style={{display: "flex", alignItems: "center", marginTop: '1.5%', justifyContent: 'center', height: '100%'}}>
                 <div className="Container">
                     <div className="Header">
                         <div className="HeaderTitle">
