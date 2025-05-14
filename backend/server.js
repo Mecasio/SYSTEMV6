@@ -154,36 +154,48 @@ app.post('/transfer', async (req, res) => {
   }
 });
 
-// ADM FORM PANEL (UPLOAD REQUIREMENTS) (UPDATED!)
-app.post("/upload", upload.single("file"), async (req, res) => {
-  const { requirementId } = req.body;
+// upload requirements
+app.post('/upload', upload.single('file'), async (req, res) => {
+  const { requirements_id, person_id } = req.body;
 
-  // Check if a file was uploaded
   if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded" });
-  }
-
-  // Check if requirementId is provided
-  if (!requirementId) {
-    return res.status(400).json({ error: "Missing requirementId" });
+    return res.status(400).json({ message: 'No file uploaded' });
   }
 
   const filePath = `/uploads/${req.file.filename}`;
+  const sql = `INSERT INTO requirement_uploads (requirements_id, person_id, file_path) VALUES (?, ?, ?)`;
 
   try {
-    const sql = "UPDATE admission_requirement SET image_path = ? WHERE requirements_id = ?";
-    const [result] = await db.query(sql, [filePath, requirementId]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Requirement not found" });
-    }
-
-    res.status(200).json({ message: "File uploaded successfully", filePath });
+    const [result] = await db.query(sql, [requirements_id, person_id, filePath]);
+    res.status(201).json({ message: 'Upload successful', insertId: result.insertId });
   } catch (err) {
-    console.error("Database error:", err);
-    res.status(500).json({ error: "Failed to update record" });
+    res.status(500).json({ message: 'Database error', error: err });
   }
 });
+
+
+app.get('/uploads', async (req, res) => {
+  const query = `
+    SELECT 
+      ru.upload_id, 
+      r.description, 
+      ru.file_path, 
+      ru.created_at
+    FROM requirement_uploads ru
+    JOIN requirements_table r ON ru.requirements_id = r.id
+  `;
+
+  try {
+    const [results] = await db.query(query);
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(500).json({ message: 'Internal Server Error', error: err });
+  }
+});
+
+
+
+
 
 // GET THE APPLICANT REQUIREMENTS (UPDATED!)
 app.get("/applicant-requirements", async (req, res) => {
@@ -1595,7 +1607,7 @@ app.post("/requirements", async (req, res) => {
     return res.status(400).json({ error: "Description required" });
   }
 
-  const query = "INSERT INTO requirements (requirements_description) VALUES (?)";
+  const query = "INSERT INTO requirements_table (requirements_description) VALUES (?)";
 
   try {
     // Execute the query using promise-based `execute` method
@@ -1612,7 +1624,7 @@ app.post("/requirements", async (req, res) => {
 
 // GET THE REQUIREMENTS (UPDATED!)
 app.get("/requirements", async (req, res) => {
-  const query = "SELECT * FROM requirements ORDER BY requirements_id DESC";
+  const query = "SELECT * FROM requirements_table";
 
   try {
     // Execute the query using promise-based `execute` method
@@ -1630,7 +1642,7 @@ app.get("/requirements", async (req, res) => {
 // DELETE (REQUIREMNET PANEL)
 app.delete("/requirements_table/:id", async (req, res) => {
   const { id } = req.params;
-  const query = "DELETE FROM requirements WHERE requirements_id = ?";
+  const query = "DELETE FROM requirements_table WHERE requirements_id = ?";
 
   try {
     const [result] = await db.execute(query, [id]);

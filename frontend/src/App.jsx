@@ -27,7 +27,6 @@ import YearUpdateForm from './components/YearUpdateForm';
 import SemesterPanel from './components/SemesterPanel';
 import SchoolYearPanel from './components/SchoolYearPanel';
 import SchoolYearActivatorPanel from './components/SchoolYearActivatorPanel';
-import AdmForm from './components/adm_form';
 import FamilyBackgroundForm from './components/FamilyBackground';
 import EducationalAttainmentForm from './components/EducationalAttainment';
 import ApplicantRequirement from './components/applicant_requirement';
@@ -58,6 +57,7 @@ import Dashboard from './pages/Dashboard'; // For SuperAdmin & Admin
 
 
 import Unauthorized from './components/Unauthorized';
+import RequirementUploader from './components/RequirementUploader';
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -125,11 +125,11 @@ import Unauthorized from './components/Unauthorized';
                 <Route path="/semester_panel" element={<ProtectedRoute><SemesterPanel /></ProtectedRoute>} />
                 <Route path="/school_year_panel" element={<ProtectedRoute><SchoolYearPanel /></ProtectedRoute>} />
                 <Route path="/school_year_activator_panel" element={<ProtectedRoute><SchoolYearActivatorPanel /></ProtectedRoute>} />
-                <Route path="/adm_form" element={<ProtectedRoute><AdmForm /></ProtectedRoute>} />
                 <Route path="/family_background" element={<ProtectedRoute><FamilyBackgroundForm /></ProtectedRoute>} />
                 <Route path="/educational_attainment_form" element={<ProtectedRoute><EducationalAttainmentForm /></ProtectedRoute>} />
                 <Route path="/applicant_requirement" element={<ProtectedRoute><ApplicantRequirement /></ProtectedRoute>} />
                 <Route path="/requirements_form" element={<ProtectedRoute><RequirementsForm /></ProtectedRoute>} />
+                <Route path="/requirements_uploader" element={<ProtectedRoute allowedRoles={['applicant']}><RequirementUploader /></ProtectedRoute>} />
                 <Route path="/admission_dashboard" element={<ProtectedRoute><AdmissionDashboardPanel /></ProtectedRoute>} />
                 <Route path="/department_dashboard" element={<ProtectedRoute><DepartmentManagement /></ProtectedRoute>} />
                 <Route path="/system_dashboard" element={<ProtectedRoute><SystemDashboardPanel /></ProtectedRoute>} />
