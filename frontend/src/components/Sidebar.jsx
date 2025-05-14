@@ -42,7 +42,12 @@
                 color: 'maroon',
                 bgcolor: 'transparent'
               }}/>
-              <span className='mt-4'>Administrator</span>
+              { role === 'superadmin' && (
+                <span className='mt-4'>Administrator</span>
+              )} 
+              { role === 'applicant' && (
+                <span className='mt-4'>Applicant</span>
+              )} 
           </div>
           <br />
           <hr className='bg-maroon-500'/>

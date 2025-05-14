@@ -50,23 +50,12 @@
       queueLimit: 0,
   });
 
-  //MYSQL CONNECTION FOR ENROLLMENT
-  const db2 = mysql.createPool({
-      host: 'localhost',
-      user: 'root',
-      password: '',
-      database: 'enrollment',
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-  });
-
   //MYSQL CONNECTION FOR ROOM MANAGEMENT AND OTHERS
   const db3 = mysql.createPool({
       host: 'localhost',
       user: 'root',
       password: '',
-      database: 'earist_sis',
+      database: 'enrollment',
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
@@ -134,7 +123,7 @@ app.post('/transfer', async (req, res) => {
     const user = result1[0];
 
     const insertPersonQuery = 'INSERT INTO person_table (first_name, middle_name, last_name) VALUES (?, ?, ?)';
-    const [personResult] = await db2.query(insertPersonQuery, [
+    const [personResult] = await db3.query(insertPersonQuery, [
       user.first_name,
       user.middle_name,
       user.last_name
@@ -143,7 +132,7 @@ app.post('/transfer', async (req, res) => {
     const newPersonId = personResult.insertId;
 
     const insertUserQuery = 'INSERT INTO user_accounts (person_id, email, password) VALUES (?, ?, ?)';
-    await db2.query(insertUserQuery, [newPersonId, user.email, user.password]);
+    await db3.query(insertUserQuery, [newPersonId, user.email, user.password]);
 
     console.log("User transferred successfully:", user.email);
     return res.status(200).send({ message: 'User transferred successfully', email: user.email });
@@ -527,7 +516,7 @@ app.get('/enrolled_users',  async(req, res) => {
   try {
     const query = 'SELECT * FROM user_accounts';
     
-    const [result] = await db2.query(query);
+    const [result] = await db3.query(query);
     res.status(200).send(result);
   }
   catch(error){
@@ -1442,7 +1431,7 @@ app.get('/get_enrolled_students/:subject_id/:department_section_id/:active_schoo
         AND time_table.school_year_id = enrolled_subject.active_school_year_id
     INNER JOIN student_numbering_table
         ON enrolled_subject.student_number = student_numbering_table.student_number
-    INNER JOIN enrollment.person_table
+    INNER JOIN person_table
         ON student_numbering_table.person_id = person_table.person_id
     WHERE time_table.course_id = ? 
         AND time_table.department_section_id = ? 
@@ -1771,7 +1760,7 @@ app.get("/api/persons", async (req, res) => {
     // Execute the query using the promise-based API
     const [rows] = await db3.execute(`
       SELECT p.* 
-      FROM enrollment.person_table p
+      FROM person_table p
       JOIN person_status_table ps ON p.person_id = ps.person_id
       WHERE ps.student_registration_status = 0
     `);
@@ -2096,7 +2085,7 @@ app.post("/student-tagging", async (req, res) => {
     INNER JOIN curriculum_table as c ON c.curriculum_id = ss.active_curriculum
     INNER JOIN program_table as pt ON c.program_id = pt.program_id
     INNER JOIN student_numbering_table as sn ON sn.student_number = ss.student_number
-    INNER JOIN enrollment.person_table as ptbl ON ptbl.person_id = sn.person_id  
+    INNER JOIN person_table as ptbl ON ptbl.person_id = sn.person_id  
     WHERE ss.student_number = ?`;
     
     const [results] = await db3.query(sql, [studentNumber]);
@@ -2254,7 +2243,7 @@ app.get("/api/user/:person_id", async (req, res) => {
 
   try {
     const sql = "SELECT profile_img FROM person_table WHERE person_id = ?";
-    const [results] = await db2.query(sql, [person_id]);
+    const [results] = await db3.query(sql, [person_id]);
 
     if (results.length === 0) {
       return res.status(404).send("User not found");
@@ -2277,7 +2266,7 @@ app.post("/api/register", async (req, res) => {
 
   try {
     const sql = "INSERT INTO person_table (first_name, middle_name, last_name) VALUES (?, ?, ?)";
-    const [result] = await db2.query(sql, [first_name, middle_name, last_name]);
+    const [result] = await db3.query(sql, [first_name, middle_name, last_name]);
     const person_id = result.insertId;
     res.json({ person_id });
   } catch (err) {
@@ -2344,7 +2333,7 @@ app.post("/api/upload-profile-picture", upload.single("profile_picture"), async 
     await fs.promises.rename(oldPath, newPath);
 
     const sql = "UPDATE person_table SET profile_img = ? WHERE person_id = ?";
-    await db2.query(sql, [newFilename, person_id]);
+    await db3.query(sql, [newFilename, person_id]);
     res.send("Profile picture uploaded successfully");
   } catch (err) {
     console.error("Error processing file:", err);
