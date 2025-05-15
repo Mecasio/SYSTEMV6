@@ -29,7 +29,6 @@ import SchoolYearPanel from './components/SchoolYearPanel';
 import SchoolYearActivatorPanel from './components/SchoolYearActivatorPanel';
 import FamilyBackgroundForm from './components/FamilyBackground';
 import EducationalAttainmentForm from './components/EducationalAttainment';
-import ApplicantRequirement from './components/applicant_requirement';
 import RequirementsForm from './components/RequirementsForm';
 import AdmissionDashboardPanel from './pages/AdmissionDashboard';
 import SystemDashboardPanel from './pages/SystemDashboard';
@@ -58,6 +57,7 @@ import Dashboard from './pages/Dashboard'; // For SuperAdmin & Admin
 
 import Unauthorized from './components/Unauthorized';
 import RequirementUploader from './components/RequirementUploader';
+import GradingSheet from './components/GradingSheet';
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -127,7 +127,6 @@ import RequirementUploader from './components/RequirementUploader';
                 <Route path="/school_year_activator_panel" element={<ProtectedRoute><SchoolYearActivatorPanel /></ProtectedRoute>} />
                 <Route path="/family_background" element={<ProtectedRoute><FamilyBackgroundForm /></ProtectedRoute>} />
                 <Route path="/educational_attainment_form" element={<ProtectedRoute><EducationalAttainmentForm /></ProtectedRoute>} />
-                <Route path="/applicant_requirement" element={<ProtectedRoute><ApplicantRequirement /></ProtectedRoute>} />
                 <Route path="/requirements_form" element={<ProtectedRoute><RequirementsForm /></ProtectedRoute>} />
                 <Route path="/requirements_uploader" element={<ProtectedRoute allowedRoles={['applicant']}><RequirementUploader /></ProtectedRoute>} />
                 <Route path="/admission_dashboard" element={<ProtectedRoute><AdmissionDashboardPanel /></ProtectedRoute>} />
@@ -149,9 +148,8 @@ import RequirementUploader from './components/RequirementUploader';
                 <Route path="/applicant_health_medical_records" element={<ProtectedRoute allowedRoles={['applicant']}><ApplicantHealthMedicalRecords/></ProtectedRoute>} />
                 <Route path="/applicant_other_information" element={<ProtectedRoute allowedRoles={['applicant']}><ApplicantOtherInformation/></ProtectedRoute>} />
 
-
-
-
+                <Route path="/grading_sheet" element={<ProtectedRoute><GradingSheet /></ProtectedRoute>} />
+        
                 <Route path="/unauthorized" element={<Unauthorized />} />
               </Routes>
             </main>

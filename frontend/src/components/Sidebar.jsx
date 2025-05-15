@@ -114,6 +114,48 @@
             </Link>
             </>
           )}
+          {role === 'faculty' && (
+            <>
+            <Link to="/faculty_dashboard">
+            <li className={`w-full flex items-center border border-maroon-500 px-2 rounded button-hover ${location.pathname === "/faculty_dashboard" ? "bg-maroon-500 text-white" : ""}`} >
+              <Dashboard/>
+              <span className='pl-4 p-2 px-0 pointer-events-none'>Dashboard</span>
+            </li>
+            </Link>
+
+            <Link to="/grading_sheet">
+            <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/grading_sheet" ? "bg-maroon-500 text-white" : ""}`}>
+              <Business />
+              <span className='pl-4 p-2 px-0 pointer-events-none'>Grading Management</span>
+            </li>
+            </Link>
+
+            <Link to="/master_list">
+            <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/requirements_uploader" ? "bg-maroon-500 text-white" : ""}`}>
+              <Business />
+              <span className='pl-4 p-2 px-0 pointer-events-none'>Master List</span>
+            </li>
+            </Link>
+            <Link to="/master_list">
+            <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/requirements_uploader" ? "bg-maroon-500 text-white" : ""}`}>
+              <Business />
+              <span className='pl-4 p-2 px-0 pointer-events-none'>Workload</span>
+            </li>
+            </Link>
+            <Link to="/master_list">
+            <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/requirements_uploader" ? "bg-maroon-500 text-white" : ""}`}>
+              <Business />
+              <span className='pl-4 p-2 px-0 pointer-events-none'>Schedule</span>
+            </li>
+            </Link>
+            <Link to="/master_list">
+            <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/requirements_uploader" ? "bg-maroon-500 text-white" : ""}`}>
+              <Business />
+              <span className='pl-4 p-2 px-0 pointer-events-none'>Calendar</span>
+            </li>
+            </Link>
+            </>
+          )}
           <li className='w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 cursor-pointer button-hover' onClick={Logout}>
             <LogoutOutlined />
             <button className='pl-4 p-2 px-0 pointer-events-none'>Logout</button>

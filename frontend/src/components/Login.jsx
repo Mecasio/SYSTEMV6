@@ -9,6 +9,7 @@ const Login = ({ setIsAuthenticated }) => {
     const [usersData, setUserData] = useState({
         email: '',
         password: '',
+        role: '',
     });
 
     const navigate = useNavigate();
@@ -88,6 +89,21 @@ const Login = ({ setIsAuthenticated }) => {
                         </div>
                     </div>
                     <div className="Body">
+                        <div className="TextField">
+                            <label htmlFor="role">Select Role</label>
+                            <select
+                                id="role"
+                                name="role"
+                                className="border"
+                                value={usersData.role}
+                                onChange={handleChanges}
+                            >
+                                <option value="">-- Select Role --</option>
+                                <option value="applicant">Applicant</option>
+                                <option value="faculty">Faculty</option>
+                                <option value="superadmin">Superadmin</option>
+                            </select>
+                        </div>
                         <div className="TextField">
                             <label htmlFor="email">Email Address</label>
                             <input

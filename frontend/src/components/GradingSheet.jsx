@@ -31,9 +31,14 @@ const GradingSheet = () => {
         try {
           const response = await fetch(`http://localhost:5000/get_enrolled_students/${subject_id}/${department_section_id}/${active_school_year_id}`);
           const data = await response.json();
-      
+          console.log("Fetched students data:", data);
           if (response.ok) {
-            setStudents(data);
+            const studentsWithSubject = data.students.map((student) => ({
+              ...student,
+              subject_id,
+              department_section_id,
+            }));
+            setStudents(studentsWithSubject);
           } else {
             alert(data.message || "Failed to fetch students.");
           }
@@ -75,7 +80,7 @@ const GradingSheet = () => {
               final_grade: student.final_grade,
               en_remarks: student.en_remarks,
               student_number: student.student_number,
-              subject_id: student.subject_id
+              subject_id: student.subject_id,
             })
           });
       
@@ -120,7 +125,6 @@ const GradingSheet = () => {
 
         return finalGrade.toFixed(0);
       };
-      
 
   return (
     <div>
@@ -233,7 +237,13 @@ const GradingSheet = () => {
                 </TableCell>
                 
                 <TableCell style={{padding: '0.5rem', width: '10%', borderColor: 'gray', borderWidth: '1px 0px 1px 1px', borderStyle: 'solid'}}>
-                  {remarkConversion(student)}
+                  <select name="en_remarks" id="" value={students.en_remarks} className="w-full outline-none" onChange={(e) => handleChanges(index, 'en_remarks', parseInt(e.target.value))}>
+                    <option value="">{remarkConversion(student)}</option>
+                    <option value="0">DROP</option>
+                    <option value="1">PASSED</option>
+                    <option value="2">FAILED</option>
+                    <option value="3">INCOMPLETE</option>
+                  </select>
                 </TableCell>
                
                 <TableCell style={{padding: '0.5rem', width: '10%', borderColor: 'gray', borderWidth: '1px 1px 1px 1px', borderStyle: 'solid'}}>

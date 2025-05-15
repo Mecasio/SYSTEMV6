@@ -469,47 +469,110 @@ app.delete("/person_table/:person_id", async (req, res) => {
 
 // LOGIN PANEL (UPDATED!)
 app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
+
+  if (!email || !password || !role) {
+    return res.status(400).json({ message: "Email, password, and role are required" });
+  }
 
   try {
-    const [rows] = await db.query('SELECT * FROM user_accounts WHERE email = ?', [email]);
+    let user, token, mappings = [];
+    
+    if (role === "applicant" || role === "superadmin") {
+      const [rows] = await db.query("SELECT * FROM user_accounts WHERE email = ?", [email]);
 
-    if (rows.length === 0) {
-      return res.status(400).send({ message: 'User not found...' });
-    }
+      if (rows.length === 0) {
+        return res.status(400).json({ message: "User not found" });
+      }
 
-    const user = rows[0];
-    const isMatch = await bcrypt.compare(password, user.password);
+      user = rows[0];
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
 
-    if (!isMatch) {
-      return res.status(400).send({ message: 'Invalid credentials' });
-    }
+      token = webtoken.sign(
+        {
+          id: user.id,
+          person_id: user.person_id,
+          email: user.email,
+          role: user.role
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
 
-    const token = webtoken.sign(
-      {
-        id: user.id,
-        person_id: user.person_id,
+      return res.status(200).json({
+        message: "User login successful",
+        token,
+        user: {
+          person_id: user.person_id,
+          email: user.email,
+          role: user.role
+        }
+      });
+
+    } else if (role === "faculty") {
+      const sql = `
+        SELECT prof_table.*, time_table.*
+        FROM prof_table
+        LEFT JOIN time_table ON prof_table.prof_id = time_table.professor_id
+        WHERE prof_table.email = ?
+      `;
+      const [results] = await db3.query(sql, [email]);
+
+      if (results.length === 0) {
+        return res.status(400).json({ message: "Invalid email or password" });
+      }
+
+      user = results[0];
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Invalid email or password" });
+      }
+
+      token = webtoken.sign(
+        {
+          prof_id: user.prof_id,
+          fname: user.fname,
+          mname: user.mname,
+          lname: user.lname,
+          email: user.email,
+          role: user.role,
+          school_year_id: user.school_year_id
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+
+      mappings = results.map(row => ({
+        department_section_id: row.department_section_id,
+        subject_id: row.course_id
+      }));
+
+      return res.status(200).json({
+        message: "Professor login successful",
+        token,
+        prof_id: user.prof_id,
+        fname: user.fname,
+        mname: user.mname,
+        lname: user.lname,
         email: user.email,
         role: user.role,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+        subject_section_mappings: mappings,
+        school_year_id: user.school_year_id
+      });
 
-    res.status(200).send({
-      token,
-      user: {
-        person_id: user.person_id,
-        email: user.email,
-        role: user.role
-      }
-    });
+    } else {
+      return res.status(400).json({ message: "Invalid role specified" });
+    }
 
   } catch (err) {
-    console.error(err);
-    res.status(500).send({ message: 'Server error', error: err.message });
+    console.error("Login error:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
 
 //READ ENROLLED USERS (UPDATED!)
 app.get('/enrolled_users',  async(req, res) => {  
@@ -1379,6 +1442,7 @@ app.post("/login_prof", async (req, res) => {
         mname: user.mname, 
         lname: user.lname, 
         email: user.email, 
+        role: user.role,
         school_year_id: user.school_year_id 
       },
       process.env.JWT_SECRET,
@@ -1403,6 +1467,7 @@ app.post("/login_prof", async (req, res) => {
       mname: user.mname, 
       lname: user.lname, 
       email: user.email,
+      role: user.role,
       subject_section_mappings: mappings,
       school_year_id: user.school_year_id
     });

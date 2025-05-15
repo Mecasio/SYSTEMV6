@@ -83,6 +83,12 @@
     border-color: rgb(229, 32, 32, 0.4);
 }
 
+.TextField select{
+    border-radius: 8px;
+    padding: 10px 15px;
+    border-color: rgb(229, 32, 32, 0.4);
+}
+
 .Button{
     background-color: #6D2323;
     text-align: center;
