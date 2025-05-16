@@ -2414,6 +2414,31 @@ app.post("/api/upload-profile-picture", upload.single("profile_picture"), async 
   }
 });
 
+
+app.get('/api/professor-schedule/:profId', async (req, res) => {
+  const profId = req.params.profId;
+
+  try {
+    const [results] = await db3.execute(`
+      SELECT 
+        t.room_day,
+        d.description as day,
+        st1.description AS start_time,
+        st2.description AS end_time
+      FROM time_table t
+      JOIN room_day_table d ON d.id = t.room_day
+      JOIN school_time_table st1 ON st1.id = t.school_time_start
+      JOIN school_time_table st2 ON st2.id = t.school_time_end
+      WHERE t.professor_id = ?
+    `, [profId]);
+
+    res.json(results);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('DB Error');
+  }
+});
+
 app.listen(5000, () => {
     console.log('Server runnning');
 });
