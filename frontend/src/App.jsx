@@ -58,6 +58,7 @@ import Dashboard from './pages/Dashboard'; // For SuperAdmin & Admin
 import Unauthorized from './components/Unauthorized';
 import RequirementUploader from './components/RequirementUploader';
 import GradingSheet from './components/GradingSheet';
+import FacultyWorkload from './components/FacultyWorkload';
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -149,7 +150,8 @@ import GradingSheet from './components/GradingSheet';
                 <Route path="/applicant_other_information" element={<ProtectedRoute allowedRoles={['applicant']}><ApplicantOtherInformation/></ProtectedRoute>} />
 
                 <Route path="/grading_sheet" element={<ProtectedRoute><GradingSheet /></ProtectedRoute>} />
-        
+                <Route path="/faculty_workload" element={<ProtectedRoute><FacultyWorkload /></ProtectedRoute>} />
+                
                 <Route path="/unauthorized" element={<Unauthorized />} />
               </Routes>
             </main>

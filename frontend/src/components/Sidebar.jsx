@@ -48,6 +48,9 @@
               { role === 'applicant' && (
                 <span className='mt-4'>Applicant</span>
               )} 
+              { role === 'faculty' && (
+                <span className='mt-4'>Faculty</span>
+              )} 
           </div>
           <br />
           <hr className='bg-maroon-500'/>
@@ -136,7 +139,7 @@
               <span className='pl-4 p-2 px-0 pointer-events-none'>Master List</span>
             </li>
             </Link>
-            <Link to="/master_list">
+            <Link to="/faculty_workload">
             <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/requirements_uploader" ? "bg-maroon-500 text-white" : ""}`}>
               <Business />
               <span className='pl-4 p-2 px-0 pointer-events-none'>Workload</span>

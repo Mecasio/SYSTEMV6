@@ -44,8 +44,18 @@ const Login = ({ setIsAuthenticated }) => {
 
                 if (data.token) {
                     localStorage.setItem('token', data.token);
+                    localStorage.setItem("prof_id", data.prof_id);
+                    localStorage.setItem("email", data.email);
+                    localStorage.setItem("fname", data.fname);
+                    localStorage.setItem("mname", data.mname);
+                    localStorage.setItem("lname", data.lname);
+                    localStorage.setItem("email", data.email);
+                    localStorage.setItem("profile_img", data.profile_img);
+                    localStorage.setItem("subject_section_mappings", JSON.stringify(data.subject_section_mappings));
+                    localStorage.setItem("school_year_id", data.school_year_id);
                     const decoded = JSON.parse(atob(data.token.split('.')[1]));
                     console.log('Decoded JWT:', decoded);
+                    console.log("profile_image:", data.profile_img);
 
                     if (decoded.role === 'superadmin' || decoded.role === 'administrator') {
                         setIsAuthenticated(true);

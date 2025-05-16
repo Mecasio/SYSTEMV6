@@ -539,6 +539,7 @@ app.post("/login", async (req, res) => {
           lname: user.lname,
           email: user.email,
           role: user.role,
+          profile_img: user.profile_image,
           school_year_id: user.school_year_id
         },
         process.env.JWT_SECRET,
@@ -559,6 +560,7 @@ app.post("/login", async (req, res) => {
         lname: user.lname,
         email: user.email,
         role: user.role,
+        profile_img: user.profile_image,
         subject_section_mappings: mappings,
         school_year_id: user.school_year_id
       });
@@ -1370,37 +1372,43 @@ app.get('/department_section', async (req, res) => {
 
 
 // PROFESSOR REGISTRATION (UPDATED!)
-app.post('/register_prof', async (req, res) => {
+// Updated route to handle multipart/form-data (with file)
+app.post('/register_prof', upload.single('profileImage'), async (req, res) => {
   const { fname, mname, lname, email, password } = req.body;
+  const profileImage = req.file ? req.file.filename : null;
 
-  // Validate input
-  if (!fname || !lname || !email || !password) {
-    return res.status(400).json({ error: 'First name, last name, email, and password are required' });
+  if (!fname || !lname || !email || !password || !profileImage) {
+    return res.status(400).json({ error: 'All fields including profile image are required' });
   }
 
   try {
-    // Hash password
     const hashedProfPassword = await bcrypt.hash(password, 10);
 
-    // Insert professor into the database
-    const queryForProf = 'INSERT INTO prof_table (fname, mname, lname, email, password, status) VALUES (?, ?, ?, ?, ?, ?)';
-    const [result] = await db3.query(queryForProf, [fname, mname, lname, email, hashedProfPassword, 0]);
+    const queryForProf = `
+      INSERT INTO prof_table (fname, mname, lname, email, password, status) 
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    const [result] = await db3.query(queryForProf, [
+      fname,
+      mname,
+      lname,
+      email,
+      hashedProfPassword,
+      0,
+      profileImage
+    ]);
 
-    // Return success response
     res.status(201).json({
       message: 'Professor registered successfully',
       professorId: result.insertId,
     });
 
   } catch (err) {
-    // Log the error and return an error response
     console.error('Error registering professor:', err);
-    res.status(500).json({
-      error: 'Internal Server Error',
-      details: err.message,
-    });
+    res.status(500).json({ error: 'Internal Server Error', details: err.message });
   }
 });
+
 
 // LOGIN PROFESSOR (UPDATED!)
 app.post("/login_prof", async (req, res) => {

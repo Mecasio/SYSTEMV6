@@ -173,13 +173,6 @@ const GradingSheet = () => {
 
             <TableCell style={{borderColor: 'gray', borderStyle: 'solid', borderWidth: '1px 1px 1px 0px', padding: '0rem 1rem'}}>
               <div style={{display: 'flex', alignItems: 'center'}}>
-                <p style={{width: '100%'}}>Section</p>
-                <div><SortingIcon /></div>
-              </div>
-            </TableCell>
-
-            <TableCell style={{borderColor: 'gray', borderStyle: 'solid', borderWidth: '1px 1px 1px 0px', padding: '0rem 1rem'}}>
-              <div style={{display: 'flex', alignItems: 'center'}}>
                 <p style={{width: '100%'}}>Midterm</p>
                 <div><SortingIcon /></div>
               </div>
@@ -229,10 +222,6 @@ const GradingSheet = () => {
                 
                 <TableCell style={{padding: '0.5rem', width: '15%', borderColor: 'gray', borderWidth: '1px 0px 1px 1px', borderStyle: 'solid'}}>
                 {student.last_name}, {student.first_name} {student.middle_name} 
-                </TableCell>
-
-                <TableCell style={{padding: '0.5rem', width: '10%', textAlign: 'center', borderColor: 'gray', borderWidth: '1px 0px 1px 1px', borderStyle: 'solid'}}>
-                {student.section_description} 
                 </TableCell>
 
                 <TableCell style={{padding: '0.5rem', width: '1%', borderColor: 'gray', borderWidth: '1px 0px 1px 1px', borderStyle: 'solid'}}>
