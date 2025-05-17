@@ -1,8 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import EaristLogo from '../assets/EaristLogo.png';
-import TempPic from '../assets/TempPic.jpg';
-
 
 const FacultyWorkload = () => {
 
@@ -16,9 +14,9 @@ const FacultyWorkload = () => {
         subject_id: '',
         mappings: [],
         active_school_year_id: ''
-      });
+    });
     
-      useEffect(() => {
+    useEffect(() => {
         const prof_id = localStorage.getItem("prof_id");
         const fname = localStorage.getItem("fname");
         const mname = localStorage.getItem("mname");
@@ -27,10 +25,9 @@ const FacultyWorkload = () => {
         const mappings = JSON.parse(localStorage.getItem("subject_section_mappings")) || [];
         const active_school_year_id = localStorage.getItem("school_year_id");
         setProfData({ prof_id, fname, mname, lname, profile_img, mappings, active_school_year_id});
-      }, []);
+    }, []);
 
-      const [schedule, setSchedule] = useState([]);
-
+    const [schedule, setSchedule] = useState([]);
         useEffect(() => {
             if (!profData.prof_id) return; 
             
@@ -56,15 +53,15 @@ const FacultyWorkload = () => {
           
             return schedule.some(entry => {
                 if (entry.day !== day) return false;
-                const slotStart = parseTime(start);
-                const slotEnd = parseTime(end);
-                const profStart = parseTime(entry.start_time);
-                const profEnd = parseTime(entry.end_time);
-                return slotStart >= profStart && slotEnd <= profEnd;
-            });
-          };
+                    const slotStart = parseTime(start);
+                    const slotEnd = parseTime(end);
+                    const profStart = parseTime(entry.start_time);
+                    const profEnd = parseTime(entry.end_time);
+                    return slotStart >= profStart && slotEnd <= profEnd;
+                });
+            };
 
-          const hasAdjacentSchedule = (start, end, day, direction = "top") => {
+        const hasAdjacentSchedule = (start, end, day, direction = "top") => {
             const parseTime = (timeStr) => new Date(`1970-01-01T${new Date('1970-01-01 ' + timeStr).toTimeString().slice(0,8)}`);
           
             const minutesOffset = direction === "top" ? -60 : 60;
@@ -80,13 +77,10 @@ const FacultyWorkload = () => {
           
               return newStart >= profStart && newEnd <= profEnd;
             });
-          };
+        };
           
-          
-
     return (
         <div className='overflow-y-scroll h-screen relative'>
-            <button className='bg-maroon-500 text-white p-2 px-5 rounded mt-[1rem] absolute right-[2%]'>PRINT</button>
             <div className='min-h-[10rem] mb-[16rem]'>
                 <table className='mt-[2rem]'>
                     <thead>

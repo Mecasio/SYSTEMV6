@@ -241,9 +241,9 @@ app.delete("/applicant-requirements/:id", async (req, res) => {
 });
 
 // -------------------------------------------- GET APPLICANT ADMISSION DATA ------------------------------------------------//
-app.get("/person_table", async (req, res) => {
+app.get("/person_table/:applicant_id", async (req, res) => {
   try {
-    const [results] = await db.query("SELECT * FROM person_table");
+    const [results] = await db.query("SELECT * FROM person_table WHERE person_id = ?");
     res.status(200).send(results);
   } catch (error) {
     res.status(500).send({ message: "Error fetching Personal Information", error });
@@ -468,113 +468,177 @@ app.delete("/person_table/:person_id", async (req, res) => {
 /*---------------------------  ENROLLMENT -----------------------*/ 
 
 // LOGIN PANEL (UPDATED!)
-app.post("/login", async (req, res) => {
-  const { email, password, role } = req.body;
+// app.post("/login", async (req, res) => {
+//   const { email, password } = req.body;
 
-  if (!email || !password || !role) {
-    return res.status(400).json({ message: "Email, password, and role are required" });
+//   if (!email || !password) {
+//     return res.status(400).json({ message: "Email and password are required" });
+//   }
+
+//   try {
+//     let user, token, mappings = [];
+
+//     let [rows] = await db3.query(
+//       "SELECT * FROM user_accounts WHERE email = ? AND role = 'superadmin'",
+//       [email]
+//     );
+//     if (rows.length > 0) {
+//       user = rows[0];
+//       const isMatch = await bcrypt.compare(password, user.password);
+//       if (isMatch) {
+//         token = webtoken.sign(
+//           {
+//             id: user.id,
+//             person_id: user.person_id,
+//             email: user.email,
+//             role: user.role
+//           },
+//           process.env.JWT_SECRET,
+//           { expiresIn: "1h" }
+//         );
+//         return res.status(200).json({
+//           message: "Superadmin login successful",
+//           token,
+//           user: {
+//             person_id: user.person_id,
+//             email: user.email,
+//             role: user.role
+//           }
+//         });
+//       }
+//     }
+
+//     const facultySQL = `
+//       SELECT prof_table.*, time_table.*
+//       FROM prof_table
+//       LEFT JOIN time_table ON prof_table.prof_id = time_table.professor_id
+//       WHERE prof_table.email = ? AND prof_table.role = 'faculty'
+//     `;
+//     const [facultyRows] = await db3.query(facultySQL, [email]);
+
+//     if (facultyRows.length > 0) {
+//       user = facultyRows[0];
+//       const isMatch = await bcrypt.compare(password, user.password);
+//       if (isMatch) {
+//         token = webtoken.sign(
+//           {
+//             prof_id: user.prof_id,
+//             fname: user.fname,
+//             mname: user.mname,
+//             lname: user.lname,
+//             email: user.email,
+//             role: user.role,
+//             profile_img: user.profile_image,
+//             school_year_id: user.school_year_id
+//           },
+//           process.env.JWT_SECRET,
+//           { expiresIn: "1h" }
+//         );
+
+//         mappings = facultyRows.map(row => ({
+//           department_section_id: row.department_section_id,
+//           subject_id: row.course_id
+//         }));
+
+//         return res.status(200).json({
+//           message: "Faculty login successful",
+//           token,
+//           prof_id: user.prof_id,
+//           fname: user.fname,
+//           mname: user.mname,
+//           lname: user.lname,
+//           email: user.email,
+//           role: user.role,
+//           profile_img: user.profile_image,
+//           subject_section_mappings: mappings,
+//           school_year_id: user.school_year_id
+//         });
+//       }
+//     }
+
+//     [rows] = await db.query(
+//       "SELECT * FROM user_accounts WHERE email = ? AND role = 'applicant'",
+//       [email]
+//     );
+//     if (rows.length > 0) {
+//       user = rows[0];
+//       const isMatch = await bcrypt.compare(password, user.password);
+//       if (isMatch) {
+//         token = webtoken.sign(
+//           {
+//             id: user.id,
+//             person_id: user.person_id,
+//             email: user.email,
+//             role: user.role
+//           },
+//           process.env.JWT_SECRET,
+//           { expiresIn: "1h" }
+//         );
+
+//         return res.status(200).json({
+//           message: "Applicant login successful",
+//           token,
+//           user: {
+//             person_id: user.person_id,
+//             email: user.email,
+//             role: user.role
+//           }
+//         });
+//       }
+//     }
+
+//     // If none matched or password was incorrect
+//     return res.status(400).json({ message: "Invalid email or password" });
+
+//   } catch (err) {
+//     console.error("Login error:", err);
+//     return res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// });
+
+// NEW LOGIN API
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "All fields are required" });
   }
 
   try {
-    let user, token, mappings = [];
-    
-    if (role === "applicant" || role === "superadmin") {
-      const [rows] = await db.query("SELECT * FROM user_accounts WHERE email = ?", [email]);
+    const query = `SELECT * FROM user_accounts as ua
+      LEFT JOIN person_table as pt
+      ON pt.person_id = ua.person_id
+    WHERE email = ?`;
 
-      if (rows.length === 0) {
-        return res.status(400).json({ message: "User not found" });
-      }
+    const [results] = await db3.query(query, [email]);
 
-      user = rows[0];
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(400).json({ message: "Invalid credentials" });
-      }
-
-      token = webtoken.sign(
-        {
-          id: user.id,
-          person_id: user.person_id,
-          email: user.email,
-          role: user.role
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-
-      return res.status(200).json({
-        message: "User login successful",
-        token,
-        user: {
-          person_id: user.person_id,
-          email: user.email,
-          role: user.role
-        }
-      });
-
-    } else if (role === "faculty") {
-      const sql = `
-        SELECT prof_table.*, time_table.*
-        FROM prof_table
-        LEFT JOIN time_table ON prof_table.prof_id = time_table.professor_id
-        WHERE prof_table.email = ?
-      `;
-      const [results] = await db3.query(sql, [email]);
-
-      if (results.length === 0) {
-        return res.status(400).json({ message: "Invalid email or password" });
-      }
-
-      user = results[0];
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(400).json({ message: "Invalid email or password" });
-      }
-
-      token = webtoken.sign(
-        {
-          prof_id: user.prof_id,
-          fname: user.fname,
-          mname: user.mname,
-          lname: user.lname,
-          email: user.email,
-          role: user.role,
-          profile_img: user.profile_image,
-          school_year_id: user.school_year_id
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-
-      mappings = results.map(row => ({
-        department_section_id: row.department_section_id,
-        subject_id: row.course_id
-      }));
-
-      return res.status(200).json({
-        message: "Professor login successful",
-        token,
-        prof_id: user.prof_id,
-        fname: user.fname,
-        mname: user.mname,
-        lname: user.lname,
-        email: user.email,
-        role: user.role,
-        profile_img: user.profile_image,
-        subject_section_mappings: mappings,
-        school_year_id: user.school_year_id
-      });
-
-    } else {
-      return res.status(400).json({ message: "Invalid role specified" });
+    if (results.length === 0) {
+      return res.status(400).json({ message: "Invalid email or password" });
     }
 
-  } catch (err) {
-    console.error("Login error:", err);
-    return res.status(500).json({ message: "Server error", error: err.message });
+    const user = results[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const token = webtoken.sign({ person_id: user.person_id, email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+    console.log("Login response:", { token, person_id: user.person_id, email: user.email, role: user.role });
+
+    res.json({
+      message: "Login successful",
+      token,
+      email: user.email,
+      role: user.role,
+      person_id: user.person_id,
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error during login" });
   }
 });
-
 
 //READ ENROLLED USERS (UPDATED!)
 app.get('/enrolled_users',  async(req, res) => {  
@@ -774,10 +838,6 @@ app.get("/get_curriculum", async (req, res) => {
   }
 });
 
-// UPDATE CURRICULUM (SUPERADMIN)
-
-// DELETE CURRICULUM (SUPERADMIN)
-
 /// COURSE TABLE - ADDING COURSE (UPDATED!)
 app.post("/adding_course", async (req, res) => {
   const { course_code, course_description, course_unit, lab_unit } = req.body;
@@ -842,10 +902,6 @@ app.get("/prgram_tagging_list", async (req, res) => {
     });
   }
 });
-
-// UPDATE COURSE (SUPERADMIN)
-
-// DELETE COURSE (SUPERADMIN)
 
 // GET COURSES BY CURRICULUM ID (UPDATED!)
 app.get("/get_courses_by_curriculum/:curriculum_id", async (req, res) => {
@@ -1087,10 +1143,11 @@ app.get('/get_semester', async (req, res) => {
 // GET SCHOOL YEAR (UPDATED!)
 app.get("/school_years", async (req, res) => {
   const query = `
-    SELECT sy.*, yt.year_description, s.semester_description, 
+    SELECT sy.*, yt.year_description, s.semester_description 
     FROM active_school_year_table sy
     JOIN year_table yt ON sy.year_id = yt.year_id
     JOIN semester_table s ON sy.semester_id = s.semester_id
+    WHERE sy.astatus = 1
   `;
 
   try {
@@ -1210,10 +1267,6 @@ app.get('/get_room', async (req, res) => {
   }
 });
 
-// UPDATE ROOM (SUPERADMIN)
-
-// DELETE ROOM (SUPERADMIN)
-
 // DEPARTMENT ROOM PANEL (UPDATED!)
 app.get('/api/assignments', async (req, res) => {
   const query = `
@@ -1295,7 +1348,6 @@ app.delete('/api/unassign/:room_id', async (req, res) => {
   }
 });
 
-
 // SECTIONS (UPDATED!)
 app.post('/section_table', async (req, res) => {
   const { description } = req.body;
@@ -1371,7 +1423,10 @@ app.get('/department_section', async (req, res) => {
 });
 
 
+
+
 // PROFESSOR REGISTRATION (UPDATED!)
+
 // Updated route to handle multipart/form-data (with file)
 app.post('/register_prof', upload.single('profileImage'), async (req, res) => {
   const { fname, mname, lname, email, password } = req.body;
@@ -1410,81 +1465,9 @@ app.post('/register_prof', upload.single('profileImage'), async (req, res) => {
 });
 
 
-// LOGIN PROFESSOR (UPDATED!)
-app.post("/login_prof", async (req, res) => {
-  const { email, password } = req.body;
 
-  // Validate input
-  if (!email || !password) {
-    return res.status(400).json({ message: "Email and password are required" });
-  }
 
-  try {
-    // Fetch professor details and related time table records
-    const sql = `
-      SELECT prof_table.*, time_table.*
-      FROM prof_table
-      LEFT JOIN time_table ON prof_table.prof_id = time_table.professor_id
-      WHERE prof_table.email = ?
-    `;
-    const [results] = await db3.query(sql, [email]);
-    console.log("Query result:", results);
-    // If no matching professor found
-    if (results.length === 0) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
 
-    const user = results[0];
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    // Check if the password matches
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    // Generate JWT token
-    const token = webtoken.sign(
-      { 
-        prof_id: user.prof_id, 
-        fname: user.fname, 
-        mname: user.mname, 
-        lname: user.lname, 
-        email: user.email, 
-        role: user.role,
-        school_year_id: user.school_year_id 
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
-    // Log the login attempt (for debugging purposes)
-    console.log("Login response:", { token, prof_id: user.prof_id, email: user.email });
-
-    // Prepare subject-section mappings
-    const mappings = results.map(row => ({
-      department_section_id: row.department_section_id,
-      subject_id: row.course_id
-    }));
-
-    // Send successful login response with token and user details
-    res.json({
-      message: "Login successful",
-      token,
-      prof_id: user.prof_id,
-      fname: user.fname, 
-      mname: user.mname, 
-      lname: user.lname, 
-      email: user.email,
-      role: user.role,
-      subject_section_mappings: mappings,
-      school_year_id: user.school_year_id
-    });
-
-  } catch (err) {
-    console.error('Error during login:', err);
-    res.status(500).json({ message: "Internal server error", details: err.message });
-  }
-});
 
 // GET ENROLLED STUDENTS (UPDATED!)
 app.get('/get_enrolled_students/:subject_id/:department_section_id/:active_school_year_id', async (req, res) => {
@@ -1496,20 +1479,52 @@ app.get('/get_enrolled_students/:subject_id/:department_section_id/:active_schoo
   }
 
   const filterStudents = `
-    SELECT person_table.*, enrolled_subject.*, time_table.*
-    FROM time_table
-    INNER JOIN enrolled_subject
-        ON time_table.course_id = enrolled_subject.course_id
-        AND time_table.department_section_id = enrolled_subject.department_section_id
-        AND time_table.school_year_id = enrolled_subject.active_school_year_id
-    INNER JOIN student_numbering_table
-        ON enrolled_subject.student_number = student_numbering_table.student_number
-    INNER JOIN person_table
-        ON student_numbering_table.person_id = person_table.person_id
-    WHERE time_table.course_id = ? 
-        AND time_table.department_section_id = ? 
-        AND time_table.school_year_id = ?
-  `;
+  SELECT 
+    person_table.*, 
+    enrolled_subject.*, 
+    time_table.*, 
+    section_table.description AS section_description,
+    program_table.program_description,
+    program_table.program_code,
+    year_level_table.year_level_description,
+    semester_table.semester_description,
+    course_table.course_code,
+    course_table.course_description
+  FROM time_table
+  INNER JOIN enrolled_subject
+    ON time_table.course_id = enrolled_subject.course_id
+    AND time_table.department_section_id = enrolled_subject.department_section_id
+    AND time_table.school_year_id = enrolled_subject.active_school_year_id
+  INNER JOIN student_numbering_table
+    ON enrolled_subject.student_number = student_numbering_table.student_number
+  INNER JOIN person_table
+    ON student_numbering_table.person_id = person_table.person_id
+  INNER JOIN dprtmnt_section_table
+    ON time_table.department_section_id = dprtmnt_section_table.id
+  INNER JOIN section_table
+    ON dprtmnt_section_table.section_id = section_table.id
+  INNER JOIN curriculum_table
+    ON dprtmnt_section_table.curriculum_id = curriculum_table.curriculum_id
+  INNER JOIN program_table
+    ON curriculum_table.program_id = program_table.program_id
+  INNER JOIN program_tagging_table
+    ON program_tagging_table.course_id = time_table.course_id
+    AND program_tagging_table.curriculum_id = dprtmnt_section_table.curriculum_id
+  INNER JOIN year_level_table
+    ON program_tagging_table.year_level_id = year_level_table.year_level_id
+  INNER JOIN semester_table
+    ON program_tagging_table.semester_id = semester_table.semester_id
+  INNER JOIN course_table
+    ON program_tagging_table.course_id = course_table.course_id
+  INNER JOIN active_school_year_table
+    ON time_table.school_year_id = active_school_year.id
+  WHERE time_table.course_id = ? 
+    AND time_table.department_section_id = ? 
+    AND time_table.school_year_id = ?;
+    AND active_school_year_table.astatus = 1;
+`;
+
+
 
   try {
     // Execute the query using promise-based `execute` method
@@ -1517,7 +1532,7 @@ app.get('/get_enrolled_students/:subject_id/:department_section_id/:active_schoo
 
     // Check if no students were found
     if (result.length === 0) {
-      return res.status(404).json({ message: "No students found for this subject-section combination." });
+      return res.status(404).json({ message: "No students found for this subject-section combination."});
     }
 
     // Send the response with the result
@@ -1529,6 +1544,72 @@ app.get('/get_enrolled_students/:subject_id/:department_section_id/:active_schoo
   } catch (err) {
     console.error("Query failed:", err);
     return res.status(500).json({ message: "Server error while fetching students." });
+  }
+});
+
+app.get('/get_subject_info/:subject_id/:department_section_id/:active_school_year_id', async (req, res) => {
+  const { subject_id, department_section_id, active_school_year_id } = req.params;
+
+  if (!subject_id || !department_section_id || !active_school_year_id) {
+    return res.status(400).json({ message: "Subject ID, Department Section ID, and School Year ID are required." });
+  }
+
+  const sectionInfoQuery = `
+  SELECT 
+    section_table.description AS section_description,
+    course_table.course_code,
+    course_table.course_description,
+    year_level_table.year_level_description AS year_level_description,
+    year_level_table.year_level_id,
+    semester_table.semester_description,
+    room_table.room_description,
+    time_table.school_time_start,
+    time_table.school_time_end,
+    program_table.program_code,
+    program_table.program_description,
+    room_day_table.description AS day_description
+  FROM time_table
+  INNER JOIN dprtmnt_section_table
+    ON time_table.department_section_id = dprtmnt_section_table.id
+  INNER JOIN section_table
+    ON dprtmnt_section_table.section_id = section_table.id
+  LEFT JOIN curriculum_table
+    ON dprtmnt_section_table.curriculum_id = curriculum_table.curriculum_id
+  LEFT JOIN program_table
+    ON curriculum_table.program_id = program_table.program_id
+  INNER JOIN course_table
+    ON time_table.course_id = course_table.course_id
+  LEFT JOIN program_tagging_table
+    ON program_tagging_table.course_id = time_table.course_id
+  LEFT JOIN year_level_table
+    ON program_tagging_table.year_level_id = year_level_table.year_level_id
+  LEFT JOIN semester_table
+    ON program_tagging_table.semester_id = semester_table.semester_id
+  LEFT JOIN room_day_table
+    ON time_table.room_day = room_day_table.id
+  LEFT JOIN dprtmnt_room_table
+    ON time_table.department_room_id = dprtmnt_room_table.dprtmnt_room_id
+  LEFT JOIN room_table
+    ON dprtmnt_room_table.room_id = room_table.room_id
+  WHERE time_table.course_id = ?
+    AND time_table.department_section_id = ?
+    AND time_table.school_year_id = ?
+  LIMIT 1;
+`;
+
+
+  try {
+    const [result] = await db3.execute(sectionInfoQuery, [subject_id, department_section_id, active_school_year_id]);
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: "No section information found for this mapping." });
+    }
+
+    res.json({ sectionInfo: result[0] });
+
+  } catch (err) {
+    console.error("Section info query error:", err);
+    res.status(500).json({ message: "Server error while fetching section info." });
   }
 });
 
@@ -1632,10 +1713,12 @@ app.get('/section_table/:dprtmnt_id', async (req, res) => {
 
   try {
     const query = `
-      SELECT st.*
+      SELECT st.*, pt.*
       FROM dprtmnt_curriculum_table AS dct
       INNER JOIN dprtmnt_section_table AS dst ON dct.curriculum_id = dst.curriculum_id
       INNER JOIN section_table AS st ON dst.section_id = st.id
+      INNER JOIN curriculum_table AS ct ON dct.curriculum_id = ct.curriculum_id
+      INNER JOIN program_table AS pt ON ct.program_id = pt.program_id
       WHERE dct.dprtmnt_id = ?;
     `;
     
@@ -1646,8 +1729,6 @@ app.get('/section_table/:dprtmnt_id', async (req, res) => {
     res.status(500).send(error);
   }
 });
-
-
 
 app.get('/day_list', async (req, res) => {
   try{
@@ -1729,12 +1810,12 @@ app.post("/api/check-subject", async (req, res) => {
   }
 
   const query = `
-    SELECT * FROM schedule 
-    WHERE section_id = ? AND school_year_id = ? AND course_id = ?
+    SELECT * FROM time_table 
+    WHERE department_section_id = ? AND school_year_id = ? AND course_id = ?
   `;
 
   try {
-    const [result] = await db.query(query, [section_id, school_year_id, subject_id]);
+    const [result] = await db3.query(query, [section_id, school_year_id, subject_id]);
 
     if (result.length > 0) {
       return res.json({ exists: true });
@@ -1747,16 +1828,17 @@ app.post("/api/check-subject", async (req, res) => {
   }
 });
 
+//CHECK CONFLICT
 app.post("/api/check-conflict", async (req, res) => {
   const { day, start_time, end_time, section_id, school_year_id, prof_id, room_id, subject_id } = req.body;
 
   try {
     // Step 1: Check if the section + subject + school year is already assigned to another professor
     const checkSubjectQuery = `
-      SELECT * FROM schedule 
-      WHERE section_id = ? AND course_id = ? AND school_year_id = ? AND prof_id != ? 
+      SELECT * FROM time_table
+      WHERE department_section_id = ? AND course_id = ? AND school_year_id = ? AND professor_id != ? 
     `;
-    const [subjectResult] = await db.query(checkSubjectQuery, [section_id, subject_id, school_year_id, prof_id]);
+    const [subjectResult] = await db3.query(checkSubjectQuery, [section_id, subject_id, school_year_id, prof_id]);
 
     if (subjectResult.length > 0) {
       return res.status(409).json({ conflict: true, message: "This subject is already assigned to another professor in this section and school year." });
@@ -1764,19 +1846,19 @@ app.post("/api/check-conflict", async (req, res) => {
 
     // Step 2: Check for overlapping time conflicts
     const checkTimeQuery = `
-      SELECT * FROM schedule 
-      WHERE day = ? 
+      SELECT * FROM time_table
+      WHERE room_day = ? 
       AND school_year_id = ?
-      AND (prof_id = ? OR section_id = ? OR room_id = ?) 
+      AND (professor_id = ? OR department_section_id = ? OR department_room_id = ?) 
       AND (
-        (? >= start_time AND ? < end_time) OR  
-        (? > start_time AND ? <= end_time) OR  
-        (start_time >= ? AND start_time < ?) OR  
-        (end_time > ? AND end_time <= ?)  
+        (? >= school_time_start AND ? < school_time_end) OR  
+        (? > school_time_start AND ? <= school_time_end) OR  
+        (school_time_start >= ? AND school_time_start < ?) OR  
+        (school_time_end > ? AND school_time_end <= ?)  
       )
     `;
 
-    const [timeResult] = await db.query(checkTimeQuery, [
+    const [timeResult] = await db3.query(checkTimeQuery, [
       day,
       school_year_id,
       prof_id,
@@ -1824,8 +1906,6 @@ app.post("/api/insert-schedule", async (req, res) => {
     res.status(500).json({ error: "Failed to insert schedule" });
   }
 }); 
-
-// STUDENT NUMBERING
 
 // GET STUDENTS THAT HAVE NO STUDENT NUMBER (UPDATED!)
 app.get("/api/persons", async (req, res) => {
@@ -2278,7 +2358,7 @@ app.get("/departments", async (req, res) => {
   }
 });
 
-// 📌 Count how many students enrolled per subject for a selected section (UPDATED!)
+// ðŸ“Œ Count how many students enrolled per subject for a selected section (UPDATED!)
 app.get("/subject-enrollment-count", async (req, res) => {
   const { sectionId } = req.query; // department_section_id
 
@@ -2380,6 +2460,27 @@ app.post('/grade_period_activate/:id', async (req, res) => {
   }
 })
 
+// API TO GET PROFESSOR PERSONAL DATA
+app.get('/get_prof_data/:id', async (req, res) => {
+  const id = req.params.id;
+
+  const query = `
+    SELECT prof_table.*, time_table.*
+    FROM prof_table
+    LEFT JOIN time_table ON prof_table.prof_id = time_table.professor_id
+    WHERE prof_table.person_id = ?
+  `;
+
+  try {
+    const [rows] = await db3.query(query, [id]);
+    console.log(rows);
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 /* ------------------------------------------- MIDDLE PART OF THE SYSTEM ----------------------------------------------*/
 
@@ -2423,12 +2524,10 @@ app.get('/api/professor-schedule/:profId', async (req, res) => {
       SELECT 
         t.room_day,
         d.description as day,
-        st1.description AS start_time,
-        st2.description AS end_time
+        t.school_time_start AS start_time,
+        t.school_time_end AS end_time
       FROM time_table t
       JOIN room_day_table d ON d.id = t.room_day
-      JOIN school_time_table st1 ON st1.id = t.school_time_start
-      JOIN school_time_table st2 ON st2.id = t.school_time_end
       WHERE t.professor_id = ?
     `, [profId]);
 

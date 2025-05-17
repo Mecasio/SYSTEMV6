@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { Container, Checkbox } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
@@ -6,80 +7,33 @@ import '../styles/Container.css';
 import Logo from '../assets/Logo.png';
 
 const Login = ({ setIsAuthenticated }) => {
-    const [usersData, setUserData] = useState({
-        email: '',
-        password: '',
-        role: '',
-    });
-
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
-    const [errorMessage, setErrorMessage] = useState(""); 
 
-    const handleChanges = (e) => {
-        const { name, value } = e.target;
-        setUserData(prevState => ({ ...prevState, [name]: value }));
-    };
-
-    const handleLogin = async (event) => {
-        event.preventDefault();
-        
-        if (!usersData.email || !usersData.password) {
-            setErrorMessage("Please fill all required credentials");
-            return;
+    const handleLogin = async () => {
+        if (!email || !password) {
+        alert("Please fill in all fields");
+        return;
         }
 
         try {
-            const response = await fetch('http://localhost:5000/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(usersData),
-            });
+        const response = await axios.post("http://localhost:5000/login", { email, password }, { headers: { "Content-Type": "application/json" } });
+        console.log(response.data);
+        // Store token, username, and role in localStorage
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("email", response.data.email); // Store username
+        localStorage.setItem("role", response.data.role); // Store role
+        localStorage.setItem("person_id", response.data.person_id); // Store role
 
-            console.log('Login response status:', response.status);
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log('Login response data:', data);
-
-                if (data.token) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem("prof_id", data.prof_id);
-                    localStorage.setItem("email", data.email);
-                    localStorage.setItem("fname", data.fname);
-                    localStorage.setItem("mname", data.mname);
-                    localStorage.setItem("lname", data.lname);
-                    localStorage.setItem("email", data.email);
-                    localStorage.setItem("profile_img", data.profile_img);
-                    localStorage.setItem("subject_section_mappings", JSON.stringify(data.subject_section_mappings));
-                    localStorage.setItem("school_year_id", data.school_year_id);
-                    const decoded = JSON.parse(atob(data.token.split('.')[1]));
-                    console.log('Decoded JWT:', decoded);
-                    console.log("profile_image:", data.profile_img);
-
-                    if (decoded.role === 'superadmin' || decoded.role === 'administrator') {
-                        setIsAuthenticated(true);
-                        navigate('/dashboard');
-                    } else if (decoded.role === 'applicant') {
-                        setIsAuthenticated(true);
-                        navigate('/applicant_personal_information');
-                    } else if (decoded.role === 'faculty') {
-                        setIsAuthenticated(true);
-                        navigate('/faculty_dashboard');
-                    } else {
-                        setErrorMessage('Unauthorized role');
-                    }
-                } else {
-                    setErrorMessage('No token received from the server.');
-                }
-            } else {
-                const data = await response.json();
-                setErrorMessage(data.error || 'Invalid credentials');
-                console.error('Login failed:', data.error);
-            }
+        alert("Login successful!");
+        setIsAuthenticated(true);
+        // Redirect to dashboard
+        navigate("/dashboard");
         } catch (error) {
-            console.error('Login failed:', error);
-            setErrorMessage('Invalid Credentials');
+        console.log(error)
+        alert(error.response?.data?.message || "Invalid credentials");
         }
     };
 
@@ -100,21 +54,6 @@ const Login = ({ setIsAuthenticated }) => {
                     </div>
                     <div className="Body">
                         <div className="TextField">
-                            <label htmlFor="role">Select Role</label>
-                            <select
-                                id="role"
-                                name="role"
-                                className="border"
-                                value={usersData.role}
-                                onChange={handleChanges}
-                            >
-                                <option value="">-- Select Role --</option>
-                                <option value="applicant">Applicant</option>
-                                <option value="faculty">Faculty</option>
-                                <option value="superadmin">Superadmin</option>
-                            </select>
-                        </div>
-                        <div className="TextField">
                             <label htmlFor="email">Email Address</label>
                             <input
                                 type="text"
@@ -122,8 +61,8 @@ const Login = ({ setIsAuthenticated }) => {
                                 name="email"
                                 placeholder="Enter your email address"
                                 className="border"
-                                value={usersData.email}
-                                onChange={handleChanges}
+                                value={email} 
+                                onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                         <div className="TextField" style={{ position: 'relative' }}>
@@ -133,8 +72,8 @@ const Login = ({ setIsAuthenticated }) => {
                                 id="password"
                                 name="password"
                                 placeholder="Enter your password"
-                                value={usersData.password}
-                                onChange={handleChanges}
+                                value={password} 
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="border"
                             />
                             <button
@@ -161,11 +100,6 @@ const Login = ({ setIsAuthenticated }) => {
                         <div className="Button" onClick={handleLogin}>
                             <span>Log In</span>
                         </div>
-                        {errorMessage && (
-                            <div style={{ color: 'red', marginTop: '10px', textAlign: 'center' }}>
-                                {errorMessage}
-                            </div>
-                        )}
                         <div className="LinkContainer">
                             <span>Forget password?</span>
                         </div>

@@ -51,14 +51,15 @@ import ApplicantHealthMedicalRecords from './components/ApplicantHeatlthRecords'
 import ApplicantOtherInformation from './components/ApplicantOtherInfo';
 
 import FacultyDashboard from './pages/FacultyDashboard'; //For Professors & Faculty Members
-import EnrolledDashboard from './pages/Erlm_Dashboard'; // For Enrolled Students
 import Dashboard from './pages/Dashboard'; // For SuperAdmin & Admin
-
+import ApplicantDashboard from './pages/ApplicantDashboard';
 
 import Unauthorized from './components/Unauthorized';
 import RequirementUploader from './components/RequirementUploader';
 import GradingSheet from './components/GradingSheet';
 import FacultyWorkload from './components/FacultyWorkload';
+import FacultyMasterList from './components/FacultyMasterlist';
+import FacultyStudentClassList from './components/FacultyStudentClassList';
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -104,9 +105,9 @@ import FacultyWorkload from './components/FacultyWorkload';
                 <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated}/>}/>
                 <Route path="/login_prof" element={<LoginProf setIsAuthenticated={setIsAuthenticated}/>}/>
                 
-                <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><Dashboard /></ProtectedRoute>}/>
+                <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['registrar']}><Dashboard /></ProtectedRoute>}/>
                 <Route path="/faculty_dashboard" element={<ProtectedRoute allowedRoles={['faculty']}><FacultyDashboard /></ProtectedRoute>}/>
-                <Route path="/enrollment_dashboard" element={<ProtectedRoute><EnrolledDashboard /></ProtectedRoute>} />
+                <Route path="/applicant_dashboard" element={<ProtectedRoute><ApplicantDashboard/></ProtectedRoute>} />
 
                 <Route path="/personal_information" element={<PersonalInfoForm />} />
                 <Route path="/room_registration" element={<ProtectedRoute><RoomRegistration/></ProtectedRoute>}/> 
@@ -151,7 +152,9 @@ import FacultyWorkload from './components/FacultyWorkload';
 
                 <Route path="/grading_sheet" element={<ProtectedRoute><GradingSheet /></ProtectedRoute>} />
                 <Route path="/faculty_workload" element={<ProtectedRoute><FacultyWorkload /></ProtectedRoute>} />
-                
+                <Route path="/faculty_masterlist" element={<ProtectedRoute><FacultyMasterList /></ProtectedRoute>} />
+                <Route path="/subject_masterlist/:subject_id/:department_section_id/:school_year_id" element={<ProtectedRoute><FacultyStudentClassList /></ProtectedRoute>} />
+
                 <Route path="/unauthorized" element={<Unauthorized />} />
               </Routes>
             </main>
