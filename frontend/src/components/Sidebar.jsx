@@ -42,7 +42,7 @@ const SideBar = ({ setIsAuthenticated }) => {
               color: 'maroon',
               bgcolor: 'transparent'
             }}/>
-            { role === 'superadmin' && (
+            { role === 'registrar' && (
               <span className='mt-4'>Administrator</span>
             )} 
             { role === 'applicant' && (
@@ -102,7 +102,7 @@ const SideBar = ({ setIsAuthenticated }) => {
         )}
         {role === 'applicant' && (
           <>
-          <Link to="/">
+          <Link to="/dashboard1">
           <li className={`w-full flex items-center border border-maroon-500 px-2 rounded button-hover ${location.pathname === "/applicant_personal_information" ? "bg-maroon-500 text-white" : ""}`} >
             <Dashboard/>
             <span className='pl-4 p-2 px-0 pointer-events-none'>Applicant Form</span>
@@ -134,27 +134,21 @@ const SideBar = ({ setIsAuthenticated }) => {
           </Link>
 
           <Link to="/faculty_masterlist">
-          <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/requirements_uploader" ? "bg-maroon-500 text-white" : ""}`}>
+          <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/faculty_masterlist" ? "bg-maroon-500 text-white" : ""}`}>
             <Business />
             <span className='pl-4 p-2 px-0 pointer-events-none'>Master List</span>
           </li>
           </Link>
           <Link to="/faculty_workload">
-          <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/requirements_uploader" ? "bg-maroon-500 text-white" : ""}`}>
+          <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/faculty_workload" ? "bg-maroon-500 text-white" : ""}`}>
             <Business />
             <span className='pl-4 p-2 px-0 pointer-events-none'>Workload</span>
           </li>
           </Link>
-          <Link to="/master_list">
-          <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/requirements_uploader" ? "bg-maroon-500 text-white" : ""}`}>
+          <Link to="/faculty_schedule">
+          <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/faculty_schedule" ? "bg-maroon-500 text-white" : ""}`}>
             <Business />
             <span className='pl-4 p-2 px-0 pointer-events-none'>Schedule</span>
-          </li>
-          </Link>
-          <Link to="/master_list">
-          <li className={`w-full flex items-center border border-maroon-500 px-2 rounded m-2 mx-0 button-hover ${location.pathname === "/requirements_uploader" ? "bg-maroon-500 text-white" : ""}`}>
-            <Business />
-            <span className='pl-4 p-2 px-0 pointer-events-none'>Calendar</span>
           </li>
           </Link>
           </>

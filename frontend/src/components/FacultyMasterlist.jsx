@@ -3,19 +3,22 @@ import '../styles/TempStyles.css';
 import SortingIcon from "../components/SortingIcon";
 import {Link} from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
-import axios from 'axios';
+import axios from "axios";
+
 const FacultyMasterList = () => {
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
     const [profData, setPerson] = useState({
-      prof_id: "",
-      fname: "",
-      mname: "",
-      lname: "",
-      department_section_id: "",
-      subject_id: "",
-      active_school_year_id: ""
+      prof_id: '',
+      fname: '',
+      mname: '',
+      lname: '',
+      department_section_id: '',
+      subject_id: '',
+      active_school_year_id: '',
+      year_description: '',
+      mappings: [] 
     });
     
     const [sectionData, setSectionData] = useState([]);
@@ -38,17 +41,30 @@ const FacultyMasterList = () => {
         } else {
           window.location.href = "/login";
         }
-
-        if (profData && profData.subject_id && profData.department_section_id && profData.active_school_year_id) {
-          fetchSectionDetails(profData.subject_id, profData.department_section_id, profData.active_school_year_id);
-        }
       }, []);
 
       const fetchPersonData = async (id) => {
         try{
           const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`)
           if (res.data.length > 0) {
-            setPerson(res.data[0]);
+            const first = res.data[0];
+      
+            const profInfo = {
+              prof_id: first.prof_id,
+              fname: first.fname,
+              mname: first.mname,
+              lname: first.lname,
+              department_section_id: first.department_section_id, // optional, if needed
+              subject_id: first.subject_id, // optional, if needed
+              active_school_year_id: first.school_year_id,
+              year_description: first.year_description,
+              mappings: res.data.map(row => ({
+                subject_id: row.course_id,
+                department_section_id: row.department_section_id
+              }))
+            };
+      
+            setPerson(profInfo);
           }
         } catch (err) {
           console.log(err);
@@ -57,10 +73,6 @@ const FacultyMasterList = () => {
 
       const fetchSectionDetails = async (subject_id, department_section_id, active_school_year_id) => {
         try {
-          if(!subject_id || !department_section_id || !active_school_year_id){
-            console.log("There's no credentials detected")
-          }
-
           const response = await fetch(`http://localhost:5000/get_subject_info/${subject_id}/${department_section_id}/${active_school_year_id}`);
           const data = await response.json();
           if (response.ok) {
@@ -84,12 +96,25 @@ const FacultyMasterList = () => {
         }
       };
 
-
+      useEffect(() => {
+        if (profData?.mappings?.length > 0) {
+          profData.mappings.forEach(mapping => {
+            fetchSectionDetails(
+              mapping.subject_id,
+              mapping.department_section_id,
+              profData.active_school_year_id
+            );
+          });
+        }
+      }, [profData]);
 
   return (
     <div>
-      {user} {userID} {userRole}
-      <h1>Welcome Mr. {profData.lname}, {profData.fname} {profData.mname} || {profData.prof_id} || {profData.active_school_year_id}</h1>
+      <div>
+        <div>Name: {profData.lname}, {profData.fname} {profData.mname}</div>
+        <div>Employee ID: {profData.prof_id}</div>
+        <div>School Year: {profData.year_description}</div>
+      </div>
 
       <Table style={{maxWidth: '100%', marginLeft: '-1rem', transform: 'scale(0.9)'}}>
         <TableHead style={{height: '50px'}}>
@@ -124,13 +149,6 @@ const FacultyMasterList = () => {
             <TableCell style={{borderColor: 'gray', borderStyle: 'solid', borderWidth: '1px 1px 1px 0px', padding: '0rem 1rem'}}>
               <div style={{display: 'flex', alignItems: 'center'}}>
                 <p style={{width: '100%'}}>Schedule</p>
-                <div><SortingIcon /></div>
-              </div>
-            </TableCell>
-
-            <TableCell style={{borderColor: 'gray', borderStyle: 'solid', borderWidth: '1px 1px 1px 0px', padding: '0rem 1rem'}}>
-              <div style={{display: 'flex', alignItems: 'center'}}>
-                <p style={{width: '100%'}}>Action</p>
                 <div><SortingIcon /></div>
               </div>
             </TableCell>

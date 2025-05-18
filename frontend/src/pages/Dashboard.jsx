@@ -20,12 +20,14 @@ const Dashboard = () => {
             window.location.href = "/applicant_dashboard";
           } else {
             // fetchPersonData(storedID);
-            console.log("you are an admin");
+            console.log('hello');
           }
         } else {
           window.location.href = "/login";
         }
       }, []);
+
+
     return (
         <h1>
             <div>Name: {user}</div>

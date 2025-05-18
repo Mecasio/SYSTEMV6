@@ -1,31 +1,85 @@
 import React, { useState, useEffect } from "react";
 import '../styles/TempStyles.css';
+import axios from 'axios';
 import SortingIcon from "../components/SortingIcon";
 import { Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
 
 const GradingSheet = () => {
-    const [profData, setProfData] = useState({
-        prof_id: '',
-        fname: '',
-        mname: '',
-        lname: '',
-        department_section_id: '',
-        subject_id: '',
-        mappings: [],
-        active_school_year_id: ''
-      });
+  const [userID, setUserID] = useState("");
+  const [user, setUser] = useState("");
+  const [userRole, setUserRole] = useState("");
+  const [profData, setPerson] = useState({
+    prof_id: "",
+    fname: "",
+    mname: "",
+    lname: "",
+    department_section_id: "",
+    subject_id: "",
+    active_school_year_id: "",
+    section_description: "",
+    program_description: "",
+    program_code: "",
+    year_description: "",
+    course_code: "",
+  });
       const [students, setStudents] = useState([]);
       
     
       useEffect(() => {
-        const prof_id = localStorage.getItem("prof_id");
-        const fname = localStorage.getItem("fname");
-        const mname = localStorage.getItem("mname");
-        const lname = localStorage.getItem("lname");
-        const mappings = JSON.parse(localStorage.getItem("subject_section_mappings")) || [];
-        const active_school_year_id = localStorage.getItem("school_year_id");
-        setProfData({ prof_id, fname, mname, lname, mappings, active_school_year_id});
+        const storedUser = localStorage.getItem("email");
+        const storedRole = localStorage.getItem("role");
+        const storedID = localStorage.getItem("person_id");
+
+        if (storedUser && storedRole && storedID) {
+          setUser(storedUser);
+          setUserRole(storedRole);
+          setUserID(storedID);
+
+          if (storedRole !== "faculty") {
+            window.location.href = "/dashboard";
+          } else {
+            fetchPersonData(storedID);
+          }
+        } else {
+          window.location.href = "/login";
+        }
       }, []);
+
+      const fetchPersonData = async (id) => {
+        try{
+          const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`)
+          if (res.data.length > 0) {
+            const first = res.data[0];
+      
+            const profInfo = {
+              prof_id: first.prof_id,
+              fname: first.fname,
+              mname: first.mname,
+              lname: first.lname,
+              department_section_id: first.department_section_id, // optional, if needed
+              subject_id: first.subject_id, // optional, if needed
+              active_school_year_id: first.school_year_id,
+              section_description: first.section_description,
+              program_description: first.program_description,
+              program_code: first.program_code,
+              year_description: first.year_description,
+              course_code: first.course_code,
+              mappings: res.data.map(row => ({
+                subject_id: row.course_id,
+                department_section_id: row.department_section_id,
+                section_description: row.section_description,
+                program_code: row.program_code,
+                year_description: row.year_description,
+                course_code: row.course_code,
+              }))
+            };
+      
+            setPerson(profInfo);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      }
 
       const handleFetchStudents = async (subject_id, department_section_id, active_school_year_id) => {
         try {
@@ -128,10 +182,10 @@ const GradingSheet = () => {
 
   return (
     <div>
-      <h1>Welcome Mr. {profData.lname}, {profData.fname} {profData.mname} || {profData.prof_id} || {profData.active_school_year_id}</h1>
+      <h1>Welcome Mr. {profData.lname}, {profData.fname} {profData.mname} || {profData.prof_id} || {profData.year_description}</h1>
 
       <div className="temp-container">
-        {profData.mappings.map((map, index) => (
+        {profData.mappings && profData.mappings.map((map, index) => (
           <button
               key={`${map.subject_id}-${map.department_section_id}`} 
               onClick={() =>
@@ -141,8 +195,9 @@ const GradingSheet = () => {
                   profData.active_school_year_id
               )
               }
+              className="p-2 px-4 rounded font-[500]"
           >
-              Section - {map.department_section_id} | Subject - {map.subject_id} | SY: {profData.active_school_year_id}
+              {map.program_code}-{map.section_description} | {map.course_code} | SY: {profData.year_description}
           </button>
         ))}
       </div>

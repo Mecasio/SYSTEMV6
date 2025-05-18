@@ -25,33 +25,51 @@ const CourseTagging = () => {
   const [personID, setPersonID] = useState('');
 
 
+  // For specific person
   useEffect(() => {
-    const fetchCORData = async () => {
+    const fetchPersonData = async () => {
       if (!personID) return;
       try {
-        const response = await axios.get(`http://localhost:5000/certificate_of_registration/${personID}`);
+        const response = await axios.get(`http://localhost:5000/person_data/${personID}`);
         setData(response.data);
       } catch (err) {
-        console.error("Failed to fetch COR data:", err);
+        console.error("Failed to fetch person data:", err);
       }
     };
 
-    fetchCORData();
+    fetchPersonData();
   }, [personID]);
-
+  const [studentNumber, setStudentNumber] = useState("");
   useEffect(() => {
-    fetch("http://localhost:5000/certificate_of_registration/")
+    const fetchStudentData = async () => {
+      if (!studentNumber) return;
+      try {
+        const response = await axios.get(`http://localhost:5000/api/student/${studentNumber}`);
+        setData(response.data);
+      } catch (err) {
+        console.error("Error fetching student data:", err);
+      }
+    };
+
+    fetchStudentData();
+  }, [studentNumber]);
+
+
+  // For all data
+  useEffect(() => {
+    fetch("http://localhost:5000/person_data/")
       .then(res => res.json())
       .then(data => setFilteredData(data))
       .catch(err => console.error(err));
   }, []);
 
+
   const fetchProfilePicture = async (person_id) => {
     try {
       const res = await axios.get(`http://localhost:5000/api/user/${person_id}`);
-      if (res.data && res.data.profile_picture) {
-        console.log(res.data.profile_picture);
-        setProfilePicture(`http://localhost:5000/uploads/${res.data.profile_picture}`);
+      if (res.data && res.data.profile_img) {
+        console.log(res.data.profile_img);
+        setProfilePicture(`http://localhost:5000/uploads/${res.data.profile_img}`);
       }
     } catch (error) {
       console.error("Error fetching profile picture:", error);
@@ -64,6 +82,13 @@ const CourseTagging = () => {
       fetchProfilePicture(personID);
     }
   }, [personID]);
+
+  useEffect(() => {
+    if (personID) {
+      console.log("Fetched Data:", data); // SEE what's actually returned
+    }
+  }, [data]);
+
 
 
   const [shortDate, setShortDate] = useState("");
@@ -98,10 +123,11 @@ const CourseTagging = () => {
 
   const [courses, setCourses] = useState([]);
   const [enrolled, setEnrolled] = useState([]);
-  const [studentNumber, setStudentNumber] = useState("");
+
   const [userId, setUserId] = useState(null); // Dynamic userId
   const [first_name, setUserFirstName] = useState(null); // Dynamic userId
   const [middle_name, setUserMiddleName] = useState(null); // Dynamic userId
+
   const [last_name, setUserLastName] = useState(null); // Dynamic userId
   const [currId, setCurr] = useState(null); // Dynamic userId
   const [courseCode, setCourseCode] = useState("");
@@ -115,7 +141,8 @@ const CourseTagging = () => {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
 
   const [subjectCounts, setSubjectCounts] = useState({});
-
+  const [yearLevelDescription, setYearLevelDescription] = useState(null);
+  
   useEffect(() => {
     if (selectedSection) {
       fetchSubjectCounts(selectedSection);
@@ -189,42 +216,95 @@ const CourseTagging = () => {
     }
   };
 
+  const [gender, setGender] = useState(null);
+  const [age, setAge] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [program, setProgram] = useState(null);
+  const [course_unit, setCourseUnit] = useState(null);
+  const [lab_unit, setLabUnit] = useState(null);
+
 
   const handleSearchStudent = async () => {
     if (!studentNumber.trim()) {
       alert("Please fill in the student number");
       return;
     }
+
     try {
-      const response = await axios.post("http://localhost:5000/student-tagging", { studentNumber }, { headers: { "Content-Type": "application/json" } });
+      // 1. Authenticate and tag student
+      const response = await axios.post("http://localhost:5000/student-tagging", { studentNumber }, {
+        headers: { "Content-Type": "application/json" }
+      });
 
-      const { token, person_id, studentNumber: studentNum, activeCurriculum: active_curriculum, yearLevel, courseCode: course_code, courseDescription: course_desc, firstName: first_name,
-        middleName: middle_name, lastName: last_name, } = response.data;
+      // Destructure from response
+      const {
+        token,
+        person_id,
+        studentNumber: studentNum,
+        activeCurriculum: active_curriculum,
+        yearLevel,
+        yearLevelDescription: yearLevelDescription,
+        courseCode: course_code,
+        courseDescription: course_desc,
+        departmentName: dprtmnt_name,
+        courseUnit: course_unit,
+        labUnit: lab_unit,
+        firstName: first_name,
+        middleName: middle_name,
+        lastName: last_name
+      } = response.data;
 
+
+      console.log(response.data);
+      // Save to localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("person_id", person_id);
       localStorage.setItem("studentNumber", studentNum);
       localStorage.setItem("activeCurriculum", active_curriculum);
       localStorage.setItem("yearLevel", yearLevel);
+      localStorage.setItem("departmentName", dprtmnt_name);
       localStorage.setItem("courseCode", course_code);
       localStorage.setItem("courseDescription", course_desc);
+      localStorage.setItem("courseUnit", course_unit);
+      localStorage.setItem("labUnit", lab_unit);
       localStorage.setItem("firstName", first_name);
       localStorage.setItem("middleName", middle_name);
       localStorage.setItem("lastName", last_name);
+      localStorage.setItem("yearLevelDescription", yearLevelDescription);
 
-      setUserId(studentNum); // Set dynamic userId
-      setUserFirstName(first_name); // Set dynamic userId
-      setUserMiddleName(middle_name); // Set dynamic userId
-      setUserLastName(last_name); // Set dynamic userId
-      setCurr(active_curriculum); // Set Program Code based on curriculum
-      setCourseCode(course_code); // Set Program Code
-      setCourseDescription(course_desc); // Set Program Description
+      // Update state variables
+      setUserId(studentNum);
+      setUserFirstName(first_name);
+      setUserMiddleName(middle_name);
+      setUserLastName(last_name);
+      setCurr(active_curriculum);
+      setCourseCode(dprtmnt_name);
+      setCourseCode(course_code);
+      setCourseDescription(course_desc);
+      setCourseUnit(course_unit);
+      setLabUnit(lab_unit);
       setPersonID(person_id);
-      alert("Student found and authenticated!");
+      setYearLevelDescription(yearLevelDescription);
+      // 2. Fetch full student data (COR info)
+      const corResponse = await axios.get(`http://localhost:5000/student-data/${studentNum}`);
+      const fullData = corResponse.data;
+
+      // Store complete data for rendering
+      setData([fullData]); // Wrap in array for data[0] compatibility
+
+      // 3. Set additional fields: gender, age, email, program
+      setGender(fullData.gender || null);
+      setAge(fullData.age || null);
+      setEmail(fullData.email || null);
+      setProgram(fullData.program || null);
+      alert("Student found and data loaded!");
+
     } catch (error) {
+      console.error("Student search failed:", error);
       alert(error.response?.data?.message || "Student not found");
     }
   };
+
 
   // Fetch all departments when component mounts
   useEffect(() => {
@@ -304,13 +384,75 @@ const CourseTagging = () => {
     }
   };
 
+  const totalCourseUnits = enrolled.reduce((sum, item) => sum + (parseFloat(item.course_unit) || 0), 0);
+  const totalLabUnits = enrolled.reduce((sum, item) => sum + (parseFloat(item.lab_unit) || 0), 0);
+  const totalCombined = totalCourseUnits + totalLabUnits;
+
+
+
+
+
   return (
     <Box sx={{ height: 'calc(100vh - 120px)', overflowY: 'auto', paddingRight: 1, backgroundColor: 'transparent' }}>
 
       <Container className="mt-8">
         <div className="flex-container">
           <div className="section">
+            <Box p={4} display="grid" className="Box" gridTemplateColumns="1fr 1fr" gap={4}>
+              {/* Available Courses */}
+              <Box component={Paper} p={2}>
+                {/* Search Student */}
+                <Box>
+                  <h1 style={{ textAlign: "Center", color: "red" }}>Search Student:</h1>
+                  <TextField
+                    label="Student Number"
+                    style={{ width: "675px" }}
+                    margin="normal"
+                    value={studentNumber}
+                    onChange={(e) => setStudentNumber(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSearchStudent();
+                      }
+                    }}
+                  />
 
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    onClick={handleSearchStudent}
+                  >
+                    Search
+                  </Button>
+                </Box>
+                <button
+                  onClick={printDiv}
+                  style={{
+                    marginBottom: "1rem",
+                    padding: "10px 20px",
+                    border: "2px solid black",
+                    backgroundColor: "#f0f0f0",
+                    color: "black",
+                    borderRadius: "5px",
+                    marginTop: "20px",
+                    cursor: "pointer",
+                    fontSize: "16px",
+                    fontWeight: "bold",
+                    transition: "background-color 0.3s, transform 0.2s",
+                  }}
+                  onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
+                  onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
+                  onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
+                  onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
+                >
+                  Print Table
+                </button>
+              </Box>
+
+
+
+            </Box>
           </div>
           <Box p={4} display="grid" gridTemplateColumns="1fr 1fr" gap={4}></Box>
           <div ref={divToPrintRef}>
@@ -325,6 +467,8 @@ const CourseTagging = () => {
           }
         `}
               </style>
+
+
 
 
             </div>
@@ -343,7 +487,7 @@ const CourseTagging = () => {
                 }}
               >
                 <style>
-                {`
+                  {`
                   @media print {
                     .Box {
                       display: none;
@@ -352,61 +496,7 @@ const CourseTagging = () => {
                   }
                 `}
                 </style>
-                <Box p={4} display="grid" className="Box" gridTemplateColumns="1fr 1fr" gap={4}>
-                  {/* Available Courses */}
-                  <Box component={Paper} p={2}>
-                    {/* Search Student */}
-                    <Box>
-                      <h1 style={{ textAlign: "Center", color: "red" }}>Search Student:</h1>
-                      <TextField
-                        label="Student Number"
-                        style={{ width: "675px" }}
-                        margin="normal"
-                        value={studentNumber}
-                        onChange={(e) => setStudentNumber(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            handleSearchStudent();
-                          }
-                        }}
-                      />
 
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        onClick={handleSearchStudent}
-                      >
-                        Search
-                      </Button>
-                    </Box>
-                    <button
-                      onClick={printDiv}
-                      style={{
-                        marginBottom: "1rem",
-                        padding: "10px 20px",
-                        border: "2px solid black",
-                        backgroundColor: "#f0f0f0",
-                        color: "black",
-                        borderRadius: "5px",
-                        marginTop: "20px",
-                        cursor: "pointer",
-                        fontSize: "16px",
-                        fontWeight: "bold",
-                        transition: "background-color 0.3s, transform 0.2s",
-                      }}
-                      onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
-                      onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
-                      onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
-                      onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
-                    >
-                      Print Table
-                    </button>
-                  </Box>
-
-
-
-                </Box>
                 <tbody>
                   <tr>
                     <td colSpan={2} style={{ height: "0.1in", fontSize: "72.5%" }}>
@@ -468,7 +558,7 @@ const CourseTagging = () => {
                             >
                               <div
                                 style={{
-                                  width: "3.7cm",
+                                  width: "4.08cm",
                                   height: "4.08cm",
                                   marginRight: "1px",
                                   display: "flex",
@@ -572,7 +662,7 @@ const CourseTagging = () => {
                     <td colSpan={11} style={{ fontSize: "62.5%" }}>
                       <input
                         type="text"
-                        value={data[0]?.student_no || ""}
+                        value={data[0]?.student_number || ""}
                         readOnly
                         style={{
                           fontFamily: "Arial, sans-serif",
@@ -641,12 +731,11 @@ const CourseTagging = () => {
                         }}
                       />
                     </td>
-
                     {/* Name Value */}
                     <td colSpan={11} style={{ fontSize: "62.5%" }}>
                       <input
                         type="text"
-                        value={data[0]?.name || ""}
+                        value={`${data[0]?.last_name || ''}, ${data[0]?.first_name || ''} ${data[0]?.middle_name || ''} ${data[0]?.extension || ''}`.trim()}
                         readOnly
                         style={{
                           fontFamily: "Arial, sans-serif",
@@ -659,6 +748,7 @@ const CourseTagging = () => {
                         }}
                       />
                     </td>
+
 
                     {/* Program Label */}
                     <td colSpan={4} style={{ fontSize: "62.5%" }}>
@@ -822,7 +912,7 @@ const CourseTagging = () => {
                       <input type="text" value={"Year Level:"} style={{ fontWeight: "bold", color: "black", fontFamily: 'Arial, sans-serif', fontSize: '12px', width: "98%", border: "none", outline: "none", background: "none" }} />
                     </td>
                     <td colSpan={9} style={{ fontSize: "62.5%", }}>
-                      <input type="text" value={data[0]?.year_level || ""} readOnly style={{ fontFamily: "Arial, sans-serif", color: "black", width: "98%", fontSize: "12px", border: "none", outline: "none", background: "none" }} />
+                      <input type="text" value={`${data[0]?.yearLevelDescription || ''}`} readOnly style={{ fontFamily: "Arial, sans-serif", color: "black", width: "98%", fontSize: "12px", border: "none", outline: "none", background: "none" }} />
                     </td>
                     <td colSpan={8} style={{ fontSize: "50%" }}>
                       <input type="text" value={"Scholarship/Discount:"} style={{ fontWeight: "bold", color: "black", fontFamily: 'Arial, sans-serif', fontSize: '12px', width: "98%", border: "none", outline: "none", background: "none" }} />
@@ -852,7 +942,7 @@ const CourseTagging = () => {
                     <td colSpan={12} style={{ fontSize: "62.5%" }}>
                       <input
                         type="text"
-                        value={data[0]?.email_address || ""}
+                        value={data[0]?.email || ""}
                         readOnly
                         style={{
                           fontFamily: "Arial, sans-serif",
@@ -1036,10 +1126,11 @@ const CourseTagging = () => {
                       <td colSpan={8} style={{ border: "1px solid black" }}>
                         <input
                           type="text"
-                          value={item.subject_code || ""}
+                          value={item.course_code || ""}
                           style={{
                             width: "98%",
                             border: "none",
+                              textAlign: "center",
                             background: "none",
                             fontSize: "12px",
                           }}
@@ -1048,7 +1139,20 @@ const CourseTagging = () => {
                       <td colSpan={8} style={{ border: "1px solid black" }}>
                         <input
                           type="text"
-                          value={item.subject_title || ""}
+                          value={item.course_description || ""}
+                          style={{
+                            width: "98%",
+                            border: "none",
+                            background: "none",
+                            textAlign: "center",
+                            fontSize: "8px",
+                          }}
+                        />
+                      </td>
+                      <td colSpan={1} style={{ border: "1px solid black" }}>
+                        <input
+                          type="text"
+                          value={item.course_unit ?? ""}
                           style={{
                             width: "98%",
                             border: "none",
@@ -1061,20 +1165,7 @@ const CourseTagging = () => {
                       <td colSpan={1} style={{ border: "1px solid black" }}>
                         <input
                           type="text"
-                          value={item.lec_unit || ""}
-                          style={{
-                            width: "98%",
-                            border: "none",
-                            background: "none",
-                            textAlign: "center",
-                            fontSize: "12px",
-                          }}
-                        />
-                      </td>
-                      <td colSpan={1} style={{ border: "1px solid black" }}>
-                        <input
-                          type="text"
-                          value={item.lab_unit || ""}
+                          value={item.lab_unit ?? ""}
                           style={{
                             width: "98%",
                             border: "none",
@@ -1087,7 +1178,9 @@ const CourseTagging = () => {
                       <td colSpan={2} style={{ border: "1px solid black" }}>
                         <input
                           type="text"
-                          value={item.credit_unit || ""}
+                          value={
+                            (parseFloat(item.course_unit ?? 0) || 0) + (parseFloat(item.lab_unit ?? 0) || 0)
+                          }
                           style={{
                             width: "98%",
                             border: "none",
@@ -1095,12 +1188,16 @@ const CourseTagging = () => {
                             textAlign: "center",
                             fontSize: "12px",
                           }}
+                          readOnly
                         />
                       </td>
+
                       <td colSpan={2} style={{ border: "1px solid black" }}>
                         <input
                           type="text"
-                          value={item.tuition_unit || ""}
+                          value={
+                            (parseFloat(item.course_unit ?? 0) || 0) + (parseFloat(item.lab_unit ?? 0) || 0)
+                          }
                           style={{
                             width: "98%",
                             border: "none",
@@ -1108,12 +1205,13 @@ const CourseTagging = () => {
                             textAlign: "center",
                             fontSize: "12px",
                           }}
+                          readOnly
                         />
                       </td>
                       <td colSpan={4} style={{ border: "1px solid black" }}>
                         <input
                           type="text"
-                          value={item.section_description || ""}
+                          value={item.description || ""}
                           style={{
                             width: "98%",
                             border: "none",
@@ -1170,11 +1268,11 @@ const CourseTagging = () => {
                       <b>Note: Subject marked with "*" is Special Subject</b>
                     </td>
                     <td
-                      colSpan={8}
+                      colSpan={6}
                       style={{
                         fontSize: "50%",
                         color: "black",
-                        textAlign: "left",
+                        textAlign: "CENTER",
                       }}
                     >
                       <b>
@@ -1183,52 +1281,51 @@ const CourseTagging = () => {
                     <td
                       colSpan={1}
                       style={{
-                        fontSize: "55%",
+                        fontSize: "12px",
                         color: "black",
+                        fontFamily: "Arial",
                         textAlign: "center",
                       }}
                     >
+                      {totalCourseUnits}
+                    </td>
+                    <td
+                      colSpan={1}
+                      style={{
+                        fontSize: "12px",
+                        color: "black",
+                        fontFamily: "Arial",
+                        textAlign: "center",
 
-                    </td>
-                    <td
-                      colSpan={1}
-                      style={{
-                        fontSize: "55%",
-                        color: "black",
-                        textAlign: "center",
                       }}
                     >
-                    </td>
-                    <td
-                      colSpan={1}
-                      style={{
-                        height: "0.1in",
-                        fontSize: "55%",
-                        color: "black",
-                        textAlign: "center",
-                      }}
-                    >
-                    </td>
-                    <td
-                      colSpan={1}
-                      style={{
-                        height: "0.1in",
-                        fontSize: "55%",
-                        color: "black",
-                        textAlign: "center",
-                      }}
-                    >
+                      {totalLabUnits}
                     </td>
                     <td
                       colSpan={2}
                       style={{
-                        height: "0.1in",
-                        fontSize: "55%",
+                        fontSize: "12px",
                         color: "black",
+                        fontFamily: "Arial",
                         textAlign: "center",
+
                       }}
                     >
+                      {totalCourseUnits + totalLabUnits}
                     </td>
+                    <td
+                      colSpan={2}
+                      style={{
+                        fontSize: "12px",
+                        color: "black",
+                        fontFamily: "Arial",
+                        textAlign: "center",
+
+                      }}
+                    >
+                      {totalCombined}
+                    </td>
+
                     <td
                       colSpan={2}
                       style={{

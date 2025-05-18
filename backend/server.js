@@ -605,8 +605,9 @@ app.post("/login", async (req, res) => {
   }
 
   try {
-    const query = `SELECT * FROM user_accounts as ua
-      LEFT JOIN person_table as pt
+
+    const query = `SELECT * FROM prof_table as ua
+      LEFT JOIN person_prof_table as pt
       ON pt.person_id = ua.person_id
     WHERE email = ?`;
 
@@ -1489,7 +1490,9 @@ app.get('/get_enrolled_students/:subject_id/:department_section_id/:active_schoo
     year_level_table.year_level_description,
     semester_table.semester_description,
     course_table.course_code,
-    course_table.course_description
+    course_table.course_description,
+    room_day_table.description AS day_description,
+    room_table.room_description
   FROM time_table
   INNER JOIN enrolled_subject
     ON time_table.course_id = enrolled_subject.course_id
@@ -1517,11 +1520,18 @@ app.get('/get_enrolled_students/:subject_id/:department_section_id/:active_schoo
   INNER JOIN course_table
     ON program_tagging_table.course_id = course_table.course_id
   INNER JOIN active_school_year_table
-    ON time_table.school_year_id = active_school_year.id
+    ON time_table.school_year_id = active_school_year_table.id
+  INNER JOIN room_day_table
+    ON time_table.room_day = room_day_table.id
+  INNER JOIN dprtmnt_room_table
+    ON time_table.department_room_id = dprtmnt_room_table.dprtmnt_room_id
+  INNER JOIN room_table
+    ON dprtmnt_room_table.room_id = room_table.room_id
   WHERE time_table.course_id = ? 
     AND time_table.department_section_id = ? 
-    AND time_table.school_year_id = ?;
+    AND time_table.school_year_id = ?
     AND active_school_year_table.astatus = 1;
+    
 `;
 
 
@@ -2238,14 +2248,15 @@ app.post("/student-tagging", async (req, res) => {
     INNER JOIN curriculum_table as c ON c.curriculum_id = ss.active_curriculum
     INNER JOIN program_table as pt ON c.program_id = pt.program_id
     INNER JOIN student_numbering_table as sn ON sn.student_number = ss.student_number
-    INNER JOIN person_table as ptbl ON ptbl.person_id = sn.person_id  
+    INNER JOIN person_table as ptbl ON ptbl.person_id = sn.person_id
+    INNER JOIN year_level_table as ylt ON ss.year_level_id = ylt.year_level_id
     WHERE ss.student_number = ?`;
-    
+
     const [results] = await db3.query(sql, [studentNumber]);
 
     if (results.length === 0) {
       return res.status(400).json({ message: "Invalid Student Number" });
-    } 
+    }
 
     const student = results[0];
     const token = webtoken.sign(
@@ -2255,11 +2266,21 @@ app.post("/student-tagging", async (req, res) => {
         studentNumber: student.student_number,
         activeCurriculum: student.active_curriculum,
         yearLevel: student.year_level_id,
+        yearLevelDescription: student.year_level_description,
         courseCode: student.program_code,
         courseDescription: student.program_description,
+        department: student.dprtmnt_name,
+       
         firstName: student.first_name,
         middleName: student.middle_name,
         lastName: student.last_name,
+        age: student.age,
+        gender: student.gender,
+        email: student.emailAddress,
+        program: student.program,
+        major: student.major,
+        profile_img: student.profile_img,
+        extension: student.extension
       },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
@@ -2268,14 +2289,23 @@ app.post("/student-tagging", async (req, res) => {
     console.log("Search response:", {
       token,
       studentNumber: student.student_number,
-      person_id: student.person_id, 
+      person_id: student.person_id,
       activeCurriculum: student.active_curriculum,
       yearLevel: student.year_level_id,
       courseCode: student.program_code,
       courseDescription: student.program_description,
+      department: student.dprtmnt_name,
+  
       firstName: student.first_name,
       middleName: student.middle_name,
       lastName: student.last_name,
+      age: student.age,
+      gender: student.gender,
+      email: student.emailAddress,
+      program: student.program,
+      major: student.major,
+      profile_img: student.profile_img,
+      extension: student.extension
     });
 
     res.json({
@@ -2287,10 +2317,20 @@ app.post("/student-tagging", async (req, res) => {
       yearLevel: student.year_level_id,
       courseCode: student.program_code,
       courseDescription: student.program_description,
+      department: student.dprtmnt_name,
+ 
       firstName: student.first_name,
       middleName: student.middle_name,
       lastName: student.last_name,
+      age: student.age,
+      gender: student.gender,
+      email: student.emailAddress,
+      program: student.program,
+      major: student.major,
+      profile_img: student.profile_img,
+      extension: student.extension
     });
+
   } catch (err) {
     console.error("SQL error:", err);
     return res.status(500).json({ message: "Database error" });
@@ -2409,25 +2449,6 @@ app.get("/api/user/:person_id", async (req, res) => {
   }
 });
 
-// REGISTER (CHECK)  (UPDATED!)
-app.post("/api/register", async (req, res) => {
-  const { first_name, middle_name, last_name } = req.body;
-
-  if (!first_name || !last_name) {
-    return res.status(400).send("First name and last name are required");
-  }
-
-  try {
-    const sql = "INSERT INTO person_table (first_name, middle_name, last_name) VALUES (?, ?, ?)";
-    const [result] = await db3.query(sql, [first_name, middle_name, last_name]);
-    const person_id = result.insertId;
-    res.json({ person_id });
-  } catch (err) {
-    console.error("Database error:", err);
-    return res.status(500).send("Error registering user");
-  }
-});
-
 // GET GRADING PERIOD (UPDATED!)
 app.get('/get-grading-period', async (req, res) => {
   try{
@@ -2465,10 +2486,28 @@ app.get('/get_prof_data/:id', async (req, res) => {
   const id = req.params.id;
 
   const query = `
-    SELECT prof_table.*, time_table.*
-    FROM prof_table
-    LEFT JOIN time_table ON prof_table.prof_id = time_table.professor_id
-    WHERE prof_table.person_id = ?
+    SELECT 
+    pt.*, 
+    tt.*, 
+    yt.year_description,
+    st.description as section_description,
+    pgt.program_description,
+    pgt.program_code,
+    cst.course_code,
+    tt.department_room_id,
+    rt.room_description
+    FROM prof_table AS pt
+    LEFT JOIN time_table AS tt ON pt.prof_id = tt.professor_id
+    INNER JOIN active_school_year_table AS asyt ON tt.school_year_id = asyt.id
+    INNER JOIN year_table AS yt ON asyt.year_id = yt.year_id
+    INNER JOIN dprtmnt_section_table AS dst ON tt.department_section_id = dst.id
+    INNER JOIN section_table as st ON dst.section_id = st.id
+    INNER JOIN curriculum_table as ct ON dst.curriculum_id = ct.curriculum_id
+    INNER JOIN program_table as pgt ON ct.program_id = pgt.program_id
+    INNER JOIN course_table as cst ON tt.course_id = cst.course_id
+    INNER JOIN dprtmnt_room_table drt ON tt.department_room_id = drt.dprtmnt_room_id
+    INNER JOIN room_table rt ON drt.room_id = rt.room_id
+    WHERE pt.person_id = ? AND asyt.astatus = 1
   `;
 
   try {
@@ -2481,10 +2520,32 @@ app.get('/get_prof_data/:id', async (req, res) => {
   }
 });
 
+// API ROOM SCHEDULE
+app.get('/get_room/:profID/:roomID', async (req, res) => {
+  const {profID, roomID} = req.params;
 
-/* ------------------------------------------- MIDDLE PART OF THE SYSTEM ----------------------------------------------*/
+  const query = `
+    SELECT 
+      t.room_day,
+      d.description as day,
+      t.school_time_start AS start_time,
+      t.school_time_end AS end_time,
+      rt.room_description
+    FROM time_table t
+    JOIN room_day_table d ON d.id = t.room_day
+    INNER JOIN dprtmnt_room_table drt ON drt.dprtmnt_room_id = t.department_room_id
+    INNER JOIN room_table rt ON rt.room_id = drt.room_id
+    WHERE t.professor_id = ? AND t.department_room_id = ?
+  `
+  try{
+    const [result] = await db3.query(query, [profID, roomID]);
+    res.json(result);
 
-/* ------------------------------------------- UPLOAD  ---------------------------------------------------------- */
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({message: 'ERROR:', error})
+  }
+});
 
 // UPOAD PROFILE IMAGE (CHECK) (UPDATED!)
 app.post("/api/upload-profile-picture", upload.single("profile_picture"), async (req, res) => {
@@ -2535,6 +2596,149 @@ app.get('/api/professor-schedule/:profId', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send('DB Error');
+  }
+});
+
+/* CODE NI MARK */
+app.get('/student-data/:studentNumber', async (req, res) => {
+  const studentNumber = req.params.studentNumber;
+
+  const query = `
+  SELECT   
+      sn.student_number,
+      p.person_id,
+      p.profile_img,
+      p.last_name,
+      p.middle_name,
+      p.first_name,
+      p.extension,
+      p.gender,
+      p.age,
+      p.emailAddress AS email,
+      ss.active_curriculum AS curriculum,
+      ss.year_level_id AS yearlevel,
+      prog.program_description AS program,
+      d.dprtmnt_name AS college
+  FROM student_numbering_table sn
+  INNER JOIN person_table p ON sn.person_id = p.person_id
+  INNER JOIN student_status_table ss ON ss.student_number = sn.student_number
+  INNER JOIN curriculum_table c ON ss.active_curriculum = c.curriculum_id
+  INNER JOIN program_table prog ON c.program_id = prog.program_id
+  INNER JOIN dprtmnt_curriculum_table dc ON c.curriculum_id = dc.curriculum_id
+  INNER JOIN year_table yt ON c.year_id = yt.year_id
+  INNER JOIN dprtmnt_table d ON dc.dprtmnt_id = d.dprtmnt_id
+  WHERE sn.student_number = ?;
+`;
+
+
+  try {
+    const [results] = await db3.query(query, [studentNumber]);
+    res.json(results[0] || {});
+  } catch (err) {
+    console.error("Failed to fetch student data:", err);
+    res.status(500).json({ message: "Database error" });
+  }
+});
+
+// CODE NI CED
+
+// GET person details by person_id
+app.get("/api/person/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [rows] = await db.execute("SELECT * FROM person_table WHERE person_id = ?", [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Person not found" });
+    }
+
+    res.json(rows[0]);
+  } catch (error) {
+    console.error("Error fetching person:", error);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// PUT update person details by person_id
+app.put("/api/person/:id", async (req, res) => {
+  const { id } = req.params;
+  
+  // Destructure all the fields from req.body
+  const {
+    profile_picture, campus, academicProgram, classifiedAs, program, program2, program3, yearLevel,
+    last_name, first_name, middle_name, extension, nickname, height, weight, lrnNumber, gender, pwdType, pwdId,
+    birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup,
+    otherEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount,
+    presentStreet, presentBarangay, presentZipCode, presentRegion, presentProvince, presentMunicipality, presentDswdHouseholdNumber,
+    permanentStreet, permanentBarangay, permanentZipCode, permanentRegion, permanentProvince, permanentMunicipality, permanentDswdHouseholdNumber,
+    solo_parent, father_deceased, father_family_name, father_given_name, father_middle_name, father_ext, father_nickname, father_education_level,
+    father_last_school, father_course, father_year_graduated, father_school_address, father_contact, father_occupation, father_employer,
+    father_income, father_email, mother_deceased, mother_family_name, mother_given_name, mother_middle_name, mother_nickname,
+    mother_education_level, mother_last_school, mother_course, mother_year_graduated, mother_school_address, mother_contact,
+    mother_occupation, mother_employer, mother_income, mother_email, guardian, guardian_family_name, guardian_given_name,
+    guardian_middle_name, guardian_ext, guardian_nickname, guardian_address, guardian_contact, guardian_email, annual_income,
+    schoolLevel, schoolLastAttended, schoolAddress, courseProgram, honor, generalAverage, yearGraduated, strand,
+    cough, colds, fever, asthma, faintingSpells, heartDisease, tuberculosis, frequentHeadaches, hernia, chronicCough,
+    headNeckInjury, hiv, highBloodPressure, diabetesMellitus, allergies, cancer, smokingCigarette, alcoholDrinking,
+    hospitalized, hospitalizationDetails, medications, hadCovid, covidDate, vaccine1Brand, vaccine1Date,
+    vaccine2Brand, vaccine2Date, booster1Brand, booster1Date, booster2Brand, booster2Date,
+    chestXray, cbc, urinalysis, otherworkups, symptomsToday, remarks, termsOfAgreement
+  } = req.body;
+
+  try {
+    const [result] = await db.execute(
+      `UPDATE person_table SET
+        profile_picture = ?, campus = ?, academicProgram = ?, classifiedAs = ?, program = ?, program2 = ?, program3 = ?, yearLevel = ?,
+        last_name = ?, first_name = ?, middle_name = ?, extension = ?, nickname = ?, height = ?, weight = ?, lrnNumber = ?, gender = ?, pwdType = ?, pwdId = ?,
+        birthOfDate = ?, age = ?, birthPlace = ?, languageDialectSpoken = ?, citizenship = ?, religion = ?, civilStatus = ?, tribeEthnicGroup = ?,
+        otherEthnicGroup = ?, cellphoneNumber = ?, emailAddress = ?, telephoneNumber = ?, facebookAccount = ?,
+        presentStreet = ?, presentBarangay = ?, presentZipCode = ?, presentRegion = ?, presentProvince = ?, presentMunicipality = ?, presentDswdHouseholdNumber = ?,
+        permanentStreet = ?, permanentBarangay = ?, permanentZipCode = ?, permanentRegion = ?, permanentProvince = ?, permanentMunicipality = ?, permanentDswdHouseholdNumber = ?,
+        solo_parent = ?, father_deceased = ?, father_family_name = ?, father_given_name = ?, father_middle_name = ?, father_ext = ?, father_nickname = ?, father_education_level = ?,
+        father_last_school = ?, father_course = ?, father_year_graduated = ?, father_school_address = ?, father_contact = ?, father_occupation = ?, father_employer = ?,
+        father_income = ?, father_email = ?, mother_deceased = ?, mother_family_name = ?, mother_given_name = ?, mother_middle_name = ?, mother_nickname = ?,
+        mother_education_level = ?, mother_last_school = ?, mother_course = ?, mother_year_graduated = ?, mother_school_address = ?, mother_contact = ?,
+        mother_occupation = ?, mother_employer = ?, mother_income = ?, mother_email = ?, guardian = ?, guardian_family_name = ?, guardian_given_name = ?,
+        guardian_middle_name = ?, guardian_ext = ?, guardian_nickname = ?, guardian_address = ?, guardian_contact = ?, guardian_email = ?, annual_income = ?,
+        schoolLevel = ?, schoolLastAttended = ?, schoolAddress = ?, courseProgram = ?, honor = ?, generalAverage = ?, yearGraduated = ?, strand = ?,
+        cough = ?, colds = ?, fever = ?, asthma = ?, faintingSpells = ?, heartDisease = ?, tuberculosis = ?, frequentHeadaches = ?, hernia = ?, chronicCough = ?,
+        headNeckInjury = ?, hiv = ?, highBloodPressure = ?, diabetesMellitus = ?, allergies = ?, cancer = ?, smokingCigarette = ?, alcoholDrinking = ?,
+        hospitalized = ?, hospitalizationDetails = ?, medications = ?, hadCovid = ?, covidDate = ?, vaccine1Brand = ?, vaccine1Date = ?,
+        vaccine2Brand = ?, vaccine2Date = ?, booster1Brand = ?, booster1Date = ?, booster2Brand = ?, booster2Date = ?,
+        chestXray = ?, cbc = ?, urinalysis = ?, otherworkups = ?, symptomsToday = ?, remarks = ?, termsOfAgreement = ?
+      WHERE person_id = ?`,
+      [
+        profile_picture, campus, academicProgram, classifiedAs, program, program2, program3, yearLevel,
+        last_name, first_name, middle_name, extension, nickname, height, weight, lrnNumber, gender, pwdType, pwdId,
+        birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup,
+        otherEthnicGroup, cellphoneNumber, emailAddress, telephoneNumber, facebookAccount,
+        presentStreet, presentBarangay, presentZipCode, presentRegion, presentProvince, presentMunicipality, presentDswdHouseholdNumber,
+        permanentStreet, permanentBarangay, permanentZipCode, permanentRegion, permanentProvince, permanentMunicipality, permanentDswdHouseholdNumber,
+        solo_parent, father_deceased, father_family_name, father_given_name, father_middle_name, father_ext, father_nickname, father_education_level,
+        father_last_school, father_course, father_year_graduated, father_school_address, father_contact, father_occupation, father_employer,
+        father_income, father_email, mother_deceased, mother_family_name, mother_given_name, mother_middle_name, mother_nickname,
+        mother_education_level, mother_last_school, mother_course, mother_year_graduated, mother_school_address, mother_contact,
+        mother_occupation, mother_employer, mother_income, mother_email, guardian, guardian_family_name, guardian_given_name,
+        guardian_middle_name, guardian_ext, guardian_nickname, guardian_address, guardian_contact, guardian_email, annual_income,
+        schoolLevel, schoolLastAttended, schoolAddress, courseProgram, honor, generalAverage, yearGraduated, strand,
+        cough, colds, fever, asthma, faintingSpells, heartDisease, tuberculosis, frequentHeadaches, hernia, chronicCough,
+        headNeckInjury, hiv, highBloodPressure, diabetesMellitus, allergies, cancer, smokingCigarette, alcoholDrinking,
+        hospitalized, hospitalizationDetails, medications, hadCovid, covidDate, vaccine1Brand, vaccine1Date,
+        vaccine2Brand, vaccine2Date, booster1Brand, booster1Date, booster2Brand, booster2Date,
+        chestXray, cbc, urinalysis, otherworkups, symptomsToday, remarks, termsOfAgreement,
+        id // person_id for WHERE clause
+      ]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "No record updated" });
+    }
+
+    res.json({ message: "Person updated successfully" });
+  } catch (error) {
+    console.error("Error updating person:", error);
+    res.status(500).json({ error: "Database error" });
   }
 });
 

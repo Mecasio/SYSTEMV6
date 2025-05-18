@@ -4,7 +4,10 @@ import EaristLogo from '../assets/EaristLogo.png';
 
 const FacultyWorkload = () => {
 
-    const [profData, setProfData] = useState({
+    const [userID, setUserID] = useState("");
+    const [user, setUser] = useState("");
+    const [userRole, setUserRole] = useState("");
+    const [profData, setPerson] = useState({
         prof_id: '',
         fname: '',
         mname: '',
@@ -12,20 +15,57 @@ const FacultyWorkload = () => {
         profile_img: '',
         department_section_id: '',
         subject_id: '',
-        mappings: [],
-        active_school_year_id: ''
+        active_school_year_id: '',
+        mappings: [] 
     });
-    
-    useEffect(() => {
-        const prof_id = localStorage.getItem("prof_id");
-        const fname = localStorage.getItem("fname");
-        const mname = localStorage.getItem("mname");
-        const lname = localStorage.getItem("lname");
-        const profile_img = localStorage.getItem("profile_img")
-        const mappings = JSON.parse(localStorage.getItem("subject_section_mappings")) || [];
-        const active_school_year_id = localStorage.getItem("school_year_id");
-        setProfData({ prof_id, fname, mname, lname, profile_img, mappings, active_school_year_id});
-    }, []);
+      
+      useEffect(() => {
+        const storedUser = localStorage.getItem("email");
+        const storedRole = localStorage.getItem("role");
+        const storedID = localStorage.getItem("person_id");
+
+        if (storedUser && storedRole && storedID) {
+          setUser(storedUser);
+          setUserRole(storedRole);
+          setUserID(storedID);
+
+          if (storedRole !== "faculty") {
+            window.location.href = "/dashboard";
+          } else {
+            fetchPersonData(storedID);
+          }
+        } else {
+          window.location.href = "/login";
+        }
+      }, []);
+
+      const fetchPersonData = async (id) => {
+        try{
+          const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`)
+          if (res.data.length > 0) {
+            const first = res.data[0];
+      
+            const profInfo = {
+              prof_id: first.prof_id,
+              fname: first.fname,
+              mname: first.mname,
+              lname: first.lname,
+              profile_img: first.profile_image,
+              department_section_id: first.department_section_id, 
+              subject_id: first.subject_id, 
+              active_school_year_id: first.school_year_id,
+              mappings: res.data.map(row => ({
+                subject_id: row.course_id,
+                department_section_id: row.department_section_id
+              }))
+            };
+      
+            setPerson(profInfo);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      }
 
     const [schedule, setSchedule] = useState([]);
         useEffect(() => {

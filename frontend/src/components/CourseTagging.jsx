@@ -314,7 +314,7 @@ const CourseTagging = () => {
           </Grid>
         ))}
       </Grid>
-      <Box p={4} display="grid" gridTemplateColumns="1fr 1fr" gap={4} style={{marginLeft: '-5rem', maxHeight: '500px', overflowY: "scroll", overflowX: "hidden", width: '80rem'}}>
+      <Box p={4} display="grid" gridTemplateColumns="1fr 1fr" gap={4} style={{marginLeft: '-15rem',  height: 'calc(90vh - 120px)', overflowY: 'auto', overflowX: "hidden", width: '100rem'}}>
         {/* Available Courses */}
         <Box component={Paper} p={2}>
           {/* Search Student */}
