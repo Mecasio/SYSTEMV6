@@ -12,7 +12,6 @@ const CourseTagging = () => {
     const token = localStorage.getItem("token");
     if (token) {
       const decoded = jwtDecode(token);
-      console.log("Decoded Token: ", decoded);
       return decoded.person_id; // Make sure your token contains this field
     }
     return null;
@@ -141,7 +140,7 @@ const CourseTagging = () => {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
 
   const [subjectCounts, setSubjectCounts] = useState({});
-  const [yearLevelDescription, setYearLevelDescription] = useState(null);
+  const [year_Level_Description, setYearLevelDescription] = useState(null);
   
   useEffect(() => {
     if (selectedSection) {
@@ -222,7 +221,7 @@ const CourseTagging = () => {
   const [program, setProgram] = useState(null);
   const [course_unit, setCourseUnit] = useState(null);
   const [lab_unit, setLabUnit] = useState(null);
-
+  const [year_desc, setYearDescription] = useState(null);
 
   const handleSearchStudent = async () => {
     if (!studentNumber.trim()) {
@@ -244,6 +243,7 @@ const CourseTagging = () => {
         activeCurriculum: active_curriculum,
         yearLevel,
         yearLevelDescription: yearLevelDescription,
+        yearDesc: yearDesc,
         courseCode: course_code,
         courseDescription: course_desc,
         departmentName: dprtmnt_name,
@@ -254,8 +254,8 @@ const CourseTagging = () => {
         lastName: last_name
       } = response.data;
 
-
-      console.log(response.data);
+      console.log("data[0]:", data[0]);
+console.log("yearLevelDescription state:", yearLevelDescription);
       // Save to localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("person_id", person_id);
@@ -271,7 +271,7 @@ const CourseTagging = () => {
       localStorage.setItem("middleName", middle_name);
       localStorage.setItem("lastName", last_name);
       localStorage.setItem("yearLevelDescription", yearLevelDescription);
-
+      localStorage.setItem("yearDesc", yearDesc);
       // Update state variables
       setUserId(studentNum);
       setUserFirstName(first_name);
@@ -285,10 +285,12 @@ const CourseTagging = () => {
       setLabUnit(lab_unit);
       setPersonID(person_id);
       setYearLevelDescription(yearLevelDescription);
+      setYearDescription(yearDesc);
+
+      console.log(yearLevelDescription);
       // 2. Fetch full student data (COR info)
       const corResponse = await axios.get(`http://localhost:5000/student-data/${studentNum}`);
       const fullData = corResponse.data;
-
       // Store complete data for rendering
       setData([fullData]); // Wrap in array for data[0] compatibility
 
@@ -886,7 +888,7 @@ const CourseTagging = () => {
                     <td colSpan={9} style={{ fontSize: "62.5%" }}>
                       <input
                         type="text"
-                        value={data[0]?.curriculum || ""}
+                        value={`${year_desc || ""}-${year_desc || ""}`}
                         readOnly
                         style={{
                           fontFamily: "Arial, sans-serif",
@@ -912,7 +914,7 @@ const CourseTagging = () => {
                       <input type="text" value={"Year Level:"} style={{ fontWeight: "bold", color: "black", fontFamily: 'Arial, sans-serif', fontSize: '12px', width: "98%", border: "none", outline: "none", background: "none" }} />
                     </td>
                     <td colSpan={9} style={{ fontSize: "62.5%", }}>
-                      <input type="text" value={`${data[0]?.yearLevelDescription || ''}`} readOnly style={{ fontFamily: "Arial, sans-serif", color: "black", width: "98%", fontSize: "12px", border: "none", outline: "none", background: "none" }} />
+                      <input type="text" value={year_Level_Description || ''} readOnly style={{ fontFamily: "Arial, sans-serif", color: "black", width: "98%", fontSize: "12px", border: "none", outline: "none", background: "none" }} />
                     </td>
                     <td colSpan={8} style={{ fontSize: "50%" }}>
                       <input type="text" value={"Scholarship/Discount:"} style={{ fontWeight: "bold", color: "black", fontFamily: 'Arial, sans-serif', fontSize: '12px', width: "98%", border: "none", outline: "none", background: "none" }} />

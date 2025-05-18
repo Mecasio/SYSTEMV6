@@ -64,6 +64,19 @@
 /*---------------------------------START---------------------------------------*/ 
 
 //ADMISSION
+
+
+
+
+
+
+
+
+
+
+
+
+
 //REGISTER (UPDATED!)
 app.post("/register", async (req, res) => {
   const { email, password } = req.body;
@@ -94,6 +107,88 @@ app.post("/register", async (req, res) => {
       res.status(500).send({ message: "Internal Server Error" });
   }
 });
+
+// REGISTER API (NEW)
+// app.post("/register_account", async (req, res) => {
+//   const { email, password } = req.body;
+
+//   if (!email || !password ) {
+//     return res.status(400).json({ message: "All fields are required" });
+//   }
+
+//   try {
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Check if user already exists
+//     const checkUserSql = "SELECT * FROM user_accounts WHERE email = ?";
+//     const [existingUsers] = await db.query(checkUserSql, [email]);
+
+//     if (existingUsers.length > 0) {
+//       return res.status(400).json({ message: "User already exists" });
+//     }
+
+//     // Insert blank record into person_table and get inserted person_id
+//     const insertPersonSql = "INSERT INTO person_table () VALUES ()";
+//     const [personResult] = await db.query(insertPersonSql);
+
+
+//     // Step 1: Get the active_school_year_id
+//     const activeYearSql = `SELECT asy.id, st.semester_code FROM active_school_year_table AS asy
+//     LEFT JOIN 
+//     semester_table AS st ON asy.semester_id = st.semester_id WHERE astatus = 1 LIMIT 1`;
+//     const [yearResult] = await db3.query(activeYearSql);
+
+//     if (yearResult.length === 0) {
+//       return res.status(404).json({ error: "No active school year found" });
+//     }
+
+//     const activeSchoolYearId = yearResult[0].id;
+//     const semester_code = yearResult[0].semester_code;
+
+
+
+
+
+
+//     const person_id = personResult.insertId;
+
+//     // Insert user with person_id
+//     const insertUserSql = "INSERT INTO user_accounts (email, person_id, password, role) VALUES (?, ?, ?, 'applicant')";
+//     await db.query(insertUserSql, [email, person_id, hashedPassword]);
+
+//     res.status(201).json({ message: "User registered successfully", person_id });
+//   } catch (error) {
+//     console.error("Registration error:", error);
+//     res.status(500).json({ message: "Registration failed" });
+//   }
+// });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //GET ADMITTED USERS (UPDATED!)
 app.get('/admitted_users', async (req, res) => {
@@ -606,8 +701,8 @@ app.post("/login", async (req, res) => {
 
   try {
 
-    const query = `SELECT * FROM prof_table as ua
-      LEFT JOIN person_prof_table as pt
+    const query = `SELECT * FROM user_accounts as ua
+      LEFT JOIN person_table as pt
       ON pt.person_id = ua.person_id
     WHERE email = ?`;
 
@@ -2247,6 +2342,7 @@ app.post("/student-tagging", async (req, res) => {
     SELECT * FROM student_status_table as ss 
     INNER JOIN curriculum_table as c ON c.curriculum_id = ss.active_curriculum
     INNER JOIN program_table as pt ON c.program_id = pt.program_id
+    INNER JOIN year_table as yt ON c.year_id = yt.year_id
     INNER JOIN student_numbering_table as sn ON sn.student_number = ss.student_number
     INNER JOIN person_table as ptbl ON ptbl.person_id = sn.person_id
     INNER JOIN year_level_table as ylt ON ss.year_level_id = ylt.year_level_id
@@ -2270,7 +2366,7 @@ app.post("/student-tagging", async (req, res) => {
         courseCode: student.program_code,
         courseDescription: student.program_description,
         department: student.dprtmnt_name,
-       
+        yearDesc: student.year_description,
         firstName: student.first_name,
         middleName: student.middle_name,
         lastName: student.last_name,
@@ -2292,10 +2388,11 @@ app.post("/student-tagging", async (req, res) => {
       person_id: student.person_id,
       activeCurriculum: student.active_curriculum,
       yearLevel: student.year_level_id,
+      yearLevelDescription: student.year_level_description,
       courseCode: student.program_code,
       courseDescription: student.program_description,
       department: student.dprtmnt_name,
-  
+      yearDesc: student.year_description,
       firstName: student.first_name,
       middleName: student.middle_name,
       lastName: student.last_name,
@@ -2315,10 +2412,11 @@ app.post("/student-tagging", async (req, res) => {
       person_id: student.person_id,
       activeCurriculum: student.active_curriculum,
       yearLevel: student.year_level_id,
+      yearLevelDescription: student.year_level_description,
       courseCode: student.program_code,
       courseDescription: student.program_description,
       department: student.dprtmnt_name,
- 
+      yearDesc: student.year_description,
       firstName: student.first_name,
       middleName: student.middle_name,
       lastName: student.last_name,
