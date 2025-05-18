@@ -81,10 +81,10 @@ app.post("/register", async (req, res) => {
     const person_id = result1.insertId;
 
     // Second insert into user_accounts
-    const query2 = 'INSERT INTO user_accounts (person_id, email, password) VALUES (?, ?, ?)';
+    const query2 = "INSERT INTO user_accounts (person_id, email, password, role) VALUES (?, ?, ?,'applicant')";
     const [result2] = await db.query(query2, [person_id, email, hashedPassword]);
 
-    res.status(201).send({ message: "Registered Successfully", person_id });
+    res.status(201).send({ message: "Registered Successfully", result2});
   } 
   catch (error) {
       // If any query fails, we rollback the first insert
