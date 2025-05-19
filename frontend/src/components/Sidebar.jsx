@@ -51,6 +51,9 @@ const SideBar = ({ setIsAuthenticated }) => {
             { role === 'faculty' && (
               <span className='mt-4'>Faculty</span>
             )} 
+            { role === 'student' && (
+              <span className='mt-4'>Student</span>
+            )} 
         </div>
         <br />
         <hr className='bg-maroon-500'/>
@@ -150,6 +153,16 @@ const SideBar = ({ setIsAuthenticated }) => {
             <Business />
             <span className='pl-4 p-2 px-0 pointer-events-none'>Schedule</span>
           </li>
+          </Link>
+          </>
+        )}
+        {role === 'student' && (
+          <>
+          <Link to="/student_dashboard">
+            <li className={`w-full flex items-center border border-maroon-500 px-2 rounded button-hover ${location.pathname === "/faculty_dashboard" ? "bg-maroon-500 text-white" : ""}`} >
+              <Dashboard/>
+              <span className='pl-4 p-2 px-0 pointer-events-none'>Dashboard</span>
+            </li>
           </Link>
           </>
         )}

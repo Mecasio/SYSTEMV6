@@ -6,6 +6,8 @@ const FacultyDashboard = () => {
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
   const [person, setPerson] = useState({
     lname: "",
     fname: "",
@@ -34,12 +36,12 @@ const FacultyDashboard = () => {
   
   const fetchPersonData = async (id) => {
     try{
-      const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`)
-      if (res.data.length > 0) {
-        setPerson(res.data[0]);
-      }
+      const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`);
+      setPerson(res.data[0]);
+      setLoading(false);
     } catch (err) {
-      console.log(err);
+      setLoading(false);
+      setMessage('Error fetching data');
     }
   }
 

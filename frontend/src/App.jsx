@@ -62,6 +62,7 @@ import FacultyMasterList from './components/FacultyMasterlist';
 import FacultyStudentClassList from './components/FacultyStudentClassList';
 import FacultySchedule from './components/FacultySchedule';
 import Dashboard1 from './components/Dashboard1';
+import StudentDashboard from './pages/StudentDashboard';
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -158,6 +159,7 @@ import Dashboard1 from './components/Dashboard1';
                 <Route path="/subject_masterlist/:subject_id/:department_section_id/:school_year_id" element={<ProtectedRoute><FacultyStudentClassList /></ProtectedRoute>} />
                 <Route path="/faculty_schedule" element={<ProtectedRoute><FacultySchedule /></ProtectedRoute>} />
                 <Route path="/dashboard1" element={<ProtectedRoute allowedRoles={'applicant'}><Dashboard1 /></ProtectedRoute>} />
+                <Route path="/student_dashboard" element={<ProtectedRoute allowedRoles={'student'}><StudentDashboard /></ProtectedRoute>} />
                 <Route path="/unauthorized" element={<Unauthorized />} />
               </Routes>
             </main>

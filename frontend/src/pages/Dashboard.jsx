@@ -18,7 +18,8 @@ const Dashboard = () => {
     
           if (storedRole !== "registrar") {
             window.location.href = "/applicant_dashboard";
-          } else {
+          } 
+          else {
             // fetchPersonData(storedID);
             console.log('hello');
           }
@@ -31,7 +32,7 @@ const Dashboard = () => {
     return (
         <h1>
             <div>Name: {user}</div>
-            <div>Employee ID: {userID}</div>
+            <div>Student ID: {userID}</div>
             <div>Email: {user}</div>
             <div>Role: {userRole}</div>
             Welcome to the Dashboard

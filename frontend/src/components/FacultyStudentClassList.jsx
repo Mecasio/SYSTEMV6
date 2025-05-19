@@ -12,10 +12,13 @@ import {
 } from "@mui/material";
 
 const FacultyStudentClassList = () => {
+  const { subject_id, department_section_id, school_year_id } = useParams();
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
-
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
   const [profData, setProfData] = useState({
     prof_id: '',
     fname: '',
@@ -27,11 +30,6 @@ const FacultyStudentClassList = () => {
     mappings: []
   });
 
-  const [students, setStudents] = useState([]);
-
-  const { subject_id, department_section_id, school_year_id } = useParams();
-
-  // Validate user
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
@@ -52,35 +50,33 @@ const FacultyStudentClassList = () => {
     }
   }, []);
 
-  // Fetch professor details
   const fetchPersonData = async (id) => {
     try {
       const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`);
-      if (res.data.length > 0) {
-        const first = res.data[0];
+      const first = res.data[0];
+      
+      const profInfo = {
+        prof_id: first.prof_id,
+        fname: first.fname,
+        mname: first.mname,
+        lname: first.lname,
+        department_section_id: first.department_section_id,
+        subject_id: first.subject_id,
+        active_school_year_id: first.school_year_id,
+        mappings: res.data.map(row => ({
+          subject_id: row.course_id,
+          department_section_id: row.department_section_id
+        }))
+      };
 
-        const profInfo = {
-          prof_id: first.prof_id,
-          fname: first.fname,
-          mname: first.mname,
-          lname: first.lname,
-          department_section_id: first.department_section_id,
-          subject_id: first.subject_id,
-          active_school_year_id: first.school_year_id,
-          mappings: res.data.map(row => ({
-            subject_id: row.course_id,
-            department_section_id: row.department_section_id
-          }))
-        };
-
-        setProfData(profInfo);
-      }
+      setProfData(profInfo);
+      setLoading(false);
     } catch (err) {
-      console.log(err);
+      setLoading(false);
+      setMessage("Failed to Get person information")
     }
   };
 
-  // Fetch students once params are ready
   useEffect(() => {
     if (subject_id && department_section_id && school_year_id) {
       handleFetchStudents(subject_id, department_section_id, school_year_id);
@@ -91,7 +87,6 @@ const FacultyStudentClassList = () => {
     try {
       const response = await fetch(`http://localhost:5000/get_enrolled_students/${subject_id}/${department_section_id}/${school_year_id}`);
       const data = await response.json();
-      console.log("Fetched students data:", data);
 
       if (response.ok) {
         const studentsWithSubject = data.students.map((student) => ({
@@ -101,11 +96,12 @@ const FacultyStudentClassList = () => {
         }));
         setStudents(studentsWithSubject);
       } else {
-        alert(data.message || "Failed to fetch students.");
+        setLoading(false);
+        setMessage( "Failed to fetch students.");
       }
     } catch (error) {
-      console.error("Fetch error:", error);
-      alert("Server error.");
+      setLoading(false)
+      setMessage("Server error.");
     }
   };
 

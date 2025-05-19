@@ -2,133 +2,137 @@ import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 
 const FacultySchedule = () => {
-
     const [userID, setUserID] = useState("");
-  const [user, setUser] = useState("");
-  const [userRole, setUserRole] = useState("");
+    const [user, setUser] = useState("");
+    const [userRole, setUserRole] = useState("");
+    const [schedule, setSchedule] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [message, setMessage] = useState("");
     const [profData, setPerson] = useState({
-      prof_id: '',
-      fname: '',
-      mname: '',
-      lname: '',
-      profile_img: '',
-      room_id: '',
-      room_description: '',
-      department_section_id: '',
-      subject_id: '',
-      active_school_year_id: '',
-      mappings: [] 
+        prof_id: '',
+        fname: '',
+        mname: '',
+        lname: '',
+        profile_img: '',
+        room_id: '',
+        room_description: '',
+        department_section_id: '',
+        subject_id: '',
+        active_school_year_id: '',
+        mappings: [] 
     });
       
-      useEffect(() => {
+    useEffect(() => {
         const storedUser = localStorage.getItem("email");
         const storedRole = localStorage.getItem("role");
         const storedID = localStorage.getItem("person_id");
 
         if (storedUser && storedRole && storedID) {
-          setUser(storedUser);
-          setUserRole(storedRole);
-          setUserID(storedID);
+            setUser(storedUser);
+            setUserRole(storedRole);
+            setUserID(storedID);
 
-          if (storedRole !== "faculty") {
-            window.location.href = "/dashboard";
-          } else {
-            fetchPersonData(storedID);
-          }
+            if (storedRole !== "faculty") {
+                window.location.href = "/dashboard";
+            } else {
+                fetchPersonData(storedID);
+            }
         } else {
-          window.location.href = "/login";
+            window.location.href = "/login";
         }
-      }, []);
+    }, []);
 
-      const fetchPersonData = async (id) => {
+    const fetchPersonData = async (id) => {
         try{
-          const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`)
-          if (res.data.length > 0) {
+            const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`);
             const first = res.data[0];
-            console.log(first);
+            
             const profInfo = {
-              prof_id: first.prof_id,
-              fname: first.fname,
-              mname: first.mname,
-              lname: first.lname,
-              profile_img: first.profile_image,
-              room_id: first.department_room_id,
-              room_description: first.room_description,
-              department_section_id: first.department_section_id, // optional, if needed
-              subject_id: first.subject_id, // optional, if needed
-              active_school_year_id: first.school_year_id,
-              mappings: res.data.map(row => ({
-                room_id: row.department_room_id,
-                room_description: row.room_description,
-              }))
+                prof_id: first.prof_id,
+                fname: first.fname,
+                mname: first.mname,
+                lname: first.lname,
+                profile_img: first.profile_image,
+                room_id: first.department_room_id,
+                room_description: first.room_description,
+                department_section_id: first.department_section_id, // optional, if needed
+                subject_id: first.subject_id, // optional, if needed
+                active_school_year_id: first.school_year_id,
+                mappings: res.data.map(row => ({
+                    room_id: row.department_room_id,
+                    room_description: row.room_description,
+                }))
             };
       
             setPerson(profInfo);
-          }
         } catch (err) {
-          console.log(err);
+            setLoading(false);
+            setMessage("Error Fetching person's data");
         }
-      }
+    }
 
-    const [schedule, setSchedule] = useState([]);
-
-        useEffect(() => {
-            if (!profData.prof_id || !profData.room_id) return; 
-            
-            const fetchSchedule = async () => {
+    useEffect(() => {
+        if (!profData.prof_id || !profData.room_id) return; 
+        
+        const fetchSchedule = async () => {
             try {
                 const response = await axios.get(`http://localhost:5000/get_room/${profData.prof_id}/${profData.room_id}`);
-                console.log(response.data);
+            
                 setSchedule(response.data);
             } catch (err) {
-                console.error('Error fetching professor schedule:', err);
+                setLoading(false)
+                setMessage('Error fetching professor schedule:');
             }
-            };
-
-            fetchSchedule();
-        }, [profData.prof_id, profData.room_id]);
-
-        const isTimeInSchedule = (start, end, day) => {
-            const parseTime = (timeStr) => {
-                // Create a Date object from a time string like "8:00 AM"
-                const time = new Date(`1970-01-01T${new Date('1970-01-01 ' + timeStr).toTimeString().slice(0,8)}`);
-                return time;
-            };
-          
-            return schedule.some(entry => {
-                if (entry.day !== day) return false;
-                    const slotStart = parseTime(start);
-                    const slotEnd = parseTime(end);
-                    const profStart = parseTime(entry.start_time);
-                    const profEnd = parseTime(entry.end_time);
-                    return slotStart >= profStart && slotEnd <= profEnd;
-                });
-            };
-
-        const hasAdjacentSchedule = (start, end, day, direction = "top") => {
-            const parseTime = (timeStr) => new Date(`1970-01-01T${new Date('1970-01-01 ' + timeStr).toTimeString().slice(0,8)}`);
-          
-            const minutesOffset = direction === "top" ? -60 : 60;
-          
-            const newStart = new Date(parseTime(start).getTime() + minutesOffset * 60000);
-            const newEnd = new Date(parseTime(end).getTime() + minutesOffset * 60000);
-          
-            return schedule.some(entry => {
-              if (entry.day !== day) return false;
-          
-              const profStart = parseTime(entry.start_time);
-              const profEnd = parseTime(entry.end_time);
-          
-              return newStart >= profStart && newEnd <= profEnd;
-            });
         };
+
+        fetchSchedule();
+    }, [profData.prof_id, profData.room_id]);
+
+    const isTimeInSchedule = (start, end, day) => {
+        const parseTime = (timeStr) => {
+            
+            const time = new Date(`1970-01-01T${new Date('1970-01-01 ' + timeStr).toTimeString().slice(0,8)}`);
+            return time;
+        };
+      
+        return schedule.some(entry => {
+            if (entry.day !== day) return false;
+                const slotStart = parseTime(start);
+                const slotEnd = parseTime(end);
+                const profStart = parseTime(entry.start_time);
+                const profEnd = parseTime(entry.end_time);
+                return slotStart >= profStart && slotEnd <= profEnd;
+        });
+    };
+
+    const hasAdjacentSchedule = (start, end, day, direction = "top") => {
+        const parseTime = (timeStr) => new Date(`1970-01-01T${new Date('1970-01-01 ' + timeStr).toTimeString().slice(0,8)}`);
+      
+        const minutesOffset = direction === "top" ? -60 : 60;
+      
+        const newStart = new Date(parseTime(start).getTime() + minutesOffset * 60000);
+        const newEnd = new Date(parseTime(end).getTime() + minutesOffset * 60000);
+      
+        return schedule.some(entry => {
+          if (entry.day !== day) return false;
+      
+          const profStart = parseTime(entry.start_time);
+          const profEnd = parseTime(entry.end_time);
+      
+          return newStart >= profStart && newEnd <= profEnd;
+        });
+    };
           
     return (
         <div className='overflow-y-scroll h-screen relative'>
             <div className="temp-container">
-                {profData.mappings && profData.mappings.map((map, index) => (
+                {profData.mappings && profData.mappings
+                .filter((item, index, self) =>
+                    index === self.findIndex(v => v.room_id === item.room_id)
+                )
+                .map((map, index) => (
                 <button
-                    key={`${map.room_id}-${index}`} 
+                    key={`${map.room_id}`} 
                     onClick={() => {
                         setPerson(prev => ({
                           ...prev,

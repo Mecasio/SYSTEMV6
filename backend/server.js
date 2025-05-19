@@ -701,8 +701,8 @@ app.post("/login", async (req, res) => {
 
   try {
 
-    const query = `SELECT * FROM user_accounts as ua
-      LEFT JOIN person_table as pt
+    const query = `SELECT * FROM prof_table as ua
+      LEFT JOIN person_prof_table as pt
       ON pt.person_id = ua.person_id
     WHERE email = ?`;
 
@@ -2420,7 +2420,7 @@ app.post("/student-tagging", async (req, res) => {
       firstName: student.first_name,
       middleName: student.middle_name,
       lastName: student.last_name,
-      age: student.age,
+      age: student.agecd,
       gender: student.gender,
       email: student.emailAddress,
       program: student.program,
@@ -2696,6 +2696,26 @@ app.get('/api/professor-schedule/:profId', async (req, res) => {
     res.status(500).send('DB Error');
   }
 });
+
+
+app.get('/api/student-dashboard/:id', async (req, res) => {
+  const {id} = req.params;
+
+  try{
+    const query = `SELECT snt.student_number, pt.* FROM student_numbering_table as snt
+      INNER JOIN person_table as pt ON snt.person_id = pt.person_id
+      WHERE snt.person_id = ?
+    `;
+    const [result] = await db3.query(query, [id]);
+    console.log(result);
+    res.json(result);
+  }catch(error){
+    console.error(error);
+    res.status(500).send('DB ERROR');
+  }
+})
+
+
 
 /* CODE NI MARK */
 app.get('/student-data/:studentNumber', async (req, res) => {

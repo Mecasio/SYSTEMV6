@@ -3,10 +3,12 @@ import axios from 'axios';
 import EaristLogo from '../assets/EaristLogo.png';
 
 const FacultyWorkload = () => {
-
     const [userID, setUserID] = useState("");
     const [user, setUser] = useState("");
     const [userRole, setUserRole] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [message, setMessage] = useState("");
+    const [schedule, setSchedule] = useState([]);
     const [profData, setPerson] = useState({
         prof_id: '',
         fname: '',
@@ -19,59 +21,56 @@ const FacultyWorkload = () => {
         mappings: [] 
     });
       
-      useEffect(() => {
+    useEffect(() => {
         const storedUser = localStorage.getItem("email");
         const storedRole = localStorage.getItem("role");
         const storedID = localStorage.getItem("person_id");
 
         if (storedUser && storedRole && storedID) {
-          setUser(storedUser);
-          setUserRole(storedRole);
-          setUserID(storedID);
+            setUser(storedUser);
+            setUserRole(storedRole);
+            setUserID(storedID);
 
-          if (storedRole !== "faculty") {
-            window.location.href = "/dashboard";
-          } else {
-            fetchPersonData(storedID);
-          }
+            if (storedRole !== "faculty") {
+                window.location.href = "/dashboard";
+            } else {
+                fetchPersonData(storedID);
+            }
         } else {
-          window.location.href = "/login";
+            window.location.href = "/login";
         }
-      }, []);
+    }, []);
 
-      const fetchPersonData = async (id) => {
+    const fetchPersonData = async (id) => {
         try{
-          const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`)
-          if (res.data.length > 0) {
+            const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`)
             const first = res.data[0];
-      
+                
             const profInfo = {
-              prof_id: first.prof_id,
-              fname: first.fname,
-              mname: first.mname,
-              lname: first.lname,
-              profile_img: first.profile_image,
-              department_section_id: first.department_section_id, 
-              subject_id: first.subject_id, 
-              active_school_year_id: first.school_year_id,
-              mappings: res.data.map(row => ({
-                subject_id: row.course_id,
-                department_section_id: row.department_section_id
-              }))
+                prof_id: first.prof_id,
+                fname: first.fname,
+                mname: first.mname,
+                lname: first.lname,
+                profile_img: first.profile_image,
+                department_section_id: first.department_section_id, 
+                subject_id: first.subject_id, 
+                active_school_year_id: first.school_year_id,
+                mappings: res.data.map(row => ({
+                    subject_id: row.course_id,
+                    department_section_id: row.department_section_id
+                }))
             };
       
             setPerson(profInfo);
-          }
         } catch (err) {
-          console.log(err);
+            console.log(err);
         }
-      }
+    }
 
-    const [schedule, setSchedule] = useState([]);
-        useEffect(() => {
-            if (!profData.prof_id) return; 
-            
-            const fetchSchedule = async () => {
+    useEffect(() => {
+        if (!profData.prof_id) return; 
+        
+        const fetchSchedule = async () => {
             try {
                 const response = await axios.get(`http://localhost:5000/api/professor-schedule/${profData.prof_id}`);
                 console.log(response.data);
@@ -79,45 +78,44 @@ const FacultyWorkload = () => {
             } catch (err) {
                 console.error('Error fetching professor schedule:', err);
             }
-            };
-
-            fetchSchedule();
-        }, [profData.prof_id]);
-
-        const isTimeInSchedule = (start, end, day) => {
-            const parseTime = (timeStr) => {
-                // Create a Date object from a time string like "8:00 AM"
-                const time = new Date(`1970-01-01T${new Date('1970-01-01 ' + timeStr).toTimeString().slice(0,8)}`);
-                return time;
-            };
-          
-            return schedule.some(entry => {
-                if (entry.day !== day) return false;
-                    const slotStart = parseTime(start);
-                    const slotEnd = parseTime(end);
-                    const profStart = parseTime(entry.start_time);
-                    const profEnd = parseTime(entry.end_time);
-                    return slotStart >= profStart && slotEnd <= profEnd;
-                });
-            };
-
-        const hasAdjacentSchedule = (start, end, day, direction = "top") => {
-            const parseTime = (timeStr) => new Date(`1970-01-01T${new Date('1970-01-01 ' + timeStr).toTimeString().slice(0,8)}`);
-          
-            const minutesOffset = direction === "top" ? -60 : 60;
-          
-            const newStart = new Date(parseTime(start).getTime() + minutesOffset * 60000);
-            const newEnd = new Date(parseTime(end).getTime() + minutesOffset * 60000);
-          
-            return schedule.some(entry => {
-              if (entry.day !== day) return false;
-          
-              const profStart = parseTime(entry.start_time);
-              const profEnd = parseTime(entry.end_time);
-          
-              return newStart >= profStart && newEnd <= profEnd;
-            });
         };
+
+        fetchSchedule();
+    }, [profData.prof_id]);
+
+    const isTimeInSchedule = (start, end, day) => {
+        const parseTime = (timeStr) => {
+            const time = new Date(`1970-01-01T${new Date('1970-01-01 ' + timeStr).toTimeString().slice(0,8)}`);
+            return time;
+        };
+      
+        return schedule.some(entry => {
+            if (entry.day !== day) return false;
+                const slotStart = parseTime(start);
+                const slotEnd = parseTime(end);
+                const profStart = parseTime(entry.start_time);
+                const profEnd = parseTime(entry.end_time);
+                return slotStart >= profStart && slotEnd <= profEnd;
+        });
+    };
+
+    const hasAdjacentSchedule = (start, end, day, direction = "top") => {
+        const parseTime = (timeStr) => new Date(`1970-01-01T${new Date('1970-01-01 ' + timeStr).toTimeString().slice(0,8)}`);
+      
+        const minutesOffset = direction === "top" ? -60 : 60;
+      
+        const newStart = new Date(parseTime(start).getTime() + minutesOffset * 60000);
+        const newEnd = new Date(parseTime(end).getTime() + minutesOffset * 60000);
+      
+        return schedule.some(entry => {
+            if (entry.day !== day) return false;
+            
+            const profStart = parseTime(entry.start_time);
+            const profEnd = parseTime(entry.end_time);
+            
+            return newStart >= profStart && newEnd <= profEnd;
+        });
+    };
           
     return (
         <div className='overflow-y-scroll h-screen relative'>

@@ -8,6 +8,9 @@ const GradingSheet = () => {
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+  const [students, setStudents] = useState([]);
   const [profData, setPerson] = useState({
     prof_id: "",
     fname: "",
@@ -22,163 +25,160 @@ const GradingSheet = () => {
     year_description: "",
     course_code: "",
   });
-      const [students, setStudents] = useState([]);
+  
+  useEffect(() => {
+    const storedUser = localStorage.getItem("email");
+    const storedRole = localStorage.getItem("role");
+    const storedID = localStorage.getItem("person_id");
+
+    if (storedUser && storedRole && storedID) {
+      setUser(storedUser);
+      setUserRole(storedRole);
+      setUserID(storedID);
+      if (storedRole !== "faculty") {
+        window.location.href = "/dashboard";
+      } else {
+        fetchPersonData(storedID);
+      }
+    } else {
+      window.location.href = "/login";
+    }
+  }, []);
+
+  const fetchPersonData = async (id) => {
+    try{
+      const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`)
+      const first = res.data[0];
+
+      const profInfo = {
+        prof_id: first.prof_id,
+        fname: first.fname,
+        mname: first.mname,
+        lname: first.lname,
+        department_section_id: first.department_section_id, // optional, if needed
+        subject_id: first.subject_id, // optional, if needed
+        active_school_year_id: first.school_year_id,
+        section_description: first.section_description,
+        program_description: first.program_description,
+        program_code: first.program_code,
+        year_description: first.year_description,
+        course_code: first.course_code,
+        mappings: res.data.map(row => ({
+          subject_id: row.course_id,
+          department_section_id: row.department_section_id,
+          section_description: row.section_description,
+          program_code: row.program_code,
+          year_description: row.year_description,
+          course_code: row.course_code,
+        }))
+      };
+
+      setPerson(profInfo);
+    } catch (err) {
+      setLoading(false);
+      setMessage("Error Fetching Professor Personal Data");
+    }
+  }
+
+  const handleFetchStudents = async (subject_id, department_section_id, active_school_year_id) => {
+    try {
+      const response = await fetch(`http://localhost:5000/get_enrolled_students/${subject_id}/${department_section_id}/${active_school_year_id}`);
+      const data = await response.json();
       
+      if (response.ok) {
+        const studentsWithSubject = data.students.map((student) => ({
+          ...student,
+          subject_id,
+          department_section_id,
+        }));
+
+        setStudents(studentsWithSubject);
+      } else {
+        setLoading(false);
+        setMessage("Failed to fetch students.");
+      }
+    } catch (error) {
+      setLoading(false);
+      setMessage("Fetch error");
+    }
+  };
+
+  const handleChanges = (index, field, value) => {
+    const updatedStudents = [...students];
+    updatedStudents[index][field] = value;
+
+    if (field === "midterm" || field === "finals") {
+      const finalGrade = finalGradeCalc(updatedStudents[index].midterm, updatedStudents[index].finals);
+      updatedStudents[index].final_grade = finalGrade;
+
+      if (finalGrade == 0) {
+        updatedStudents[index].en_remarks = 0;
+      } else if (finalGrade >= 75) {
+        updatedStudents[index].en_remarks = 1;
+      } else if (finalGrade >= 60) {
+        updatedStudents[index].en_remarks = 2;
+      } else {
+        updatedStudents[index].en_remarks = 3;
+      }
+    }
     
-      useEffect(() => {
-        const storedUser = localStorage.getItem("email");
-        const storedRole = localStorage.getItem("role");
-        const storedID = localStorage.getItem("person_id");
+    setStudents(updatedStudents);
+  }
 
-        if (storedUser && storedRole && storedID) {
-          setUser(storedUser);
-          setUserRole(storedRole);
-          setUserID(storedID);
+  const addStudentInfo = async (student) => {
+    try {
+      const response = await fetch('http://localhost:5000/add_grades', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          midterm: student.midterm,
+          finals: student.finals,
+          final_grade: student.final_grade,
+          en_remarks: student.en_remarks,
+          student_number: student.student_number,
+          subject_id: student.subject_id,
+        })
+      });
 
-          if (storedRole !== "faculty") {
-            window.location.href = "/dashboard";
-          } else {
-            fetchPersonData(storedID);
-          }
-        } else {
-          window.location.href = "/login";
-        }
-      }, []);
+      const result = await response.json();
 
-      const fetchPersonData = async (id) => {
-        try{
-          const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`)
-          if (res.data.length > 0) {
-            const first = res.data[0];
-      
-            const profInfo = {
-              prof_id: first.prof_id,
-              fname: first.fname,
-              mname: first.mname,
-              lname: first.lname,
-              department_section_id: first.department_section_id, // optional, if needed
-              subject_id: first.subject_id, // optional, if needed
-              active_school_year_id: first.school_year_id,
-              section_description: first.section_description,
-              program_description: first.program_description,
-              program_code: first.program_code,
-              year_description: first.year_description,
-              course_code: first.course_code,
-              mappings: res.data.map(row => ({
-                subject_id: row.course_id,
-                department_section_id: row.department_section_id,
-                section_description: row.section_description,
-                program_code: row.program_code,
-                year_description: row.year_description,
-                course_code: row.course_code,
-              }))
-            };
-      
-            setPerson(profInfo);
-          }
-        } catch (err) {
-          console.log(err);
-        }
+      if (response.ok) {
+        setLoading(false);
+        setMessage("Grades saved successfully!");
+      } else {
+        setLoading(false);
+        setMessage("Failed to save grades.");
       }
+    } catch (error) {
+      setLoading(false);
+      setMessage("Save error");
+    }
+  }
 
-      const handleFetchStudents = async (subject_id, department_section_id, active_school_year_id) => {
-        try {
-          const response = await fetch(`http://localhost:5000/get_enrolled_students/${subject_id}/${department_section_id}/${active_school_year_id}`);
-          const data = await response.json();
-          console.log("Fetched students data:", data);
-          if (response.ok) {
-            const studentsWithSubject = data.students.map((student) => ({
-              ...student,
-              subject_id,
-              department_section_id,
-            }));
-            setStudents(studentsWithSubject);
-          } else {
-            alert(data.message || "Failed to fetch students.");
-          }
-        } catch (error) {
-          console.error("Fetch error:", error);
-          alert("Server error.");
-        }
-      };
+  const remarkConversion = (student) => {
+    if (student.en_remarks == 1) {
+      return "PASSED";
+    } else if (student.en_remarks == 2) {
+      return "FAILED";
+    } else if (student.en_remarks == 3) {
+      return "INCOMPLETE";
+    } else {
+      return "DROP";
+    }
+  };
 
-      const handleChanges = (index, field, value) => {
-        const updatedStudents = [...students];
-        updatedStudents[index][field] = value;
+  const finalGradeCalc = (midterm, finals) => {
+    const midtermScore = parseFloat(midterm);
+    const finalScore = parseFloat(finals);
+  
+    if (isNaN(midtermScore) || isNaN(finalScore)) {
+      return "Invalid input";
+    }
 
-        if (field === "midterm" || field === "finals") {
-            const finalGrade = finalGradeCalc(updatedStudents[index].midterm, updatedStudents[index].finals);
-            updatedStudents[index].final_grade = finalGrade;
-            if (finalGrade == 0) {
-              updatedStudents[index].en_remarks = 0;
-            } else if (finalGrade >= 75) {
-              updatedStudents[index].en_remarks = 1;
-            } else if (finalGrade >= 60) {
-              updatedStudents[index].en_remarks = 2;
-            } else {
-              updatedStudents[index].en_remarks = 3;
-            }
-        }
-
-        setStudents(updatedStudents);
-      }
-
-      const addStudentInfo = async (student) => {
-        try {
-          const response = await fetch('http://localhost:5000/add_grades', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              midterm: student.midterm,
-              finals: student.finals,
-              final_grade: student.final_grade,
-              en_remarks: student.en_remarks,
-              student_number: student.student_number,
-              subject_id: student.subject_id,
-            })
-          });
-      
-          const result = await response.json();
-      
-          if (response.ok) {
-            alert("Grades saved successfully!");
-          } else {
-            alert(result.message || "Failed to save grades.");
-          }
-        } catch (error) {
-          console.error("Save error:", error);
-          alert("Error saving grades.");
-        }
-      }
-      
-      const editStudentInfo = () => { 
-
-      }
-
-      const remarkConversion = (student) => {
-        if (student.en_remarks == 1) {
-          return "PASSED";
-        } else if (student.en_remarks == 2) {
-          return "FAILED";
-        } else if (student.en_remarks == 3) {
-          return "INCOMPLETE";
-        } else {
-          return "DROP";
-        }
-      };
-
-      const finalGradeCalc = (midterm, finals) => {
-        const midtermScore = parseFloat(midterm);
-        const finalScore = parseFloat(finals);
-      
-        if (isNaN(midtermScore) || isNaN(finalScore)) {
-          return "Invalid input";
-        }
-
-        const finalGrade = (midtermScore * 0.5) + (finalScore * 0.5);
-
-        return finalGrade.toFixed(0);
-      };
+    const finalGrade = (midtermScore * 0.5) + (finalScore * 0.5);
+    
+    return finalGrade.toFixed(0);
+  };
 
   return (
     <div>
@@ -314,7 +314,6 @@ const GradingSheet = () => {
                
                 <TableCell style={{padding: '0.5rem', width: '10%', borderColor: 'gray', borderWidth: '1px 1px 1px 1px', borderStyle: 'solid'}}>
                   <button onClick={() => addStudentInfo(student)}>Save</button>
-                  <button onClick={editStudentInfo}>Edit</button>
                 </TableCell>
             
             </TableRow>
